@@ -210,7 +210,7 @@ export default function HomePage() {
         </h1>
 
         <p className="text-lg sm:text-xl md:text-2xl text-muted-foreground max-w-2xl mx-auto px-4">
-        Complete structured tasks, earn Task Points ($TP), and convert them to SOL — while brands drive measurable engagement and retention.</p>
+        Complete structured tasks, earn Task Points ($TP), and convert them to SOL.</p>
 
         <div className="mt-6 sm:mt-8 flex flex-col sm:flex-row justify-center gap-3 sm:gap-4 px-4">
           <Link
