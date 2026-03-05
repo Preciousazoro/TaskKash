@@ -253,15 +253,15 @@ export default function HomePage() {
             <ul className="space-y-4 text-muted-foreground">
               <li className="flex items-start space-x-3">
                 <svg className="text-green-400 w-5 h-5 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
-                <span>Earn crypto for simple social tasks</span>
+                <span>Earn TP through verified participation and convert to SOL</span>
               </li>
               <li className="flex items-start space-x-3">
                 <svg className="text-green-400 w-5 h-5 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
-                <span>Verified human engagement only</span>
+                <span>Real human engagement — no bots, no fake metrics</span>
               </li>
               <li className="flex items-start space-x-3">
                 <svg className="text-green-400 w-5 h-5 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
-                <span>Instant withdrawals to your wallet</span>
+                <span>Withdraw your rewards directly to your wallet</span>
               </li>
             </ul>
           </div>
