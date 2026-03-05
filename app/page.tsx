@@ -325,25 +325,25 @@ export default function HomePage() {
               For Projects 🏢
             </h2>
             <p className="text-lg text-muted-foreground mb-6">
-              Grow your project with authentic user engagement and measurable results.
+              Verify user participation and drive measurable growth with structured campaigns.
             </p>
 
             <ul className="space-y-4 text-muted-foreground">
               <li className="flex items-start space-x-3">
                 <svg className="text-green-400 w-5 h-5 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"></circle><circle cx="12" cy="12" r="6"></circle><circle cx="12" cy="12" r="2"></circle></svg>
-                <span>Reach your target audience effectively</span>
+                <span>Launch structured engagement campaigns</span>
               </li>
               <li className="flex items-start space-x-3">
                 <svg className="text-green-400 w-5 h-5 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="23 6 13.5 15.5 8.5 10.5"></polyline><polyline points="1 6 10.5 15.5 15.5 10.5"></polyline></svg>
-                <span>Track real-time campaign performance</span>
+                <span>Increase retention rates</span>
               </li>
               <li className="flex items-start space-x-3">
                 <svg className="text-green-400 w-5 h-5 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg>
-                <span>Verified engagement and fraud protection</span>
+                <span>verified engagement — no bots, no fake metrics</span>
               </li>
               <li className="flex items-start space-x-3">
                 <svg className="text-green-400 w-5 h-5 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="1" x2="12" y2="23"></line><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg>
-                <span>Cost-effective marketing solutions</span>
+                <span>Cost-effective</span>
               </li>
             </ul>
           </div>
