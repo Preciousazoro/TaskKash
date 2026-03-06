@@ -339,7 +339,7 @@ export default function HomePage() {
               </li>
               <li className="flex items-start space-x-3">
                 <svg className="text-green-400 w-5 h-5 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg>
-                <span>verified engagement — no bots, no fake metrics</span>
+                <span>verified engagement. no bots, no fake metrics</span>
               </li>
               <li className="flex items-start space-x-3">
                 <svg className="text-green-400 w-5 h-5 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="1" x2="12" y2="23"></line><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg>
