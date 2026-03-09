@@ -92,12 +92,12 @@ export default function TaskKashFooter() {
                 </Link>
               </li>
               <li>
-                <Link href="/careers" className="block text-base transition-all duration-200 hover:text-white hover:translate-x-1">
+                <Link href="#" className="block text-base transition-all duration-200 hover:text-white hover:translate-x-1">
                   Careers
                 </Link>
               </li>
               <li>
-                <Link href="/privacy" className="block text-base transition-all duration-200 hover:text-white hover:translate-x-1">
+                <Link href="#" className="block text-base transition-all duration-200 hover:text-white hover:translate-x-1">
                   Privacy Policy
                 </Link>
               </li>
@@ -114,17 +114,17 @@ export default function TaskKashFooter() {
                 </a>
               </li>
               <li>
-                <Link href="/docs" className="block text-base transition-all duration-200 hover:text-white hover:translate-x-1">
+                <Link href="#" className="block text-base transition-all duration-200 hover:text-white hover:translate-x-1">
                   Docs
                 </Link>
               </li>
               <li>
-                <Link href="/support" className="block text-base transition-all duration-200 hover:text-white hover:translate-x-1">
+                <Link href="/contact" className="block text-base transition-all duration-200 hover:text-white hover:translate-x-1">
                   Support
                 </Link>
               </li>
               <li>
-                <Link href="/api" className="block text-base transition-all duration-200 hover:text-white hover:translate-x-1">
+                <Link href="#" className="block text-base transition-all duration-200 hover:text-white hover:translate-x-1">
                   API
                 </Link>
               </li>
@@ -143,19 +143,19 @@ export default function TaskKashFooter() {
           
           <div className="flex gap-6 text-sm sm:gap-8 sm:text-base">
             <Link 
-              href="/terms" 
+              href="#" 
               className="text-slate-500 transition-all duration-200 hover:text-white hover:underline"
             >
               Terms of Service
             </Link>
             <Link 
-              href="/privacy" 
+              href="#" 
               className="text-slate-500 transition-all duration-200 hover:text-white hover:underline"
             >
               Privacy Policy
             </Link>
             <Link 
-              href="/security" 
+              href="#" 
               className="text-slate-500 transition-all duration-200 hover:text-white hover:underline"
             >
               Security

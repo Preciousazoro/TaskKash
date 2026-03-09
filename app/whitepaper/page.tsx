@@ -3,6 +3,8 @@
 
 import Link from "next/link";
 import { ArrowRight, CheckCircle2, ShieldCheck, XCircle } from "lucide-react";
+import TaskKashHeader from "@/components/ui/TaskKashHeader";
+import TaskKashFooter from "@/components/ui/TaskKashFooter";
 
 const technicalStack = [
   {
@@ -77,8 +79,10 @@ const milestones = [
 
 export default function AboutPage() {
   return (
-    <main className="min-h-screen bg-background text-foreground">
-      <section className="relative overflow-hidden border-b border-border">
+    <div className="min-h-screen bg-background text-foreground">
+      <TaskKashHeader />
+      <main className="pt-20">
+        <section className="relative overflow-hidden border-b border-border">
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(74,222,128,0.12),transparent_30%),radial-gradient(circle_at_bottom_right,rgba(147,51,234,0.12),transparent_30%)]" />
         <div className="mx-auto w-[80%] max-w-6xl px-4 py-20 sm:px-6 sm:py-24 lg:py-28">
           <div className="mx-auto max-w-4xl text-center">
@@ -341,9 +345,8 @@ export default function AboutPage() {
         </div>
       </section>
 
-      <footer className="border-t border-border py-8 text-center text-sm text-muted-foreground">
-        © 2026 TaskKash Protocol. All rights reserved.
-      </footer>
-    </main>
+      <TaskKashFooter />
+      </main>
+    </div>
   );
 }
