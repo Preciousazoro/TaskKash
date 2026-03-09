@@ -1,4 +1,4 @@
-import { toast } from 'sonner';
+import { toast } from 'react-toastify';
 import { Button } from '@/components/ui/button';
 
 interface ConfirmToastOptions {
@@ -19,11 +19,13 @@ export function confirmToast({
   confirmButtonVariant = 'default'
 }: ConfirmToastOptions) {
   return new Promise<void>((resolve) => {
-    const toastId = toast('', {
-      duration: Infinity,
-      className: 'p-0',
-      action: (
-        <div className="flex w-full gap-2 p-4">
+    const toastId = toast(
+      <div className="bg-card border border-border rounded-lg shadow-lg p-6 min-w-[320px] max-w-[400px]">
+        <div className="font-semibold text-foreground mb-3 text-lg">{title}</div>
+        {message && (
+          <div className="text-sm text-muted-foreground mb-6 leading-relaxed">{message}</div>
+        )}
+        <div className="flex gap-3">
           <Button
             variant="outline"
             size="sm"
@@ -31,7 +33,7 @@ export function confirmToast({
               toast.dismiss(toastId);
               resolve();
             }}
-            className="flex-1"
+            className="flex-1 hover:bg-muted transition-colors"
           >
             {cancelText}
           </Button>
@@ -40,14 +42,35 @@ export function confirmToast({
             size="sm"
             onClick={async () => {
               // Show loading state
-              toast.loading('Processing...', { id: toastId });
+              toast.update(toastId, {
+                render: (
+                  <div className="bg-card border border-border rounded-lg shadow-lg p-6 min-w-[320px] max-w-[400px] flex items-center justify-center">
+                    <div className="flex items-center gap-3">
+                      <div className="animate-spin rounded-full h-4 w-4 border-2 border-primary border-t-transparent"></div>
+                      <span className="text-foreground">Processing...</span>
+                    </div>
+                  </div>
+                ),
+                type: 'default',
+                isLoading: true,
+              });
               
               try {
                 await onConfirm();
-                toast.success('Action completed successfully', { id: toastId });
+                toast.update(toastId, {
+                  render: 'Action completed successfully',
+                  type: 'success',
+                  isLoading: false,
+                  autoClose: 3000,
+                });
               } catch (error) {
                 console.error('Action failed:', error);
-                toast.error('Action failed. Please try again.', { id: toastId });
+                toast.update(toastId, {
+                  render: 'Action failed. Please try again.',
+                  type: 'error',
+                  isLoading: false,
+                  autoClose: 5000,
+                });
               }
               resolve();
             }}
@@ -56,15 +79,17 @@ export function confirmToast({
             {confirmText}
           </Button>
         </div>
-      ),
-      description: (
-        <div className="p-4 pb-0">
-          <div className="font-semibold text-foreground">{title}</div>
-          {message && (
-            <div className="text-sm text-muted-foreground mt-1">{message}</div>
-          )}
-        </div>
-      ),
-    });
+      </div>,
+      {
+        autoClose: false,
+        className: 'p-0',
+        closeButton: false,
+        closeOnClick: false,
+        style: {
+          background: 'transparent',
+          boxShadow: 'none',
+        }
+      }
+    );
   });
 }

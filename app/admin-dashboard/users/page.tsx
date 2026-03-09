@@ -5,7 +5,7 @@ import { useSearchParams, useRouter, usePathname } from "next/navigation";
 import { Eye, Edit, Ban, Trash2, Shield } from "lucide-react";
 import AdminHeader from "../../../components/admin-dashboard/AdminHeader";
 import AdminSidebar from "../../../components/admin-dashboard/AdminSidebar";
-import { toast } from "sonner";
+import { toast } from 'react-toastify';
 import { Pagination } from "@/components/ui/Pagination";
 import { UserAvatar } from "../../../components/admin-dashboard/UserAvatar";
 import { UserPreviewModal } from "../../../components/admin-dashboard/UserPreviewModal";
@@ -41,6 +41,11 @@ export default function AdminUsersPage() {
   const [users, setUsers] = useState<User[]>([]);
   const [allUsers, setAllUsers] = useState<User[]>([]);
   const [activeFilter, setActiveFilter] = useState<'all' | 'admins' | 'suspended'>('all');
+  const [filterCounts, setFilterCounts] = useState({
+    all: 0,
+    admins: 0,
+    suspended: 0
+  });
   const [pagination, setPagination] = useState<PaginationData>({
     currentPage: 1,
     totalPages: 0,
@@ -54,6 +59,7 @@ export default function AdminUsersPage() {
   const [detailUser, setDetailUser] = useState<User | null>(null);
   const [editingPoints, setEditingPoints] = useState<{ [k: string]: number }>({});
   const [loadingActions, setLoadingActions] = useState<{ [k: string]: boolean }>({});
+  const [savingPoints, setSavingPoints] = useState<{ [k: string]: boolean }>({});
   
   const searchParams = useSearchParams();
   const router = useRouter();
@@ -71,17 +77,6 @@ export default function AdminUsersPage() {
     }
   }, [allUsers, activeFilter]);
 
-  /* -------- FILTER COUNTS -------- */
-  const filterCounts = useMemo(() => {
-    const admins = allUsers.filter(user => user.role === 'admin').length;
-    const suspended = allUsers.filter(user => user.status === 'suspended').length;
-    
-    return {
-      all: allUsers.length,
-      admins,
-      suspended
-    };
-  }, [allUsers]);
 
   /* -------- FETCH USERS FROM DATABASE -------- */
   const fetchUsers = async (page: number, limit: number) => {
@@ -96,6 +91,9 @@ export default function AdminUsersPage() {
       const data = await response.json();
       setAllUsers(data.users);
       setPagination(data.pagination);
+      if (data.filterCounts) {
+        setFilterCounts(data.filterCounts);
+      }
     } catch (error) {
       console.error('Error fetching users:', error);
       toast.error('Failed to load users');
@@ -157,6 +155,8 @@ export default function AdminUsersPage() {
 
   const updatePoints = async (id: string, value: number) => {
     try {
+      setSavingPoints(prev => ({ ...prev, [id]: true }));
+      
       const response = await fetch(`/api/admin/users/${id}/points`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
@@ -180,6 +180,12 @@ export default function AdminUsersPage() {
     } catch (error) {
       console.error('Error updating points:', error);
       showToast("Failed to update points", "error");
+    } finally {
+      setSavingPoints(prev => {
+        const p = { ...prev };
+        delete p[id];
+        return p;
+      });
     }
   };
 
@@ -406,9 +412,10 @@ export default function AdminUsersPage() {
                               />
                               <button
                                 onClick={() => updatePoints(u._id, editingPoints[u._id])}
-                                className="px-2 py-1 text-xs bg-primary text-primary-foreground rounded hover:bg-primary/90"
+                                disabled={savingPoints[u._id]}
+                                className="px-2 py-1 text-xs bg-primary text-primary-foreground rounded hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed"
                               >
-                                Save
+                                {savingPoints[u._id] ? 'Saving...' : 'Save'}
                               </button>
                             </div>
                           ) : (

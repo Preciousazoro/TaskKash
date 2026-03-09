@@ -54,29 +54,32 @@ export const {
           if (!isPasswordValid) return null;
 
           /**
-           * 🎁 Daily login bonus (never block login)
+           * 🎁 Daily login bonus (background processing)
            */
-          try {
-            const hasClaimed = await hasClaimedDailyBonusToday(
-              user._id.toString()
-            );
+          setTimeout(async () => {
+            try {
+              const hasClaimed = await hasClaimedDailyBonusToday(
+                user._id.toString()
+              );
 
-            if (!hasClaimed) {
-              await createDailyLoginBonus(user._id.toString());
+              if (!hasClaimed) {
+                await createDailyLoginBonus(user._id.toString());
+              }
+            } catch (err) {
+              console.error("Daily bonus error:", err);
             }
-          } catch (err) {
-            console.error("Daily bonus error:", err);
-          }
+          }, 0);
 
           /**
-           * 🔥 Update daily streak (never block login)
+           * 🔥 Update daily streak (background processing)
            */
-          let updatedStreak = 0;
-          try {
-            updatedStreak = await updateDailyStreak(user._id.toString());
-          } catch (err) {
-            console.error("Daily streak error:", err);
-          }
+          setTimeout(async () => {
+            try {
+              await updateDailyStreak(user._id.toString());
+            } catch (err) {
+              console.error("Daily streak error:", err);
+            }
+          }, 0);
 
           /**
            * ✅ RETURN ONLY ESSENTIAL SERIALIZABLE DATA
@@ -89,7 +92,7 @@ export const {
             taskPoints: user.taskPoints, // Include actual balance from DB
             tasksCompleted: user.tasksCompleted, // Include tasks completed from DB
             welcomeBonusGranted: user.welcomeBonusGranted, // Include bonus status
-            dailyStreak: updatedStreak, // Include updated daily streak
+            dailyStreak: user.dailyStreak, // Use existing streak from DB
           };
         } catch (err) {
           console.error("Authorize error:", err);
@@ -156,100 +159,3 @@ export const {
    */
   secret: process.env.NEXTAUTH_SECRET,
 });
-
-
-
-
-
-
-// import NextAuth from 'next-auth';
-// import Credentials from 'next-auth/providers/credentials';
-// import connectDB from '@/lib/mongodb';
-// import User, { IUser } from '@/models/User';
-// import { hasClaimedDailyBonusToday, createDailyLoginBonus } from '@/lib/transactions';
-
-// export const { handlers, signIn, signOut, auth } = NextAuth({
-//   providers: [
-//     Credentials({
-//       name: 'credentials',
-//       credentials: {
-//         email: { label: 'Email', type: 'email' },
-//         password: { label: 'Password', type: 'password' }
-//       },
-//       async authorize(credentials) {
-//         if (!credentials?.email || !credentials?.password) {
-//           return null;
-//         }
-
-//         try {
-//           await connectDB();
-          
-//           const user = await User.findOne({ email: credentials.email }).select('+password');
-          
-//           if (!user) {
-//             return null;
-//           }
-
-//           const isPasswordValid = await user.comparePassword(credentials.password);
-          
-//           if (!isPasswordValid) {
-//             return null;
-//           }
-
-//           // Check and award daily login bonus if not already claimed today
-//           try {
-//             const hasClaimed = await hasClaimedDailyBonusToday(user._id.toString());
-//             if (!hasClaimed) {
-//               await createDailyLoginBonus(user._id.toString());
-//             }
-//           } catch (error) {
-//             console.error('Error handling daily login bonus:', error);
-//             // Don't fail login if bonus creation fails
-//           }
-
-//           return {
-//             id: user._id.toString(),
-//             email: user.email,
-//             name: user.name,
-//             username: user.username,
-//             avatarUrl: user.avatarUrl,
-//             taskPoints: user.taskPoints || 50,
-//             tasksCompleted: user.tasksCompleted || 0,
-//           };
-//         } catch (error) {
-//           console.error('Auth error:', error);
-//           return null;
-//         }
-//       }
-//     })
-//   ],
-//   session: {
-//     strategy: 'jwt',
-//   },
-//   callbacks: {
-//     async jwt({ token, user }) {
-//       if (user) {
-//         token.id = user.id;
-//         token.username = user.username;
-//         token.avatarUrl = user.avatarUrl;
-//         token.taskPoints = user.taskPoints;
-//         token.tasksCompleted = user.tasksCompleted;
-//       }
-//       return token;
-//     },
-//     async session({ session, token }) {
-//       if (token) {
-//         session.user.id = token.id as string;
-//         session.user.username = token.username as string;
-//         session.user.avatarUrl = token.avatarUrl as string;
-//         session.user.taskPoints = token.taskPoints as number;
-//         session.user.tasksCompleted = token.tasksCompleted as number;
-//       }
-//       return session;
-//     },
-//   },
-//   pages: {
-//     signIn: '/auth/login',
-//   },
-//   secret: process.env.NEXTAUTH_SECRET,
-// });

@@ -1,163 +1,15 @@
 "use client";
 
-import { useEffect, useState } from "react";
 import { ArrowRight } from "lucide-react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
-import { Menu, X } from "lucide-react";
-import ModeToggle from "@/components/ui/ModeToggle";
 import Footer from "@/components/ui/Footer";
+import TaskKashHeader from "@/components/ui/TaskKashHeader";
+import TaskKashFooter from "@/components/ui/TaskKashFooter";
 
 export default function AboutPage() {
-  const pathname = usePathname();
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-
-  const isActive = (path: string) => {
-    if (path === "/" && pathname === "/") return true;
-    if (path !== "/" && pathname.startsWith(path)) return true;
-    return false;
-  };
-
-  const navItems = [
-    { href: "/", label: "Home" },
-    { href: "#", label: "For Users" },
-    { href: "#", label: "For Projects" },
-    { href: "/about", label: "About" },
-    { href: "/contact", label: "Contact" },
-  ];
-
   return (
     <div className="bg-background text-foreground min-h-screen overflow-x-hidden transition-colors duration-300">
-      {/* Header */}
-      <header className="container mx-auto px-6 py-6 flex justify-between items-center md:static md:z-auto sticky top-0 z-40 bg-background/95 backdrop-blur-sm border-b border-border md:border-b-0">
-        <div 
-          className="flex items-center space-x-3 cursor-pointer hover:opacity-80 transition-opacity"
-          onClick={() => window.location.href = '/'}
-        >
-          <img
-            src="/taskkash-logo.png"
-            alt="TaskKash Logo"
-            className="w-10 h-10 object-contain"
-          />
-          <span className="text-2xl font-bold bg-linear-to-tr">TaskKash</span>
-        </div>
-
-        {/* Desktop Navigation */}
-        <nav className="hidden md:flex items-center space-x-8">
-          {navItems.map((item) => (
-            <Link
-              key={item.label}
-              href={item.href}
-              className={`transition-colors ${
-                isActive(item.href)
-                  ? "text-green-400 font-medium"
-                  : "hover:text-green-400"
-              }`}
-            >
-              {item.label}
-            </Link>
-          ))}
-        </nav>
-
-        <div className="flex items-center space-x-4">
-          <ModeToggle />
-
-          {/* Desktop Auth Buttons */}
-          <div className="hidden md:flex items-center space-x-4">
-            <Link
-              href="/auth/login"
-              className="px-4 py-2 rounded-lg border border-border text-foreground font-medium hover:bg-muted"
-            >
-              Login
-            </Link>
-
-            <Link
-              href="/auth/signup"
-              className="px-6 py-2 rounded-lg bg-linear-to-r from-green-400 to-purple-600 text-white font-medium hover:opacity-90 shadow"
-            >
-              Sign Up
-            </Link>
-          </div>
-
-          {/* Mobile Menu Button */}
-          <button
-            onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-            className="md:hidden p-2 rounded-lg hover:bg-muted transition-colors"
-          >
-            {isMobileMenuOpen ? (
-              <X className="w-6 h-6" />
-            ) : (
-              <Menu className="w-6 h-6" />
-            )}
-          </button>
-        </div>
-      </header>
-
-      {/* Mobile Menu */}
-      {isMobileMenuOpen && (
-        <div className="md:hidden fixed inset-0 z-50">
-          <div className="fixed inset-0 bg-black/30 backdrop-blur-sm" onClick={() => setIsMobileMenuOpen(false)} />
-          <div className="fixed top-0 left-0 h-full w-80 bg-background/95 backdrop-blur-md border-r border-border shadow-xl">
-            <div className="flex flex-col h-full">
-              {/* Mobile Menu Header */}
-              <div className="flex items-center justify-between p-6 border-b border-border">
-                <div className="flex items-center space-x-2 cursor-pointer hover:opacity-80 transition-opacity"
-                     onClick={() => window.location.href = '/'}>
-                  <img
-                    src="/taskkash-logo.png"
-                    alt="TaskKash Logo"
-                    className="w-8 h-8 object-contain"
-                  />
-                  <span className="text-xl font-bold bg-linear-to-tr">TaskKash</span>
-                </div>
-                <button
-                  onClick={() => setIsMobileMenuOpen(false)}
-                  className="p-2 rounded-lg hover:bg-muted transition-colors"
-                >
-                  <X className="w-5 h-5" />
-                </button>
-              </div>
-
-              {/* Mobile Navigation Links */}
-              <nav className="flex-1 p-6 space-y-4">
-                {navItems.map((item) => (
-                  <Link
-                    key={item.label}
-                    href={item.href}
-                    onClick={() => setIsMobileMenuOpen(false)}
-                    className={`block px-4 py-3 rounded-lg transition-colors ${
-                      isActive(item.href)
-                        ? "bg-green-400/10 text-green-400 font-medium dark:bg-green-400/10 dark:text-green-400 light:bg-green-500/20 light:text-green-600"
-                        : "hover:bg-muted text-foreground"
-                    }`}
-                  >
-                    {item.label}
-                  </Link>
-                ))}
-              </nav>
-
-              {/* Mobile Auth Buttons */}
-              <div className="p-6 border-t border-border space-y-3">
-                <Link
-                  href="/auth/login"
-                  onClick={() => setIsMobileMenuOpen(false)}
-                  className="block w-full px-4 py-3 rounded-lg border border-border text-foreground font-medium hover:bg-muted text-center transition-colors"
-                >
-                  Login
-                </Link>
-
-                <Link
-                  href="/auth/signup"
-                  onClick={() => setIsMobileMenuOpen(false)}
-                  className="block w-full px-4 py-3 rounded-lg bg-linear-to-r from-green-400 to-purple-600 text-white font-medium hover:opacity-90 shadow text-center transition-opacity"
-                >
-                  Sign Up
-                </Link>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
+      <TaskKashHeader />
 
       <main className="relative min-h-screen bg-background text-foreground overflow-hidden transition-colors duration-300">
       {/* Background glow */}
@@ -295,8 +147,17 @@ export default function AboutPage() {
           </Link>
         </section>
       </div>
-    </main>
-    <Footer />
+      </main>
+      <TaskKashFooter />
+      
+      <style jsx>{`
+        .gradient-text {
+          background: linear-gradient(90deg, #00ff9d, #8a2be2);
+          -webkit-background-clip: text;
+          background-clip: text;
+          -webkit-text-fill-color: transparent;
+        }
+      `}</style>
     </div>
   );
 }

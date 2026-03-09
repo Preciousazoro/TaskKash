@@ -53,13 +53,14 @@ export async function POST(request: NextRequest) {
       // Don't fail registration if bonus creation fails
     }
 
-    // Create admin notification for new user registration
-    try {
-      await AdminNotifications.userSignedUp(user._id.toString(), name, email);
-    } catch (error) {
-      console.error('Failed to create user registration notification:', error);
-      // Don't fail registration if notification fails
-    }
+    // Create admin notification for new user registration (background)
+    setTimeout(async () => {
+      try {
+        await AdminNotifications.userSignedUp(user._id.toString(), name, email);
+      } catch (error) {
+        console.error('Failed to create user registration notification:', error);
+      }
+    }, 0);
 
     return NextResponse.json(
       { 

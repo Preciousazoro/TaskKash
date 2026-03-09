@@ -1,10 +1,9 @@
 "use client";
 
-import React, { useEffect, useMemo, useState, useRef } from "react";
+import React, { useEffect, useMemo, useState, useRef, lazy, Suspense } from "react";
 import AdminHeader from "@/components/admin-dashboard/AdminHeader";
 import AdminSidebar from "@/components/admin-dashboard/AdminSidebar";
 import { AdminContentOnlySkeleton } from "@/components/ui/LoadingSkeleton";
-import Chart from "chart.js/auto";
 import {
   Users,
   FileText,
@@ -12,7 +11,39 @@ import {
   Plus,
   Loader2,
 } from "lucide-react";
-import { toast } from "sonner";
+import { toast } from "react-toastify";
+
+// Simple chart implementation with proper cleanup
+const SimpleChart = ({ data, type }: { data: any; type: string }) => {
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const chartRef = useRef<any>(null);
+
+  useEffect(() => {
+    if (canvasRef.current && data) {
+      import("chart.js/auto").then((Chart) => {
+        const ctx = canvasRef.current?.getContext('2d');
+        if (ctx) {
+          // Destroy existing chart if it exists
+          if (chartRef.current) {
+            chartRef.current.destroy();
+          }
+          // Create new chart
+          chartRef.current = new Chart.default(ctx, data);
+        }
+      });
+    }
+
+    // Cleanup function to destroy chart when component unmounts or data changes
+    return () => {
+      if (chartRef.current) {
+        chartRef.current.destroy();
+        chartRef.current = null;
+      }
+    };
+  }, [data]);
+
+  return <canvas ref={canvasRef} />;
+};
 
 /* ---------------- TYPES ---------------- */
 type Task = {
@@ -58,12 +89,6 @@ const Dashboard = () => {
   const [activitiesError, setActivitiesError] = useState<string | null>(null);
   const [activitiesPage, setActivitiesPage] = useState(1);
   const [activitiesTotalPages, setActivitiesTotalPages] = useState(1);
-  
-  // Chart refs
-  const userGrowthChartRef = useRef<HTMLCanvasElement>(null);
-  const taskCompletionChartRef = useRef<HTMLCanvasElement>(null);
-  const userGrowthChartInstance = useRef<Chart | null>(null);
-  const taskCompletionChartInstance = useRef<Chart | null>(null);
 
   /* ---------- FETCH METRICS ---------- */
   const fetchMetrics = async () => {
@@ -141,119 +166,7 @@ const Dashboard = () => {
   }, [metrics, tasks]);
 
   /* ---------- CHARTS ---------- */
-  useEffect(() => {
-    // Only initialize charts after component is mounted and metrics are loaded
-    if (metricsLoading || metricsError) return;
-
-    // Small delay to ensure DOM is fully rendered
-    const timer = setTimeout(() => {
-      const userGrowthCanvas = userGrowthChartRef.current;
-      const taskCompletionCanvas = taskCompletionChartRef.current;
-
-      if (!userGrowthCanvas || !taskCompletionCanvas) {
-        console.warn('Chart canvas elements not found');
-        return;
-      }
-
-      // Destroy existing chart instances if they exist
-      if (userGrowthChartInstance.current) {
-        userGrowthChartInstance.current.destroy();
-      }
-      if (taskCompletionChartInstance.current) {
-        taskCompletionChartInstance.current.destroy();
-      }
-
-      // Create User Growth Chart
-      const userGrowthCtx = userGrowthCanvas.getContext('2d');
-      if (userGrowthCtx) {
-        userGrowthChartInstance.current = new Chart(userGrowthCtx, {
-        type: "line",
-        data: {
-          labels: ["Jan", "Feb", "Mar", "Apr", "May", "Jun"],
-          datasets: [
-            {
-              label: "Users",
-              data: metrics ? 
-                [Math.floor(metrics.totalUsers * 0.15), Math.floor(metrics.totalUsers * 0.30), 
-                 Math.floor(metrics.totalUsers * 0.45), Math.floor(metrics.totalUsers * 0.60), 
-                 Math.floor(metrics.totalUsers * 0.80), metrics.totalUsers] :
-                [120, 240, 380, 540, 690, 820],
-              borderColor: "#a855f7",
-              backgroundColor: "rgba(168,85,247,.15)",
-              borderWidth: 2,
-              pointRadius: 3,
-              pointHoverRadius: 4,
-              fill: true,
-              tension: 0.35,
-            },
-          ],
-        },
-        options: {
-          maintainAspectRatio: false,
-          plugins: { legend: { display: false } },
-          scales: {
-            x: {
-              grid: { display: false },
-              ticks: { color: "#6b7280", font: { size: 11 } },
-            },
-            y: {
-              grid: { color: "rgba(255,255,255,0.05)" },
-              ticks: { color: "#6b7280", font: { size: 11 } },
-            },
-          },
-        },
-      });
-    }
-
-    // Create Task Completion Chart
-    const taskCompletionCtx = taskCompletionCanvas.getContext('2d');
-    if (taskCompletionCtx) {
-      taskCompletionChartInstance.current = new Chart(taskCompletionCtx, {
-        type: "doughnut",
-        data: {
-          labels: ["Completed", "Pending"],
-          datasets: [
-            {
-              data: metrics ? 
-                [metrics.tasksCompleted, metrics.pendingReviews] :
-                [70, 30],
-              backgroundColor: ["#22c55e", "#facc15"],
-              borderWidth: 0,
-            },
-          ],
-        },
-        options: {
-          maintainAspectRatio: false,
-          cutout: "70%",
-          plugins: {
-            legend: {
-              position: "bottom",
-              labels: {
-                color: "#9ca3af",
-                boxWidth: 10,
-                padding: 12,
-                font: { size: 11 },
-              },
-            },
-          },
-        },
-      });
-      }
-    }, 100); // 100ms delay
-
-    // Cleanup function
-    return () => {
-      clearTimeout(timer);
-      if (userGrowthChartInstance.current) {
-        userGrowthChartInstance.current.destroy();
-        userGrowthChartInstance.current = null;
-      }
-      if (taskCompletionChartInstance.current) {
-        taskCompletionChartInstance.current.destroy();
-        taskCompletionChartInstance.current = null;
-      }
-    };
-  }, [metricsLoading, metricsError, metrics]);
+  // Charts are now lazy loaded with Suspense, no initialization needed
 
   /* ---------- CREATE TASK ---------- */
   const handleCreateTask = async (e: React.FormEvent) => {
@@ -408,12 +321,51 @@ const Dashboard = () => {
                 </span>
               </div>
               <div className="flex-1">
-                <canvas 
-                  ref={userGrowthChartRef}
-                  width={400}
-                  height={300}
-                  style={{ width: '100%', height: '100%' }}
-                />
+                {metrics ? (
+                  <SimpleChart 
+                    type="line"
+                    data={{
+                      type: "line",
+                      data: {
+                        labels: ["Jan", "Feb", "Mar", "Apr", "May", "Jun"],
+                        datasets: [
+                          {
+                            label: "Users",
+                            data: [Math.floor(metrics.totalUsers * 0.15), Math.floor(metrics.totalUsers * 0.30), 
+                                   Math.floor(metrics.totalUsers * 0.45), Math.floor(metrics.totalUsers * 0.60), 
+                                   Math.floor(metrics.totalUsers * 0.80), metrics.totalUsers],
+                            borderColor: "#a855f7",
+                            backgroundColor: "rgba(168,85,247,.15)",
+                            borderWidth: 2,
+                            pointRadius: 3,
+                            pointHoverRadius: 4,
+                            fill: true,
+                            tension: 0.35,
+                          },
+                        ],
+                      },
+                      options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: { legend: { display: false } },
+                        scales: {
+                          x: {
+                            grid: { display: false },
+                            ticks: { color: "#6b7280", font: { size: 11 } },
+                          },
+                          y: {
+                            grid: { color: "rgba(255,255,255,0.05)" },
+                            ticks: { color: "#6b7280", font: { size: 11 } },
+                          },
+                        },
+                      },
+                    }}
+                  />
+                ) : (
+                  <div className="h-64 bg-muted animate-pulse rounded-lg flex items-center justify-center">
+                    <Loader2 className="w-8 h-8 animate-spin" />
+                  </div>
+                )}
               </div>
             </div>
 
@@ -427,12 +379,44 @@ const Dashboard = () => {
                 </span>
               </div>
               <div className="flex-1 flex items-center justify-center">
-                <canvas
-                  ref={taskCompletionChartRef}
-                  width={260}
-                  height={260}
-                  className="max-w-[260px] max-h-[260px]"
-                />
+                {metrics ? (
+                  <SimpleChart 
+                    type="doughnut"
+                    data={{
+                      type: "doughnut",
+                      data: {
+                        labels: ["Completed", "Pending"],
+                        datasets: [
+                          {
+                            data: [metrics.tasksCompleted, metrics.pendingReviews],
+                            backgroundColor: ["#22c55e", "#facc15"],
+                            borderWidth: 0,
+                          },
+                        ],
+                      },
+                      options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        cutout: "70%",
+                        plugins: {
+                          legend: {
+                            position: "bottom",
+                            labels: {
+                              color: "#9ca3af",
+                              boxWidth: 10,
+                              padding: 12,
+                              font: { size: 11 },
+                            },
+                          },
+                        },
+                      },
+                    }}
+                  />
+                ) : (
+                  <div className="h-64 bg-muted animate-pulse rounded-lg flex items-center justify-center">
+                    <Loader2 className="w-8 h-8 animate-spin" />
+                  </div>
+                )}
               </div>
             </div>
           </div>

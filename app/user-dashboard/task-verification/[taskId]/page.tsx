@@ -5,7 +5,7 @@ import { useParams, useSearchParams, useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 import { Upload, CheckCircle2, Loader2, Info, ArrowLeft } from "lucide-react";
 import { TaskStateManager } from "@/lib/taskState";
-import { toast } from "sonner";
+import { toast } from 'react-toastify';
 
 // Navigation Import
 import UserSidebar from "@/components/user-dashboard/UserSidebar";
@@ -42,11 +42,7 @@ export default function TaskVerificationPage() {
       
       if (!isStarted) {
         toast.error("You must start the task first before submitting proof.", {
-          duration: 3000,
-          action: {
-            label: "Go to Dashboard",
-            onClick: () => router.push("/user-dashboard/dashboard")
-          }
+          autoClose: 3000
         });
         
         // Redirect after a short delay to allow user to see the toast

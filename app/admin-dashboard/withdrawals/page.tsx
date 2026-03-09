@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { Search, CheckCircle, XCircle, Clock, Loader2, Building2, Wallet, User, X, Eye, Mail, Calendar as CalendarIcon, Award } from "lucide-react";
-import { toast } from "sonner";
+import { toast } from 'react-toastify';
 import { IWithdrawal, WithdrawalStatus, WithdrawalType, BankDetails, CryptoDetails } from "@/models/Withdrawal";
 
 // Interface for populated user data

@@ -5,7 +5,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { X, ExternalLink, Clock, CheckCircle2, Loader2, Trophy, Info } from "lucide-react";
 import { TaskDocument } from "@/types/shared-task";
 import { StatusBadge } from "./StatusBadge";
-import { toast } from "sonner";
+import { toast } from 'react-toastify';
 import { TaskStateManager } from "@/lib/taskState";
 
 interface TaskPreviewModalProps {
@@ -41,7 +41,7 @@ export function TaskPreviewModal({ task, isOpen, onClose }: TaskPreviewModalProp
       
       // Show success toast
       toast.success("Task started! Complete it and submit your proof.", {
-        duration: 3000,
+        autoClose: 3000,
       });
       
       // Open task URL in new tab after a short delay
@@ -75,7 +75,7 @@ export function TaskPreviewModal({ task, isOpen, onClose }: TaskPreviewModalProp
     });
     
     toast.info("Redirecting to proof submission...", {
-      duration: 2000,
+      autoClose: 2000,
     });
     
     setTimeout(() => {
@@ -292,7 +292,7 @@ export function TaskPreviewModal({ task, isOpen, onClose }: TaskPreviewModalProp
                 
                 <button
                   onClick={handleSubmitProof}
-                  className="flex-1 py-3 px-4 rounded-lg font-medium text-sm transition-all bg-gradient-to-r from-green-500 to-purple-500 text-white hover:from-green-600 hover:to-purple-600"
+                  className="flex-1 py-3 px-4 rounded-lg font-medium text-sm transition-all bg-linear-to-r from-green-500 to-purple-500 text-white hover:from-green-600 hover:to-purple-600"
                 >
                   Submit Proof
                 </button>

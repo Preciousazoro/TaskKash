@@ -15,6 +15,12 @@ export async function GET(request: NextRequest) {
     // Get total count of users - use lean() for better performance
     const totalUsers = await User.countDocuments().lean();
     
+    // Get counts for each filter category
+    const [adminCount, suspendedCount] = await Promise.all([
+      User.countDocuments({ role: 'admin' }).lean(),
+      User.countDocuments({ status: 'suspended' }).lean()
+    ]);
+    
     // Get paginated users with optimized query
     type LeanUser = { 
       _id: any;
@@ -66,6 +72,11 @@ export async function GET(request: NextRequest) {
         limit,
         hasNextPage: page < totalPages,
         hasPrevPage: page > 1
+      },
+      filterCounts: {
+        all: totalUsers,
+        admins: adminCount,
+        suspended: suspendedCount
       }
     });
     

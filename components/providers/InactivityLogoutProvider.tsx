@@ -2,8 +2,9 @@
 
 import { useEffect, useRef, useState, useCallback } from 'react';
 import { useSession, signOut } from 'next-auth/react';
+import { useSession as useOptimizedSession } from './OptimizedSessionProvider';
 import { useRouter } from 'next/navigation';
-import { toast } from 'sonner';
+import { toast } from 'react-toastify';
 
 interface InactivityLogoutProviderProps {
   children: React.ReactNode;
@@ -18,7 +19,7 @@ export function InactivityLogoutProvider({
   warningMinutes = 14,  // Increased from 9 to 14 minutes
   enabled = true,
 }: InactivityLogoutProviderProps) {
-  const { data: session, status } = useSession();
+  const { data: session, status } = useOptimizedSession();
   const router = useRouter();
   const [showWarning, setShowWarning] = useState(false);
   const [warningCountdown, setWarningCountdown] = useState(60);

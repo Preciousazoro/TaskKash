@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import Link from "next/link";
 import { Lock, Eye, EyeOff, CheckCircle2, Loader2, AlertCircle, ArrowLeft } from "lucide-react";
-import { toast } from "sonner";
+import { toast } from 'react-toastify';
 
 function ResetPasswordContent() {
   const [password, setPassword] = useState("");

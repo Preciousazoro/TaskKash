@@ -6,7 +6,7 @@ import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { UserAvatar } from './UserAvatar';
 import { confirmToast } from './confirmToast';
-import { toast } from 'sonner';
+import { toast } from 'react-toastify';
 
 interface User {
   _id: string;

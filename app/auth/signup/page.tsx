@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
 import { CheckCircle2, Eye, EyeOff, Lock, Loader2 } from "lucide-react";
-import { toast } from "sonner";
+import { toast } from 'react-toastify';
 
 export default function RegisterPage() {
   const [showPassword, setShowPassword] = useState(false);

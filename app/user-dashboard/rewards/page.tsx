@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { toast } from "sonner";
+import { toast } from "react-toastify";
 import { 
   Loader2, Gift, Lock, CheckCircle2, Trophy, 
   Zap, Star, ArrowUpRight, Crown, Sparkles 

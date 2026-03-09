@@ -6,7 +6,7 @@ import { StatusBadge } from "./StatusBadge";
 import { Button } from "@/components/ui/button";
 import { TaskDocument } from "@/types/shared-task";
 import { TaskStateManager } from "@/lib/taskState";
-import { toast } from "sonner";
+import { toast } from 'react-toastify';
 
 interface TaskCardProps {
   task: TaskDocument;
@@ -42,7 +42,7 @@ export function TaskCard({
     >
       {/* Accent gradient strip */}
       <div
-        className={`absolute left-0 top-0 h-full w-1 bg-gradient-to-b ${
+        className={`absolute left-0 top-0 h-full w-1 bg-linear-to-b ${
           categoryStyles[task.category]
         }`}
       />
@@ -138,7 +138,7 @@ export function TaskCard({
                     toast.error("Please start the task first before submitting proof.");
                   }
                 }}
-                className="font-semibold bg-gradient-to-r from-green-500 to-purple-600 hover:from-green-600 hover:to-purple-700"
+                className="font-semibold bg-linear-to-r from-green-500 to-purple-600 hover:from-green-600 hover:to-purple-700"
               >
                 {isRejected ? 'Resubmit' : 'Submit'}
               </Button>

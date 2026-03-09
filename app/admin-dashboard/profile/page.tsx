@@ -12,7 +12,7 @@ import {
   Calendar,
   Shield,
 } from "lucide-react";
-import { toast } from "sonner";
+import { toast } from 'react-toastify';
 import AdminHeader from "../../../components/admin-dashboard/AdminHeader";
 import AdminSidebar from "../../../components/admin-dashboard/AdminSidebar";
 

@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import Link from "next/link";
 import { Mail, ArrowLeft, Loader2, CheckCircle2 } from "lucide-react";
-import { toast } from "sonner";
+import { toast } from 'react-toastify';
 
 export default function ForgotPasswordPage() {
   const [email, setEmail] = useState("");

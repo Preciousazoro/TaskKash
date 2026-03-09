@@ -14,7 +14,7 @@ import {
   Loader2,
   ExternalLink,
 } from "lucide-react";
-import { toast } from "sonner";
+import { toast } from 'react-toastify';
 
 // Import your navigation components
 import UserSidebar from "@/components/user-dashboard/UserSidebar";
@@ -299,7 +299,7 @@ export default function ProfilePage() {
                         className="object-cover"
                       />
                     ) : (
-                      <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-purple-500 to-blue-600">
+                      <div className="w-full h-full flex items-center justify-center bg-linear-to-br from-purple-500 to-blue-600">
                         <User className="text-white w-14 h-14" />
                       </div>
                     )}
@@ -373,7 +373,7 @@ export default function ProfilePage() {
                   {!isEditing ? (
                     <button
                       onClick={() => setIsEditing(true)}
-                      className="flex items-center gap-2 px-6 py-2.5 bg-gradient-to-r from-green-500 to-purple-600 text-white font-bold rounded-xl shadow-lg shadow-primary/20 active:scale-[0.98] transition-all"
+                      className="flex items-center gap-2 px-6 py-2.5 bg-linear-to-r from-green-500 to-purple-600 text-white font-bold rounded-xl shadow-lg shadow-primary/20 active:scale-[0.98] transition-all"
                     >
                       <Pencil className="w-4 h-4" /> Edit Profile
                     </button>
@@ -388,7 +388,7 @@ export default function ProfilePage() {
                       <button
                         onClick={handleSave}
                         disabled={isSaving}
-                        className="px-5 py-2.5 bg-gradient-to-r from-green-500 to-purple-600 text-white font-bold rounded-xl shadow-lg shadow-primary/20 active:scale-[0.98] transition-all flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed disabled:scale-100"
+                        className="px-5 py-2.5 bg-linear-to-r from-green-500 to-purple-600 text-white font-bold rounded-xl shadow-lg shadow-primary/20 active:scale-[0.98] transition-all flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed disabled:scale-100"
                       >
                         {isSaving ? (
                           <>

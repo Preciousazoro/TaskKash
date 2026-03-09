@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import { X, Calendar, CheckCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { toast } from "sonner";
+import { toast } from 'react-toastify';
 
 interface BookingFormData {
   companyName: string;

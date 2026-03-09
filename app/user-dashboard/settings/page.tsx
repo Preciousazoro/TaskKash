@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useTheme } from "next-themes";
 import { signOut } from "next-auth/react";
-import { toast } from "sonner";
+import { toast } from "react-toastify";
 import ModeToggle from "@/components/ui/ModeToggle";
 
 // Navigation

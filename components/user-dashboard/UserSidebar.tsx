@@ -18,7 +18,7 @@ import {
 import { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useSession } from "next-auth/react";
-import { toast } from "sonner";
+import { toast } from 'react-toastify';
 
 export default function UserSidebar() {
   const [menuOpen, setMenuOpen] = useState(false);

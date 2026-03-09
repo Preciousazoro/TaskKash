@@ -1,7 +1,21 @@
 'use client';
 
-import { Toaster as SonnerToaster } from 'sonner';
+import { ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 export function ToastProvider() {
-  return <SonnerToaster position="top-right" richColors closeButton />;
+  return (
+    <ToastContainer
+      position="top-right"
+      autoClose={4000}
+      hideProgressBar={false}
+      newestOnTop={false}
+      closeOnClick
+      rtl={false}
+      pauseOnFocusLoss
+      draggable
+      pauseOnHover
+      theme="light"
+    />
+  );
 }

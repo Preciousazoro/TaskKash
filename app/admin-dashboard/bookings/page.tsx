@@ -6,7 +6,7 @@ import feather from "feather-icons";
 import AdminHeader from "../../../components/admin-dashboard/AdminHeader";
 import AdminSidebar from "../../../components/admin-dashboard/AdminSidebar";
 import { Pagination } from "@/components/ui/Pagination";
-import { toast } from "sonner";
+import { toast } from 'react-toastify';
 import { sanitizePhone } from "@/lib/utils/phoneSanitizer";
 import Modal from "@/components/ui/Modal";
 
@@ -248,7 +248,7 @@ export default function AdminBookingsPage() {
                       setStatusFilter(status as any);
                       setCurrentPage(1);
                     }}
-                    className={`px-2 sm:px-4 py-2 rounded-lg text-xs sm:text-sm font-medium transition-colors whitespace-nowrap flex-shrink-0 ${
+                    className={`px-2 sm:px-4 py-2 rounded-lg text-xs sm:text-sm font-medium transition-colors whitespace-nowrap shrink-0 ${
                       statusFilter === status
                         ? "bg-primary text-primary-foreground"
                         : "bg-muted text-muted-foreground hover:bg-muted/80"
@@ -342,8 +342,7 @@ export default function AdminBookingsPage() {
                                   {truncateMessage(booking.message)}
                                   <button
                                     onClick={() => {
-                                      // You could implement a modal here to show full message
-                                      alert(booking.message);
+                                      toast.info(booking.message);
                                     }}
                                     className="text-primary hover:text-primary/80 ml-1"
                                   >

@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { ArrowUp, ArrowDown, Gift, ShoppingCart, Search, CheckCircle, Loader2 } from "lucide-react";
 import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem } from "@/components/ui/dropdown";
-import { toast } from "sonner";
+import { toast } from 'react-toastify';
 
 // Navigation Imports
 import UserSidebar from "@/components/user-dashboard/UserSidebar";
@@ -168,7 +168,7 @@ export default function TransactionsPage() {
                 <div className="text-center lg:text-left">
                   <h2 className="text-sm font-medium text-muted-foreground mb-1 uppercase tracking-wider">Total TaskPoints</h2>
                   <div className="text-4xl font-black text-primary mb-2">{taskPoints.toLocaleString()} TP</div>
-                  <div className="text-sm text-muted-foreground">(1 TP = $0.06)</div>
+                  <div className="text-sm text-muted-foreground">(100 TP = $0.06)</div>
                                   </div>
                 <div className="flex gap-4">
                   <button 

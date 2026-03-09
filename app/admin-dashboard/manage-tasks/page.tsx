@@ -3,7 +3,8 @@
 import feather from "feather-icons";
 import { Edit, Eye, Trash2, Loader2, Search, CheckSquare } from "lucide-react";
 import React, { useEffect, useState, useMemo } from "react";
-import { toast } from "sonner";
+import { toast } from 'react-toastify';
+import { confirmToast } from '../../../components/admin-dashboard/confirmToast';
 import AdminHeader from "../../../components/admin-dashboard/AdminHeader";
 import AdminSidebar from "../../../components/admin-dashboard/AdminSidebar";
 import { Button } from "../../../components/ui/button";
@@ -330,30 +331,32 @@ const ManageTasks = () => {
   };
 
   const handleDeleteTask = async (id: string) => {
-    if (!confirm("Delete this task?")) return;
+    await confirmToast({
+      title: 'Delete Task',
+      message: 'Are you sure you want to delete this task? This action cannot be undone.',
+      confirmText: 'Delete',
+      cancelText: 'Cancel',
+      confirmButtonVariant: 'destructive',
+      onConfirm: async () => {
+        const response = await fetch(`/api/admin/tasks/${id}`, {
+          method: 'DELETE',
+        });
 
-    try {
-      const response = await fetch(`/api/admin/tasks/${id}`, {
-        method: 'DELETE',
-      });
+        if (!response.ok) {
+          throw new Error('Failed to delete task');
+        }
 
-      if (!response.ok) {
-        throw new Error('Failed to delete task');
+        toast.success('Task deleted successfully!');
+        fetchTasks({
+          category: categoryFilter,
+          status: statusFilter,
+          dateRange: dateRangeFilter,
+          search: searchQuery,
+          page: currentPage,
+          limit: itemsPerPage
+        });
       }
-
-      toast.success('Task deleted successfully!');
-      fetchTasks({
-        category: categoryFilter,
-        status: statusFilter,
-        dateRange: dateRangeFilter,
-        search: searchQuery,
-        page: currentPage,
-        limit: itemsPerPage
-      });
-    } catch (error: any) {
-      console.error('Error deleting task:', error);
-      toast.error(error.message || 'Failed to delete task');
-    }
+    });
   };
 
   const handleBulkAction = async () => {
@@ -362,41 +365,46 @@ const ManageTasks = () => {
       return;
     }
 
-    if (!confirm(`Are you sure you want to ${bulkAction} ${selectedTasks.length} task(s)?`)) return;
+    const actionText = bulkAction.charAt(0).toUpperCase() + bulkAction.slice(1);
+    const isDestructive = bulkAction === 'delete';
 
-    try {
-      const response = await fetch('/api/admin/tasks/bulk', {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          taskIds: selectedTasks,
-          action: bulkAction
-        }),
-      });
+    await confirmToast({
+      title: `${actionText} Tasks`,
+      message: `Are you sure you want to ${bulkAction} ${selectedTasks.length} task(s)? This action cannot be undone.`,
+      confirmText: actionText,
+      cancelText: 'Cancel',
+      confirmButtonVariant: isDestructive ? 'destructive' : 'default',
+      onConfirm: async () => {
+        const response = await fetch('/api/admin/tasks/bulk', {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            taskIds: selectedTasks,
+            action: bulkAction
+          }),
+        });
 
-      if (!response.ok) {
-        throw new Error('Failed to perform bulk action');
+        if (!response.ok) {
+          throw new Error('Failed to perform bulk action');
+        }
+
+        const data = await response.json();
+        toast.success(data.message);
+        setSelectedTasks([]);
+        setBulkAction('');
+        
+        fetchTasks({
+          category: categoryFilter,
+          status: statusFilter,
+          dateRange: dateRangeFilter,
+          search: searchQuery,
+          page: currentPage,
+          limit: itemsPerPage
+        });
       }
-
-      const data = await response.json();
-      toast.success(data.message);
-      setSelectedTasks([]);
-      setBulkAction('');
-      
-      fetchTasks({
-        category: categoryFilter,
-        status: statusFilter,
-        dateRange: dateRangeFilter,
-        search: searchQuery,
-        page: currentPage,
-        limit: itemsPerPage
-      });
-    } catch (error: any) {
-      console.error('Error performing bulk action:', error);
-      toast.error(error.message || 'Failed to perform bulk action');
-    }
+    });
   };
 
   const handleSelectAll = (checked: boolean) => {

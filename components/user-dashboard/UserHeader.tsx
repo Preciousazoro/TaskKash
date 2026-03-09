@@ -4,59 +4,28 @@ import { Bell, Menu, User, LogOut, CheckCircle, AlertCircle, Gift, CheckSquare }
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import ModeToggle from "@/components/ui/ModeToggle";
-import { useSession } from "next-auth/react";
+import { useSession } from "@/components/providers/OptimizedSessionProvider";
+import { useProfile, useNotifications, useMarkNotificationsRead } from "@/hooks/useProfileData";
 
 export default function UserHeader({ title }: { title?: string }) {
-  const [taskPoints, setTaskPoints] = useState<number>(50);
-  const [isLoading, setIsLoading] = useState(true);
   const [notifOpen, setNotifOpen] = useState(false);
-  const [notifications, setNotifications] = useState<any[]>([]);
-  const [unreadCount, setUnreadCount] = useState<number>(0);
-  const [userData, setUserData] = useState<any>(null);
   const notifRef = useRef<HTMLDivElement>(null);
   const router = useRouter();
   const { data: session } = useSession();
+  
+  // Use SWR hooks for cached data fetching
+  const { profile, isLoading: profileLoading } = useProfile();
+  const { notifications, unreadCount, isLoading: notifLoading, mutate } = useNotifications();
+  const { markAsRead } = useMarkNotificationsRead();
+
+  const taskPoints = profile?.taskPoints || 50;
+  const userData = profile;
+  const isLoading = profileLoading || notifLoading;
 
   const handleLogout = () => {
     // Plain code logout simulation
     router.push("/auth/login");
   };
-
-  // Fetch user data and notifications
-  useEffect(() => {
-    const fetchData = async () => {
-      if (!session?.user?.id) return;
-      
-      try {
-        // Fetch user profile
-        const profileResponse = await fetch('/api/profile');
-        if (profileResponse.ok) {
-          const profileData = await profileResponse.json();
-          setUserData(profileData);
-          setTaskPoints(profileData.taskPoints || 50);
-        }
-
-        // Fetch notifications
-        const notifResponse = await fetch('/api/notifications?limit=5');
-        if (notifResponse.ok) {
-          const notifData = await notifResponse.json();
-          setNotifications(notifData.notifications || []);
-          setUnreadCount(notifData.unreadCount || 0);
-        }
-      } catch (error) {
-        console.error('Error fetching data:', error);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    fetchData();
-
-    // Set up periodic updates (reduced from 30s to 3 minutes)
-    const interval = setInterval(fetchData, 3 * 60 * 1000);
-
-    return () => clearInterval(interval);
-  }, [session]);
 
   // Close notification dropdown when clicking outside
   useEffect(() => {
@@ -72,32 +41,14 @@ export default function UserHeader({ title }: { title?: string }) {
   const handleNotificationClick = async () => {
     setNotifOpen((v) => !v);
     if (unreadCount > 0) {
-      try {
-        await fetch('/api/notifications?readAll=true', {
-          method: 'PATCH'
-        });
-        setUnreadCount(0);
-        setNotifications(prev => prev.map(n => ({ ...n, isRead: true })));
-      } catch (error) {
-        console.error('Error marking notifications as read:', error);
-      }
+      await markAsRead(); // Mark all as read
     }
   };
 
   const handleIndividualNotificationClick = async (notif: any) => {
     // Mark notification as read if unread
     if (!notif.isRead) {
-      try {
-        await fetch(`/api/notifications?id=${notif._id}`, {
-          method: 'PATCH'
-        });
-        setNotifications(prev => 
-          prev.map(n => n._id === notif._id ? { ...n, isRead: true } : n)
-        );
-        setUnreadCount(prev => Math.max(0, prev - 1));
-      } catch (error) {
-        console.error('Error marking notification as read:', error);
-      }
+      await markAsRead(notif._id);
     }
 
     // Navigate to action URL if available
@@ -184,7 +135,7 @@ export default function UserHeader({ title }: { title?: string }) {
               </div>
               <div className="max-h-96 overflow-y-auto">
                 {notifications.length > 0 ? (
-                  notifications.map((notif) => (
+                  notifications.map((notif: any) => (
                     <div
                       key={notif._id}
                       className={`p-4 border-b border-border hover:bg-muted/50 transition-colors cursor-pointer ${
@@ -260,6 +211,72 @@ export default function UserHeader({ title }: { title?: string }) {
       {/* Mobile Toggle */}
       <div className="md:hidden flex items-center gap-3">
         <ModeToggle />
+        
+        {/* Mobile Notifications */}
+        <div className="relative" ref={notifRef}>
+          <button
+            className="p-2 rounded-full hover:bg-muted transition relative"
+            onClick={handleNotificationClick}
+          >
+            <Bell className="w-5 h-5 text-foreground" />
+            {unreadCount > 0 && (
+              <span className="absolute -top-0.5 -right-0.5 min-w-[16px] h-4 px-1 rounded-full bg-green-500 text-black text-[10px] flex items-center justify-center font-semibold">
+                {unreadCount > 9 ? '9+' : unreadCount}
+              </span>
+            )}
+          </button>
+
+          {notifOpen && (
+            <div className="absolute right-0 mt-2 w-80 bg-card border border-border rounded-lg shadow-xl z-50 overflow-hidden">
+              <div className="px-4 py-3 border-b border-border text-sm font-semibold flex items-center justify-between">
+                <span>Notifications</span>
+                {unreadCount > 0 && (
+                  <span className="text-xs bg-green-500/10 text-green-500 px-2 py-1 rounded-full">
+                    {unreadCount} unread
+                  </span>
+                )}
+              </div>
+              <div className="max-h-96 overflow-y-auto">
+                {notifications.length > 0 ? (
+                  notifications.map((notif: any) => (
+                    <div
+                      key={notif._id}
+                      className={`p-4 border-b border-border hover:bg-muted/50 transition-colors cursor-pointer ${
+                        !notif.isRead ? 'bg-blue-500/5' : ''
+                      }`}
+                      onClick={() => handleIndividualNotificationClick(notif)}
+                    >
+                      <div className="flex items-start gap-3">
+                        <div className="mt-1">
+                          {getNotificationIcon(notif.type)}
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center justify-between gap-2 mb-1">
+                            <p className="text-sm font-medium truncate">{notif.title}</p>
+                            {!notif.isRead && (
+                              <div className="w-2 h-2 bg-blue-500 rounded-full shrink-0" />
+                            )}
+                          </div>
+                          <p className="text-xs text-muted-foreground line-clamp-2 mb-1">
+                            {notif.message}
+                          </p>
+                          <p className="text-xs text-muted-foreground">
+                            {formatTimeAgo(notif.createdAt)}
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  ))
+                ) : (
+                  <div className="p-6 text-center text-sm text-muted-foreground">
+                    No notifications
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+        </div>
+        
         <div className="flex items-center space-x-2 pl-2 border-l border-border">
           <div className="text-right">
             <p className="text-sm font-bold text-foreground">

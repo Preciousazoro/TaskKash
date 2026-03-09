@@ -4,7 +4,7 @@ import React, { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import ModeToggle from "@/components/ui/ModeToggle";
 import { Bell, ChevronDown, User as UserIcon, Check, Settings, LogOut } from "lucide-react";
-import { toast } from "sonner";
+import { toast } from 'react-toastify';
 
 interface Notification {
   id: string;
@@ -184,7 +184,7 @@ const AdminHeader = () => {
             alt="TaskKash Logo"
             className="w-12 h-12 object-contain"
           />
-        <span className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-green-500 to-purple-600 ml-2 tracking-tight">
+        <span className="text-2xl font-bold bg-clip-text text-transparent bg-linear-to-r from-green-500 to-purple-600 ml-2 tracking-tight">
           TASKKASH
         </span>
       </div>
@@ -356,6 +356,92 @@ const AdminHeader = () => {
       {/* Mobile Actions */}
       <div className="md:hidden flex items-center space-x-2">
         <ModeToggle />
+        
+        {/* Mobile Notifications */}
+        <div className="relative">
+          <button
+            ref={notificationsTriggerRef}
+            onClick={() => setNotificationsOpen((v) => !v)}
+            className="relative p-2 rounded-full hover:bg-muted transition-colors"
+          >
+            <Bell className="w-5 h-5" />
+            {unreadCount > 0 && (
+              <span className="absolute -top-1 -right-1 h-5 w-5 rounded-full bg-green-500 text-xs text-black flex items-center justify-center">
+                {unreadCount > 9 ? '9+' : unreadCount}
+              </span>
+            )}
+          </button>
+
+          {/* Mobile Notifications Dropdown */}
+          <div
+            ref={notificationsRef}
+            className={`${
+              notificationsOpen ? "block" : "hidden"
+            } absolute right-0 mt-2 w-80 bg-background rounded-md shadow-lg border border-border z-10 max-h-96 overflow-hidden`}
+          >
+            <div className="p-4 border-b border-border">
+              <div className="flex items-center justify-between">
+                <h3 className="font-semibold">Notifications</h3>
+                {unreadCount > 0 && (
+                  <button
+                    onClick={markAllAsRead}
+                    className="text-xs text-primary hover:underline"
+                  >
+                    Mark all as read
+                  </button>
+                )}
+              </div>
+            </div>
+
+            <div className="max-h-64 overflow-y-auto">
+              {notifications.length === 0 ? (
+                <div className="p-4 text-center text-muted-foreground">
+                  <p className="text-sm">No notifications</p>
+                </div>
+              ) : (
+                <div className="divide-y divide-border">
+                  {notifications.map((notification) => (
+                    <div
+                      key={notification.id}
+                      className={`p-4 hover:bg-muted cursor-pointer transition-colors ${
+                        !notification.read ? 'bg-muted/30' : ''
+                      }`}
+                      onClick={() => {
+                        if (!notification.read) {
+                          markAsRead(notification.id);
+                        }
+                        if (notification.link) {
+                          window.location.href = notification.link;
+                        }
+                      }}
+                    >
+                      <div className="flex items-start gap-3">
+                        <div className="flex-1">
+                          <div className="flex items-center gap-2">
+                            <p className={`text-sm font-medium ${
+                              !notification.read ? 'text-foreground' : 'text-muted-foreground'
+                            }`}>
+                              {notification.title}
+                            </p>
+                            {!notification.read && (
+                              <span className="h-2 w-2 rounded-full bg-primary"></span>
+                            )}
+                          </div>
+                          <p className="text-xs text-muted-foreground mt-1">
+                            {notification.message}
+                          </p>
+                          <p className="text-xs text-muted-foreground mt-2">
+                            {formatTimeAgo(notification.createdAt)}
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
         
         {/* Mobile Hamburger */}
         <button

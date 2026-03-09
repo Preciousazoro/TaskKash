@@ -7,7 +7,7 @@ import AdminHeader from "../../../components/admin-dashboard/AdminHeader";
 import AdminSidebar from "../../../components/admin-dashboard/AdminSidebar";
 import { Pagination } from "@/components/ui/Pagination";
 import { AdminContentOnlySkeleton } from "@/components/ui/LoadingSkeleton";
-import { toast } from "sonner";
+import { toast } from 'react-toastify';
 
 /* ---------------- TYPES ---------------- */
 
