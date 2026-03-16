@@ -159,7 +159,7 @@ export default function AdminContactMessagesPage() {
     }
   };
 
-  const truncateMessage = (message: string, maxLength: number = 100) => {
+  const truncateMessage = (message: string, maxLength: number = 50) => {
     if (message.length <= maxLength) return message;
     return message.substring(0, maxLength) + '...';
   };
@@ -236,10 +236,9 @@ export default function AdminContactMessagesPage() {
                               <td className="p-4 text-sm">{message.email}</td>
                               <td className="p-4 text-sm">{message.subject}</td>
                               <td className="p-4 text-sm">
-                                {expandedMessage === message._id 
-                                  ? message.message 
-                                  : truncateMessage(message.message)
-                                }
+                                <div className="max-w-xs truncate" title={message.message}>
+                                  {truncateMessage(message.message)}
+                                </div>
                               </td>
                               <td className="p-4 text-sm">
                                 {message.subscribedToUpdates ? (
@@ -310,20 +309,64 @@ export default function AdminContactMessagesPage() {
                               </td>
                             </tr>
                             
-                            {/* Expanded Message Row */}
+                            {/* Expanded Message Detail Section */}
                             {expandedMessage === message._id && (
                               <tr>
-                                <td colSpan={8} className="p-4 bg-muted/20">
-                                  <div className="space-y-3">
-                                    <div>
-                                      <h4 className="font-semibold text-sm mb-2">Full Message:</h4>
-                                      <div className="bg-background border rounded-lg p-3 text-sm whitespace-pre-wrap">
-                                        {message.message}
+                                <td colSpan={8} className="p-0">
+                                  <div className="bg-gray-900 border-l-4 border-blue-500 p-6 m-4 rounded-lg shadow-sm">
+                                    <div className="space-y-4">
+                                      {/* Header */}
+                                      <div className="flex items-center justify-between pb-3 border-b border-gray-700">
+                                        <h3 className="text-lg font-semibold text-white">Message Details</h3>
+                                        <button
+                                          onClick={() => setExpandedMessage(null)}
+                                          className="text-gray-400 hover:text-gray-200 transition-colors"
+                                          title="Close details"
+                                        >
+                                          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                                          </svg>
+                                        </button>
                                       </div>
-                                    </div>
-                                    <div className="flex items-center gap-4 text-xs text-muted-foreground">
-                                      <span>Submitted: {new Date(message.createdAt).toLocaleString()}</span>
-                                      <span>Updated: {new Date(message.updatedAt).toLocaleString()}</span>
+                                      
+                                      {/* Sender Information */}
+                                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                        <div>
+                                          <span className="text-sm font-medium text-gray-300">From:</span>
+                                          <div className="mt-1">
+                                            <div className="font-medium text-white">{message.name}</div>
+                                            <div className="text-sm text-gray-400">{message.email}</div>
+                                          </div>
+                                        </div>
+                                        <div>
+                                          <span className="text-sm font-medium text-gray-300">Subject:</span>
+                                          <div className="mt-1 font-medium text-white">{message.subject}</div>
+                                        </div>
+                                      </div>
+                                      
+                                      {/* Full Message */}
+                                      <div>
+                                        <span className="text-sm font-medium text-gray-300">Full Message:</span>
+                                        <div className="mt-2 bg-gray-800 border border-gray-700 rounded-lg p-4 text-sm text-gray-100 whitespace-pre-wrap max-h-64 overflow-y-auto">
+                                          {message.message}
+                                        </div>
+                                      </div>
+                                      
+                                      {/* Metadata */}
+                                      <div className="flex flex-wrap items-center gap-6 pt-3 border-t border-gray-700 text-xs text-gray-400">
+                                        <div>
+                                          <span className="font-medium">Submitted:</span> {new Date(message.createdAt).toLocaleString()}
+                                        </div>
+                                        <div>
+                                          <span className="font-medium">Updated:</span> {new Date(message.updatedAt).toLocaleString()}
+                                        </div>
+                                        <div>
+                                          <span className="font-medium">Newsletter:</span> 
+                                          <span className={message.subscribedToUpdates ? "text-green-400 ml-1" : "text-gray-500 ml-1"}>
+                                            {message.subscribedToUpdates ? "Subscribed" : "Not subscribed"}
+                                          </span>
+                                        </div>
+                                      </div>
                                     </div>
                                   </div>
                                 </td>
@@ -367,12 +410,11 @@ export default function AdminContactMessagesPage() {
                             </div>
                           </div>
 
-                          {/* Message */}
+                          {/* Message Preview */}
                           <div className="text-sm">
-                            {expandedMessage === message._id 
-                              ? message.message 
-                              : truncateMessage(message.message, 80)
-                            }
+                            <div className="truncate" title={message.message}>
+                              {truncateMessage(message.message, 60)}
+                            </div>
                           </div>
 
                           {/* Newsletter */}
@@ -424,18 +466,42 @@ export default function AdminContactMessagesPage() {
                             )}
                           </div>
 
-                          {/* Expanded Message */}
+                          {/* Expanded Message Details */}
                           {expandedMessage === message._id && (
-                            <div className="mt-4 pt-4 border-t space-y-3">
-                              <div>
-                                <h4 className="font-semibold text-sm mb-2">Full Message:</h4>
-                                <div className="bg-muted/30 rounded-lg p-3 text-sm whitespace-pre-wrap">
-                                  {message.message}
+                            <div className="mt-4 pt-4 border-t border-gray-200 space-y-3">
+                              <div className="bg-gray-900 border-l-4 border-blue-500 p-4 rounded-lg">
+                                <div className="space-y-3">
+                                  {/* Header */}
+                                  <div className="flex items-center justify-between">
+                                    <h4 className="font-semibold text-white">Full Message</h4>
+                                    <button
+                                      onClick={() => setExpandedMessage(null)}
+                                      className="text-gray-400 hover:text-gray-200 transition-colors"
+                                      title="Close details"
+                                    >
+                                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                                      </svg>
+                                    </button>
+                                  </div>
+                                  
+                                  {/* Sender Info */}
+                                  <div className="text-xs space-y-1">
+                                    <div><span className="font-medium">From:</span> {message.name} ({message.email})</div>
+                                    <div><span className="font-medium">Subject:</span> {message.subject}</div>
+                                  </div>
+                                  
+                                  {/* Full Message */}
+                                  <div className="bg-gray-800 border border-gray-700 rounded p-3 text-sm whitespace-pre-wrap max-h-48 overflow-y-auto text-gray-100">
+                                    {message.message}
+                                  </div>
+                                  
+                                  {/* Metadata */}
+                                  <div className="text-xs text-gray-400 space-y-1">
+                                    <div><span className="font-medium">Submitted:</span> {new Date(message.createdAt).toLocaleString()}</div>
+                                    <div><span className="font-medium">Updated:</span> {new Date(message.updatedAt).toLocaleString()}</div>
+                                  </div>
                                 </div>
-                              </div>
-                              <div className="flex items-center gap-4 text-xs text-muted-foreground">
-                                <span>Submitted: {new Date(message.createdAt).toLocaleString()}</span>
-                                <span>Updated: {new Date(message.updatedAt).toLocaleString()}</span>
                               </div>
                             </div>
                           )}

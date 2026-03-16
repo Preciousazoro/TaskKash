@@ -36,9 +36,12 @@ export default function AdminBookingsPage() {
   const [statusFilter, setStatusFilter] = useState<
     "All" | "pending" | "contacted" | "completed"
   >("All");
-  const [currentPage, setCurrentPage] = useState(1);
-  const [totalPages, setTotalPages] = useState(1);
-  const [totalFilteredItems, setTotalFilteredItems] = useState(0);
+  const [pagination, setPagination] = useState({
+    page: 1,
+    limit: 10,
+    total: 0,
+    totalPages: 0,
+  });
   const [isUpdating, setIsUpdating] = useState<string | null>(null);
   
   // Reply modal state
@@ -47,12 +50,12 @@ export default function AdminBookingsPage() {
   const [replySubject, setReplySubject] = useState("");
   const [replyMessage, setReplyMessage] = useState("");
   const [isSendingReply, setIsSendingReply] = useState(false);
+  const [expandedBooking, setExpandedBooking] = useState<string | null>(null);
 
-  const itemsPerPage = 10;
 
   useEffect(() => {
     fetchBookings();
-  }, [currentPage, statusFilter]);
+  }, [statusFilter, pagination.page, pagination.limit]);
 
   useEffect(() => {
     feather.replace();
@@ -61,38 +64,31 @@ export default function AdminBookingsPage() {
   const fetchBookings = async () => {
     try {
       setLoading(true);
-      const response = await fetch("/api/booking");
+      const params = new URLSearchParams({
+        page: pagination.page.toString(),
+        limit: pagination.limit.toString(),
+      });
+      
+      if (statusFilter !== "All") {
+        params.append('status', statusFilter);
+      }
+
+      const response = await fetch(`/api/booking?${params}`);
       
       if (!response.ok) {
         throw new Error("Failed to fetch bookings");
       }
 
       const data = await response.json();
-      let allBookings = data.bookings || [];
-
-      // Apply status filter
-      let filteredBookings = allBookings;
-      if (statusFilter !== "All") {
-        filteredBookings = allBookings.filter(
-          (booking: Booking) => booking.status === statusFilter
-        );
-      }
-
-      // Calculate pagination
-      const startIndex = (currentPage - 1) * itemsPerPage;
-      const endIndex = startIndex + itemsPerPage;
-      const paginatedBookings = filteredBookings.slice(startIndex, endIndex);
-      
-      setBookings(paginatedBookings);
-      setTotalPages(Math.ceil(filteredBookings.length / itemsPerPage));
-      setTotalFilteredItems(filteredBookings.length);
-      
-      // Store total filtered count for pagination
-      return { filteredBookings, paginatedBookings };
+      setBookings(data.bookings || []);
+      setPagination(prev => ({
+        ...prev,
+        total: data.pagination.total,
+        totalPages: data.pagination.totalPages,
+      }));
     } catch (error) {
       console.error("Error fetching bookings:", error);
       toast.error("Failed to load bookings");
-      return { filteredBookings: [], paginatedBookings: [] };
     } finally {
       setLoading(false);
     }
@@ -220,9 +216,9 @@ export default function AdminBookingsPage() {
     });
   };
 
-  const truncateMessage = (message?: string) => {
+  const truncateMessage = (message?: string, limit: number = 50) => {
     if (!message) return "—";
-    return message.length > 50 ? message.substring(0, 50) + "..." : message;
+    return message.length > limit ? message.substring(0, limit) + "..." : message;
   };
 
   return (
@@ -238,6 +234,9 @@ export default function AdminBookingsPage() {
         {/* Page Content */}
         <main className="flex-1 overflow-y-auto p-6">
           <div className="max-w-7xl mx-auto">
+            {/* Page Title - Mobile Only */}
+            <h2 className="text-2xl font-bold mb-4 md:hidden">Booking Messages</h2>
+            
             {/* Filters */}
             <div className="mb-6 flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
               <div className="flex gap-1 sm:gap-2 overflow-x-auto pb-1 sm:pb-0">
@@ -246,7 +245,7 @@ export default function AdminBookingsPage() {
                     key={status}
                     onClick={() => {
                       setStatusFilter(status as any);
-                      setCurrentPage(1);
+                    setPagination((p) => ({ ...p, page: 1 }));
                     }}
                     className={`px-2 sm:px-4 py-2 rounded-lg text-xs sm:text-sm font-medium transition-colors whitespace-nowrap shrink-0 ${
                       statusFilter === status
@@ -290,7 +289,8 @@ export default function AdminBookingsPage() {
             ) : (
               /* Bookings Table */
               <div className="bg-card border border-border rounded-xl overflow-hidden">
-                <div className="overflow-x-auto">
+                {/* Desktop Table View */}
+                <div className="hidden md:block overflow-x-auto">
                   <table className="w-full">
                     <thead className="bg-muted/50 border-b border-border">
                       <tr>
@@ -319,41 +319,40 @@ export default function AdminBookingsPage() {
                     </thead>
                     <tbody className="divide-y divide-border">
                       {bookings.map((booking) => (
-                        <tr key={booking._id} className="hover:bg-muted/50 transition-colors">
-                          <td className="px-6 py-4 whitespace-nowrap">
-                            <div className="text-sm font-medium text-foreground">
-                              {booking.companyName}
-                            </div>
-                          </td>
-                          <td className="px-6 py-4 whitespace-nowrap">
-                            <div className="text-sm text-foreground">
-                              {booking.email}
-                            </div>
-                          </td>
-                          <td className="px-6 py-4 whitespace-nowrap">
-                            <div className="text-sm text-muted-foreground">
-                              {booking.phone || "—"}
-                            </div>
-                          </td>
-                          <td className="px-6 py-4">
-                            <div className="text-sm text-muted-foreground max-w-xs">
-                              {booking.message && booking.message.length > 50 ? (
-                                <div>
+                        <React.Fragment key={booking._id}>
+                          <tr className="hover:bg-muted/50 transition-colors">
+                            <td className="px-6 py-4 whitespace-nowrap">
+                              <div className="text-sm font-medium text-foreground">
+                                {booking.companyName}
+                              </div>
+                            </td>
+                            <td className="px-6 py-4 whitespace-nowrap">
+                              <div className="text-sm text-foreground">
+                                {booking.email}
+                              </div>
+                            </td>
+                            <td className="px-6 py-4 whitespace-nowrap">
+                              <div className="text-sm text-muted-foreground">
+                                {booking.phone || "—"}
+                              </div>
+                            </td>
+                            <td className="px-6 py-4">
+                              <div className="text-sm text-muted-foreground max-w-xs">
+                                <div className="truncate" title={booking.message || ''}>
                                   {truncateMessage(booking.message)}
-                                  <button
-                                    onClick={() => {
-                                      toast.info(booking.message);
-                                    }}
-                                    className="text-primary hover:text-primary/80 ml-1"
-                                  >
-                                    View more
-                                  </button>
                                 </div>
-                              ) : (
-                                truncateMessage(booking.message)
-                              )}
-                            </div>
-                          </td>
+                                {booking.message && booking.message.length > 50 && (
+                                  <button
+                                    onClick={() => setExpandedBooking(
+                                      expandedBooking === booking._id ? null : booking._id
+                                    )}
+                                    className="text-primary hover:text-primary/80 text-xs mt-1 transition-colors"
+                                  >
+                                    {expandedBooking === booking._id ? 'Show less' : 'View more'}
+                                  </button>
+                                )}
+                              </div>
+                            </td>
                           <td className="px-6 py-4 whitespace-nowrap">
                             <span className={getStatusBadge(booking.status)}>
                               {booking.status.charAt(0).toUpperCase() + booking.status.slice(1)}
@@ -431,21 +430,251 @@ export default function AdminBookingsPage() {
                             </div>
                           </td>
                         </tr>
+                        
+                        {/* Expanded Booking Detail Section */}
+                        {expandedBooking === booking._id && (
+                          <tr>
+                            <td colSpan={7} className="p-0">
+                              <div className="bg-gray-900 border-l-4 border-blue-500 p-6 m-4 rounded-lg shadow-sm">
+                                <div className="space-y-4">
+                                  {/* Header */}
+                                  <div className="flex items-center justify-between pb-3 border-b border-gray-700">
+                                    <h3 className="text-lg font-semibold text-white">Booking Details</h3>
+                                    <button
+                                      onClick={() => setExpandedBooking(null)}
+                                      className="text-gray-400 hover:text-gray-200 transition-colors"
+                                      title="Close details"
+                                    >
+                                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                                      </svg>
+                                    </button>
+                                  </div>
+                                  
+                                  {/* Company Information */}
+                                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    <div>
+                                      <span className="text-sm font-medium text-gray-300">Company:</span>
+                                      <div className="mt-1">
+                                        <div className="font-medium text-white">{booking.companyName}</div>
+                                        <div className="text-sm text-gray-400">{booking.email}</div>
+                                        {booking.phone && (
+                                          <div className="text-sm text-gray-400">{booking.phone}</div>
+                                        )}
+                                      </div>
+                                    </div>
+                                    <div>
+                                      <span className="text-sm font-medium text-gray-300">Status:</span>
+                                      <div className="mt-1">
+                                        <span className={getStatusBadge(booking.status)}>
+                                          {booking.status.charAt(0).toUpperCase() + booking.status.slice(1)}
+                                        </span>
+                                      </div>
+                                    </div>
+                                  </div>
+                                  
+                                  {/* Full Message */}
+                                  {booking.message && (
+                                    <div>
+                                      <span className="text-sm font-medium text-gray-300">Full Message:</span>
+                                      <div className="mt-2 bg-gray-800 border border-gray-700 rounded-lg p-4 text-sm text-gray-100 whitespace-pre-wrap max-h-64 overflow-y-auto">
+                                        {booking.message}
+                                      </div>
+                                    </div>
+                                  )}
+                                  
+                                  {/* Metadata */}
+                                  <div className="flex flex-wrap items-center gap-6 pt-3 border-t border-gray-700 text-xs text-gray-400">
+                                    <div>
+                                      <span className="font-medium">Submitted:</span> {formatDate(booking.createdAt)}
+                                    </div>
+                                    <div>
+                                      <span className="font-medium">Updated:</span> {formatDate(booking.updatedAt)}
+                                    </div>
+                                  </div>
+                                </div>
+                              </div>
+                            </td>
+                          </tr>
+                        )}
+                        </React.Fragment>
                       ))}
                     </tbody>
                   </table>
+                </div>
+
+                {/* Mobile Card View */}
+                <div className="block md:hidden">
+                  {bookings.length === 0 ? (
+                    <div className="p-6 text-center text-muted-foreground">
+                      No bookings found
+                    </div>
+                  ) : (
+                    <div className="divide-y">
+                      {bookings.map((booking) => (
+                        <div key={booking._id} className="p-4 space-y-3">
+                          {/* Header */}
+                          <div className="flex items-start justify-between gap-3">
+                            <div className="min-w-0 flex-1">
+                              <div className="font-medium truncate">{booking.companyName}</div>
+                              <div className="text-xs text-muted-foreground truncate">
+                                {booking.email}
+                              </div>
+                            </div>
+                            <span className={getStatusBadge(booking.status)}>
+                              {booking.status.charAt(0).toUpperCase() + booking.status.slice(1)}
+                            </span>
+                          </div>
+
+                          {/* Contact Info */}
+                          <div className="space-y-1">
+                            {booking.phone && (
+                              <div className="text-sm text-muted-foreground">
+                                {booking.phone}
+                              </div>
+                            )}
+                            <div className="text-xs text-muted-foreground">
+                              {formatDate(booking.createdAt)}
+                            </div>
+                          </div>
+
+                          {/* Message Preview */}
+                          <div className="text-sm">
+                            <div className="truncate" title={booking.message || ''}>
+                              {truncateMessage(booking.message, 60)}
+                            </div>
+                          </div>
+
+                          {/* Actions */}
+                          <div className="flex gap-2 pt-2">
+                            <button
+                              onClick={() => setExpandedBooking(
+                                expandedBooking === booking._id ? null : booking._id
+                              )}
+                              className="flex-1 text-blue-500 text-sm hover:text-blue-700 transition-colors py-2 px-3 border border-blue-200 rounded-lg hover:bg-blue-50"
+                            >
+                              {expandedBooking === booking._id ? 'Hide' : 'View'}
+                            </button>
+                            
+                            <button
+                              onClick={() => openReplyModal(booking)}
+                              className="flex-1 text-purple-500 text-sm hover:text-purple-700 transition-colors py-2 px-3 border border-purple-200 rounded-lg hover:bg-purple-50"
+                            >
+                              Reply
+                            </button>
+                            
+                            {booking.status === "pending" && (
+                              <button
+                                onClick={() => updateBookingStatus(booking._id, "contacted")}
+                                disabled={isUpdating === booking._id}
+                                className="flex-1 text-blue-500 text-sm hover:text-blue-700 transition-colors py-2 px-3 border border-blue-200 rounded-lg hover:bg-blue-50 disabled:opacity-50"
+                              >
+                                {isUpdating === booking._id ? '...' : 'Contact'}
+                              </button>
+                            )}
+                            
+                            {booking.status === "contacted" && (
+                              <button
+                                onClick={() => updateBookingStatus(booking._id, "completed")}
+                                disabled={isUpdating === booking._id}
+                                className="flex-1 text-green-500 text-sm hover:text-green-700 transition-colors py-2 px-3 border border-green-200 rounded-lg hover:bg-green-50 disabled:opacity-50"
+                              >
+                                {isUpdating === booking._id ? '...' : 'Complete'}
+                              </button>
+                            )}
+                          </div>
+
+                          {/* Expanded Booking Details */}
+                          {expandedBooking === booking._id && (
+                            <div className="mt-4 pt-4 border-t border-gray-200 space-y-3">
+                              <div className="bg-gray-900 border-l-4 border-blue-500 p-4 rounded-lg">
+                                <div className="space-y-3">
+                                  {/* Header */}
+                                  <div className="flex items-center justify-between">
+                                    <h4 className="font-semibold text-white">Booking Details</h4>
+                                    <button
+                                      onClick={() => setExpandedBooking(null)}
+                                      className="text-gray-400 hover:text-gray-200 transition-colors"
+                                      title="Close details"
+                                    >
+                                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                                      </svg>
+                                    </button>
+                                  </div>
+                                  
+                                  {/* Company Info */}
+                                  <div className="text-xs space-y-1">
+                                    <div><span className="font-medium">Company:</span> {booking.companyName}</div>
+                                    <div><span className="font-medium">Email:</span> {booking.email}</div>
+                                    {booking.phone && (
+                                      <div><span className="font-medium">Phone:</span> {booking.phone}</div>
+                                    )}
+                                  </div>
+                                  
+                                  {/* Full Message */}
+                                  {booking.message && (
+                                    <div>
+                                      <div className="font-medium text-sm text-gray-300 mb-2">Full Message:</div>
+                                      <div className="bg-gray-800 border border-gray-700 rounded p-3 text-sm whitespace-pre-wrap max-h-48 overflow-y-auto text-gray-100">
+                                        {booking.message}
+                                      </div>
+                                    </div>
+                                  )}
+                                  
+                                  {/* Communication Links */}
+                                  <div className="flex gap-2 pt-2">
+                                    {booking.phone && (
+                                      <>
+                                        <a
+                                          href={`tel:${sanitizePhone(booking.phone)}`}
+                                          className="flex-1 text-center text-xs bg-blue-600 text-white py-2 px-3 rounded hover:bg-blue-700 transition-colors"
+                                        >
+                                          Call
+                                        </a>
+                                        <a
+                                          href={`https://wa.me/${sanitizePhone(booking.phone)}`}
+                                          target="_blank"
+                                          rel="noopener noreferrer"
+                                          className="flex-1 text-center text-xs bg-green-600 text-white py-2 px-3 rounded hover:bg-green-700 transition-colors"
+                                        >
+                                          WhatsApp
+                                        </a>
+                                      </>
+                                    )}
+                                    <a
+                                      href={`mailto:${booking.email}?subject=Regarding Your Booking`}
+                                      className="flex-1 text-center text-xs bg-purple-600 text-white py-2 px-3 rounded hover:bg-purple-700 transition-colors"
+                                    >
+                                      Email
+                                    </a>
+                                  </div>
+                                  
+                                  {/* Metadata */}
+                                  <div className="text-xs text-gray-400 space-y-1">
+                                    <div><span className="font-medium">Submitted:</span> {formatDate(booking.createdAt)}</div>
+                                    <div><span className="font-medium">Updated:</span> {formatDate(booking.updatedAt)}</div>
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  )}
                 </div>
               </div>
             )}
 
             {/* Pagination */}
-            {!loading && bookings.length > 0 && totalPages > 1 && (
-              <div className="mt-6 flex justify-center">
+            {!loading && bookings.length > 0 && (
+              <div className="p-4 border-t">
                 <Pagination
-                  currentPage={currentPage}
-                  totalItems={totalFilteredItems}
-                  itemsPerPage={itemsPerPage}
-                  onPageChange={setCurrentPage}
+                  currentPage={pagination.page}
+                  totalItems={pagination.total}
+                  itemsPerPage={pagination.limit}
+                  onPageChange={(page) => setPagination(prev => ({ ...prev, page }))}
                 />
               </div>
             )}

@@ -8,24 +8,34 @@ import TaskKashFooter from "@/components/ui/TaskKashFooter";
 
 const technicalStack = [
   {
-    title: "Blockchain Layer",
+    title: "Frontend Framework",
     description:
-      "Built on Solana for 65k+ TPS, sub-second finality, and ultra-low transaction costs for reward distributions.",
+      "Next.js 16 with React 19 for server-side rendering, optimized performance, and modern React features with TypeScript support.",
   },
   {
-    title: "API Framework",
+    title: "Database & Storage",
     description:
-      "Robust backend powered by Node.js and FastAPI, ensuring high-concurrency handling for global task verification.",
+      "MongoDB with Mongoose ODM for flexible data modeling, Cloudinary for media storage and optimization, and efficient data management.",
   },
   {
-    title: "Reward Mechanism",
+    title: "Authentication & Security",
     description:
-      "Proprietary TP-to-SOL conversion engine with automated liquidity checks and instant withdrawal smart contracts.",
+      "NextAuth.js 5 with secure session management, bcryptjs for password hashing, and JWT tokens for API authentication.",
   },
   {
-    title: "Security & Identity",
+    title: "UI & Styling",
     description:
-      "OAuth 2.0 / JWT authentication paired with multi-factor authentication (MFA) and encrypted data storage.",
+      "Tailwind CSS 4 with shadcn/ui components, Radix UI primitives, Lucide React icons, and Framer Motion for smooth animations.",
+  },
+  {
+    title: "Backend & APIs",
+    description:
+      "Node.js API routes with Next.js, SWR for data fetching, nodemailer for email services, and RESTful architecture.",
+  },
+  {
+    title: "Development Tools",
+    description:
+      "TypeScript for type safety, ESLint for code quality, and modern development workflow with hot reload optimization.",
   },
 ];
 
@@ -192,14 +202,14 @@ export default function AboutPage() {
             Secure &amp; Scalable Architecture
           </h2>
 
-          <div className="mt-10 grid gap-6 md:grid-cols-2">
+          <div className="mt-10 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
             {technicalStack.map((item) => (
               <div
                 key={item.title}
-                className="rounded-3xl border border-border bg-card p-8 shadow-sm transition hover:-translate-y-1 hover:border-green-400/30"
+                className="rounded-3xl border border-border bg-card p-6 shadow-sm transition hover:-translate-y-1 hover:border-green-400/30 sm:p-8"
               >
-                <h4 className="text-xl font-extrabold">{item.title}</h4>
-                <p className="mt-4 text-muted-foreground">{item.description}</p>
+                <h4 className="text-lg font-extrabold sm:text-xl">{item.title}</h4>
+                <p className="mt-4 text-sm leading-6 text-muted-foreground sm:text-base">{item.description}</p>
               </div>
             ))}
           </div>

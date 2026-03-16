@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import connectDB from '@/lib/mongodb';
 import User from '@/models/User';
+import { auth } from '@/lib/auth';
+import Activity from '@/models/Activity';
 
 export async function GET(
   request: NextRequest,
@@ -40,6 +42,88 @@ export async function GET(
     console.error('Error fetching user:', error);
     return NextResponse.json(
       { error: 'Failed to fetch user' },
+      { status: 500 }
+    );
+  }
+}
+
+export async function DELETE(
+  request: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  try {
+    const session = await auth();
+    
+    console.log('Delete API - Session:', session);
+    
+    if (!session?.user || session.user.role !== 'admin') {
+      console.log('Delete API - Auth failed:', { session });
+      return NextResponse.json(
+        { error: 'Unauthorized. Admin access required.' },
+        { status: 401 }
+      );
+    }
+
+    await connectDB();
+    
+    const { id } = await params;
+    console.log('Delete API - Deleting user:', id);
+    
+    // Check if user exists
+    const user = await User.findById(id);
+    if (!user) {
+      console.log('Delete API - User not found:', id);
+      return NextResponse.json(
+        { error: 'User not found' },
+        { status: 404 }
+      );
+    }
+
+    console.log('Delete API - Found user:', user.email, 'Role:', user.role);
+
+    // Prevent deletion of admin users (optional safety check)
+    if (user.role === 'admin') {
+      console.log('Delete API - Attempted to delete admin user');
+      return NextResponse.json(
+        { error: 'Cannot delete admin users' },
+        { status: 403 }
+      );
+    }
+
+    // Delete the user
+    await User.findByIdAndDelete(id);
+    console.log('Delete API - User deleted successfully');
+
+    // Log the activity (with error handling)
+    try {
+      await Activity.create({
+        userId: session.user.id,
+        type: 'user_deleted',
+        status: 'completed',
+        title: 'User Deleted',
+        description: `Admin deleted user: ${user.name} (${user.email})`,
+        metadata: {
+          deletedUserId: id,
+          deletedUserName: user.name,
+          deletedUserEmail: user.email
+        }
+      });
+      console.log('Delete API - Activity logged successfully');
+    } catch (activityError) {
+      console.error('Delete API - Failed to log activity:', activityError);
+      // Continue even if activity logging fails
+    }
+
+    console.log('Delete API - Returning success response');
+    return NextResponse.json({ 
+      message: 'User deleted successfully',
+      deletedUserId: id
+    });
+    
+  } catch (error) {
+    console.error('Delete API - Error deleting user:', error);
+    return NextResponse.json(
+      { error: 'Failed to delete user' },
       { status: 500 }
     );
   }

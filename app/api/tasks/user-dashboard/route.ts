@@ -3,6 +3,7 @@ import { auth } from '@/lib/auth';
 import Task from '@/models/Task';
 import Submission from '@/models/Submission';
 import mongoose from 'mongoose';
+import { withTimeout, aggregateWithTimeout } from '@/lib/timeout';
 
 // GET /api/tasks/user-dashboard - Return tasks with user's latest submission and status
 export async function GET(request: NextRequest) {
@@ -21,7 +22,7 @@ export async function GET(request: NextRequest) {
       await mongoose.connect(process.env.MONGODB_URI!);
     }
 
-    // Fetch all active tasks
+    // Fetch all active tasks with lean query and timeout
     const tasks = await Task.find({ 
       status: 'active',
       $or: [
@@ -32,8 +33,8 @@ export async function GET(request: NextRequest) {
     .select('title description category rewardPoints validationType instructions taskLink alternateUrl deadline status createdAt updatedAt')
     .lean();
 
-    // Fetch user's latest submissions for each task
-    const submissions = await Submission.aggregate([
+    // Fetch user's latest submissions for each task with timeout
+    const submissions = aggregateWithTimeout(Submission.aggregate([
       {
         $match: {
           userId: userId
@@ -57,11 +58,11 @@ export async function GET(request: NextRequest) {
           }
         }
       }
-    ]);
+    ]), 5000);
 
     // Create a map of taskId to latest submission
     const submissionMap = new Map();
-    submissions.forEach(sub => {
+    (await submissions).forEach((sub: any) => {
       submissionMap.set(sub._id.toString(), sub.latestSubmission);
     });
 

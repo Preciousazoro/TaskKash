@@ -35,7 +35,11 @@ export default function LoginPage() {
       });
 
       if (result?.error) {
-        toast.error('Invalid email or password');
+        if (result.error === 'EMAIL_NOT_VERIFIED') {
+          toast.error('Please verify your email before logging in. Check your inbox for the verification code.');
+        } else {
+          toast.error('Invalid email or password');
+        }
       } else if (result?.ok) {
         toast.success('Login successful!');
         setTimeout(() => {

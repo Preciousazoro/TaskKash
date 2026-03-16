@@ -30,12 +30,14 @@ export async function GET(request: NextRequest) {
       .find(query)
       .sort({ createdAt: -1 })
       .limit(limit)
-      .lean();
+      .select('title message type isRead actionUrl createdAt updatedAt')
+      .lean()
+      .maxTimeMS(3000);
 
     const unreadCount = await Notification.countDocuments({
       userId: session.user.id,
       isRead: false
-    });
+    }).maxTimeMS(3000);
 
     return NextResponse.json({
       notifications,

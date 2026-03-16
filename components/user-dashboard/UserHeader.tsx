@@ -124,21 +124,21 @@ export default function UserHeader({ title }: { title?: string }) {
           </button>
 
           {notifOpen && (
-            <div className="absolute right-0 mt-2 w-80 bg-card border border-border rounded-lg shadow-xl z-50 overflow-hidden">
-              <div className="px-4 py-3 border-b border-border text-sm font-semibold flex items-center justify-between">
-                <span>Notifications</span>
+            <div className="absolute right-0 mt-3 w-[340px] bg-[#0B0B0B] border border-gray-800 rounded-xl shadow-xl z-50 overflow-hidden">
+              <div className="px-4 py-3 border-b border-gray-800 font-semibold text-white">
+                Notifications
                 {unreadCount > 0 && (
-                  <span className="text-xs bg-green-500/10 text-green-500 px-2 py-1 rounded-full">
+                  <span className="ml-2 text-xs bg-green-500/10 text-green-500 px-2 py-1 rounded-full">
                     {unreadCount} unread
                   </span>
                 )}
               </div>
-              <div className="max-h-96 overflow-y-auto">
+              <div className="max-h-[60vh] overflow-y-auto">
                 {notifications.length > 0 ? (
                   notifications.map((notif: any) => (
                     <div
                       key={notif._id}
-                      className={`p-4 border-b border-border hover:bg-muted/50 transition-colors cursor-pointer ${
+                      className={`p-4 border-b border-gray-800 hover:bg-gray-900 transition-colors cursor-pointer ${
                         !notif.isRead ? 'bg-blue-500/5' : ''
                       }`}
                       onClick={() => handleIndividualNotificationClick(notif)}
@@ -149,15 +149,15 @@ export default function UserHeader({ title }: { title?: string }) {
                         </div>
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center justify-between gap-2 mb-1">
-                            <p className="text-sm font-medium truncate">{notif.title}</p>
+                            <p className="text-sm text-gray-300 break-words leading-relaxed font-medium">{notif.title}</p>
                             {!notif.isRead && (
                               <div className="w-2 h-2 bg-blue-500 rounded-full shrink-0" />
                             )}
                           </div>
-                          <p className="text-xs text-muted-foreground line-clamp-2 mb-1">
+                          <p className="text-xs text-gray-400 break-words leading-relaxed mb-1">
                             {notif.message}
                           </p>
-                          <p className="text-xs text-muted-foreground">
+                          <p className="text-xs text-gray-500">
                             {formatTimeAgo(notif.createdAt)}
                           </p>
                         </div>
@@ -165,7 +165,7 @@ export default function UserHeader({ title }: { title?: string }) {
                     </div>
                   ))
                 ) : (
-                  <div className="p-6 text-center text-sm text-muted-foreground">
+                  <div className="p-6 text-center text-sm text-gray-400">
                     No notifications
                   </div>
                 )}
@@ -227,21 +227,21 @@ export default function UserHeader({ title }: { title?: string }) {
           </button>
 
           {notifOpen && (
-            <div className="absolute right-0 mt-2 w-80 bg-card border border-border rounded-lg shadow-xl z-50 overflow-hidden">
-              <div className="px-4 py-3 border-b border-border text-sm font-semibold flex items-center justify-between">
-                <span>Notifications</span>
+            <div className="absolute right-0 sm:right-0 sm:w-[340px] left-1/2 sm:left-auto transform -translate-x-1/2 sm:translate-x-0 w-[92vw] max-w-[360px] bg-[#0B0B0B] border border-gray-800 rounded-xl shadow-xl z-50 overflow-hidden">
+              <div className="px-4 py-3 border-b border-gray-800 font-semibold text-white">
+                Notifications
                 {unreadCount > 0 && (
-                  <span className="text-xs bg-green-500/10 text-green-500 px-2 py-1 rounded-full">
+                  <span className="ml-2 text-xs bg-green-500/10 text-green-500 px-2 py-1 rounded-full">
                     {unreadCount} unread
                   </span>
                 )}
               </div>
-              <div className="max-h-96 overflow-y-auto">
+              <div className="max-h-[60vh] overflow-y-auto">
                 {notifications.length > 0 ? (
                   notifications.map((notif: any) => (
                     <div
                       key={notif._id}
-                      className={`p-4 border-b border-border hover:bg-muted/50 transition-colors cursor-pointer ${
+                      className={`p-4 border-b border-gray-800 hover:bg-gray-900 transition-colors cursor-pointer ${
                         !notif.isRead ? 'bg-blue-500/5' : ''
                       }`}
                       onClick={() => handleIndividualNotificationClick(notif)}
@@ -252,15 +252,15 @@ export default function UserHeader({ title }: { title?: string }) {
                         </div>
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center justify-between gap-2 mb-1">
-                            <p className="text-sm font-medium truncate">{notif.title}</p>
+                            <p className="text-sm text-gray-300 break-words leading-relaxed font-medium">{notif.title}</p>
                             {!notif.isRead && (
                               <div className="w-2 h-2 bg-blue-500 rounded-full shrink-0" />
                             )}
                           </div>
-                          <p className="text-xs text-muted-foreground line-clamp-2 mb-1">
+                          <p className="text-xs text-gray-400 break-words leading-relaxed mb-1">
                             {notif.message}
                           </p>
-                          <p className="text-xs text-muted-foreground">
+                          <p className="text-xs text-gray-500">
                             {formatTimeAgo(notif.createdAt)}
                           </p>
                         </div>
@@ -268,7 +268,7 @@ export default function UserHeader({ title }: { title?: string }) {
                     </div>
                   ))
                 ) : (
-                  <div className="p-6 text-center text-sm text-muted-foreground">
+                  <div className="p-6 text-center text-sm text-gray-400">
                     No notifications
                   </div>
                 )}

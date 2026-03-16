@@ -102,4 +102,10 @@ TaskSchema.index({ category: 1 });
 TaskSchema.index({ createdBy: 1 });
 TaskSchema.index({ title: 'text', description: 'text' }); // For search functionality
 
+// Add missing indexes for better performance
+TaskSchema.index({ rewardPoints: -1 }); // For sorting by rewards
+TaskSchema.index({ createdAt: -1 }); // For sorting by date
+TaskSchema.index({ status: 1, category: 1 }); // For filtered queries
+TaskSchema.index({ deadline: 1 }); // For deadline queries
+
 export default mongoose.models.Task || mongoose.model<ITask>('Task', TaskSchema);

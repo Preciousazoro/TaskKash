@@ -3,7 +3,7 @@
 import { useState, useRef, useEffect } from "react";
 import { useParams, useSearchParams, useRouter } from "next/navigation";
 import { motion } from "framer-motion";
-import { Upload, CheckCircle2, Loader2, Info, ArrowLeft } from "lucide-react";
+import { Upload, CheckCircle2, Loader2, Info, ArrowLeft, X } from "lucide-react";
 import { TaskStateManager } from "@/lib/taskState";
 import { toast } from 'react-toastify';
 
@@ -24,10 +24,10 @@ export default function TaskVerificationPage() {
   const taskUrl = searchParams.get("url") || "";
 
   const [description, setDescription] = useState("");
-  const [file, setFile] = useState<File | null>(null);
+  const [files, setFiles] = useState<File[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [errors, setErrors] = useState<{description?: string; file?: string}>({});
+  const [errors, setErrors] = useState<{description?: string; files?: string}>({});
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -58,11 +58,35 @@ export default function TaskVerificationPage() {
   const onChooseFile = () => fileInputRef.current?.click();
 
   const onFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const f = e.target.files?.[0] ?? null;
-    setFile(f);
-    // Clear file error when file is selected
-    if (f && errors.file) {
-      setErrors(prev => ({ ...prev, file: undefined }));
+    const selectedFiles = Array.from(e.target.files || []);
+    
+    // Validate file count (max 5)
+    if (files.length + selectedFiles.length > 5) {
+      toast.error('Maximum 5 screenshots allowed');
+      return;
+    }
+    
+    // Validate file types and sizes
+    const validFiles = selectedFiles.filter(file => {
+      const isValidType = ['image/png', 'image/jpeg', 'image/jpg', 'image/webp'].includes(file.type);
+      const isValidSize = file.size <= 5 * 1024 * 1024; // 5MB
+      
+      if (!isValidType) {
+        toast.error(`${file.name} is not a valid image format`);
+        return false;
+      }
+      if (!isValidSize) {
+        toast.error(`${file.name} exceeds 5MB limit`);
+        return false;
+      }
+      
+      return true;
+    });
+    
+    setFiles(prev => [...prev, ...validFiles]);
+    // Clear file error when files are selected
+    if (validFiles.length > 0 && errors.files) {
+      setErrors(prev => ({ ...prev, files: undefined }));
     }
   };
 
@@ -72,14 +96,14 @@ export default function TaskVerificationPage() {
     if (!taskId) return;
     
     // Validate required fields
-    const newErrors: {description?: string; file?: string} = {};
+    const newErrors: {description?: string; files?: string} = {};
     
     if (!description.trim()) {
       newErrors.description = "Proof details & context is required";
     }
     
-    if (!file) {
-      newErrors.file = "Screenshot / image proof is required";
+    if (!files || files.length === 0) {
+      newErrors.files = "At least one screenshot / image proof is required";
     }
     
     if (Object.keys(newErrors).length > 0) {
@@ -101,27 +125,36 @@ export default function TaskVerificationPage() {
     setIsSubmitting(true);
     
     try {
-      // Upload file if provided
-      let proofUrl = '';
-      if (file) {
-        const formData = new FormData();
-        formData.append('file', file);
-        
-        const uploadResponse = await fetch('/api/upload', {
-          method: 'POST',
-          body: formData
+      // Upload files if provided
+      const proofUrls: string[] = [];
+      
+      if (files.length > 0) {
+        // Upload each file
+        const uploadPromises = files.map(async (file) => {
+          const formData = new FormData();
+          formData.append('file', file);
+          
+          const uploadResponse = await fetch('/api/upload', {
+            method: 'POST',
+            body: formData
+          });
+          
+          if (uploadResponse.ok) {
+            const uploadData = await uploadResponse.json();
+            return uploadData.url;
+          } else {
+            throw new Error(`Failed to upload ${file.name}`);
+          }
         });
         
-        if (uploadResponse.ok) {
-          const uploadData = await uploadResponse.json();
-          proofUrl = uploadData.url;
-        }
+        const uploadedUrls = await Promise.all(uploadPromises);
+        proofUrls.push(...uploadedUrls);
       }
 
       // Submit task proof to API
       const submissionData = {
         taskId,
-        proofUrls: proofUrl ? [proofUrl] : [],
+        proofUrls: proofUrls,
         proofLink: taskUrl,
         notes: description
       };
@@ -263,47 +296,83 @@ export default function TaskVerificationPage() {
               {/* File Upload Field */}
               <div className="space-y-3">
                 <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground ml-1">
-                  Screenshot / Image Proof <span className="text-red-500">*</span>
+                  Screenshots / Image Proof <span className="text-red-500">*</span>
                 </label>
-                <div
-                  className={`relative group rounded-2xl border-2 border-dashed transition-all duration-200 flex flex-col items-center justify-center p-8 cursor-pointer ${
-                    file 
-                    ? "border-green-500/50 bg-green-500/5" 
-                    : errors.file
-                    ? "border-red-500/50 bg-red-500/5"
-                    : "border-border bg-muted/20 hover:border-primary/50 hover:bg-muted/40"
-                  }`}
-                  onClick={onChooseFile}
-                >
-                  {file ? (
-                    <div className="text-center space-y-2">
-                      <div className="bg-green-500 text-white p-2 rounded-full inline-block">
-                        <CheckCircle2 className="w-6 h-6" />
+                
+                {/* File Preview Grid */}
+                {files.length > 0 && (
+                  <div className="grid grid-cols-2 md:grid-cols-3 gap-3 mb-4">
+                    {files.map((file, index) => (
+                      <div key={index} className="relative group">
+                        <div className="aspect-square bg-muted/30 rounded-xl border overflow-hidden">
+                          <img
+                            src={URL.createObjectURL(file)}
+                            alt={`Preview ${index + 1}`}
+                            className="w-full h-full object-cover"
+                          />
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setFiles(prev => prev.filter((_, i) => i !== index));
+                          }}
+                          className="absolute -top-2 -right-2 w-6 h-6 bg-red-500 text-white rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity hover:bg-red-600"
+                        >
+                          <X className="w-3 h-3" />
+                        </button>
+                        <div className="absolute bottom-0 left-0 right-0 bg-black/50 text-white text-xs p-1 text-center truncate">
+                          {file.name}
+                        </div>
                       </div>
-                      <p className="font-bold text-sm text-foreground">{file.name}</p>
-                      <p className="text-xs text-muted-foreground">Click to replace image</p>
-                    </div>
-                  ) : (
+                    ))}
+                  </div>
+                )}
+                
+                {/* Upload Area */}
+                {files.length < 5 && (
+                  <div
+                    className={`relative group rounded-2xl border-2 border-dashed transition-all duration-200 flex flex-col items-center justify-center p-8 cursor-pointer ${
+                      files.length > 0
+                      ? "border-green-500/50 bg-green-500/5" 
+                      : errors.files
+                      ? "border-red-500/50 bg-red-500/5"
+                      : "border-border bg-muted/20 hover:border-primary/50 hover:bg-muted/40"
+                    }`}
+                    onClick={onChooseFile}
+                  >
                     <div className="text-center space-y-3">
                       <div className="bg-primary/10 text-primary p-3 rounded-2xl inline-block group-hover:scale-110 transition-transform">
                         <Upload className="w-6 h-6" />
                       </div>
                       <div>
-                        <p className="font-bold text-sm">Click to upload screenshot</p>
-                        <p className="text-xs text-muted-foreground mt-1">Supports PNG, JPG (Max 5MB)</p>
+                        <p className="font-bold text-sm">
+                          {files.length > 0 ? `Add more screenshots (${files.length}/5)` : 'Click to upload screenshots'}
+                        </p>
+                        <p className="text-xs text-muted-foreground mt-1">
+                          Supports PNG, JPG, WEBP (Max 5MB each) • Up to 5 images
+                        </p>
                       </div>
                     </div>
-                  )}
-                  <input
-                    ref={fileInputRef}
-                    type="file"
-                    accept="image/png,image/jpeg,image/jpg"
-                    className="hidden"
-                    onChange={onFileChange}
-                  />
-                </div>
-                {errors.file && (
-                  <p className="text-xs text-red-500 font-medium mt-2">{errors.file}</p>
+                    <input
+                      ref={fileInputRef}
+                      type="file"
+                      accept="image/png,image/jpeg,image/jpg,image/webp"
+                      multiple
+                      className="hidden"
+                      onChange={onFileChange}
+                    />
+                  </div>
+                )}
+                
+                {errors.files && (
+                  <p className="text-xs text-red-500 font-medium mt-2">{errors.files}</p>
+                )}
+                
+                {files.length > 0 && (
+                  <div className="flex items-center gap-2 text-xs text-green-600 bg-green-50 p-3 rounded-xl border border-green-200">
+                    <CheckCircle2 className="w-4 h-4" />
+                    <span>{files.length} screenshot{files.length !== 1 ? 's' : ''} selected</span>
+                  </div>
                 )}
               </div>
 

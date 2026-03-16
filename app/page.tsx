@@ -62,10 +62,10 @@ const howItWorks = [
 ];
 
 const userBenefits = [
-  "No trading required",
-  "No upfront capital",
-  "Transparent reward system",
-  "Simple earning structure",
+  "Complete simple interactive tasks",
+  "Earn TP through verified participation and convert it to SOL",
+  "Discover new Web3 communities and emerging projects",
+  "Turn your everyday online activity into real rewards",
 ];
 
 const brandBenefits = [
@@ -107,7 +107,7 @@ export default function HomePage() {
 
             <p className="mt-6 max-w-2xl text-base leading-7 text-slate-600 dark:text-slate-400 sm:text-lg">
               Complete structured tasks, earn Task Points (TP), and convert them
-              to SOL — while brands drive measurable engagement and retention.
+              to SOL.
             </p>
 
             <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:gap-4">
@@ -202,7 +202,7 @@ export default function HomePage() {
         <div className="max-w-6xl mx-auto grid w-full items-center gap-12 lg:grid-cols-2">
           <div>
             <h2 className="text-2xl font-black sm:text-3xl lg:text-4xl">
-              For Users — Earn Without Complexity
+              For Users — Participation That Pays
             </h2>
             <p className="mt-4 max-w-2xl text-base text-slate-300 sm:text-lg sm:mt-5">
               Simple actions, transparent rewards. No trading skills required.

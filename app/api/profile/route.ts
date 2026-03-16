@@ -4,6 +4,10 @@ import connectDB from '@/lib/mongodb';
 import User, { IUser } from '@/models/User';
 import { deleteFromCloudinary } from '@/lib/cloudinary';
 
+// Simple in-memory cache for profile data (5 minutes TTL)
+const profileCache = new Map<string, { data: any; timestamp: number }>();
+const CACHE_TTL = 5 * 60 * 1000; // 5 minutes
+
 export async function GET(request: NextRequest) {
   try {
     const session = await auth();
@@ -12,9 +16,18 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
+    // Check cache first
+    const cached = profileCache.get(session.user.id);
+    if (cached && Date.now() - cached.timestamp < CACHE_TTL) {
+      return NextResponse.json(cached.data);
+    }
+
     await connectDB();
     
-    const user = await User.findById(session.user.id);
+    const user = await User.findById(session.user.id)
+      .select('name email role username avatarUrl avatarPublicId taskPoints dailyStreak socialLinks')
+      .lean()
+      .maxTimeMS(3000) as any; // Add timeout
     
     if (!user) {
       return NextResponse.json({ error: 'User not found' }, { status: 404 });
@@ -36,6 +49,9 @@ export async function GET(request: NextRequest) {
         linkedin: null,
       },
     };
+
+    // Cache the result
+    profileCache.set(session.user.id, { data: userProfile, timestamp: Date.now() });
 
     return NextResponse.json(userProfile);
   } catch (error) {
@@ -119,6 +135,9 @@ export async function PUT(request: NextRequest) {
     if (socialLinks) user.socialLinks = socialLinks;
 
     await user.save();
+
+    // Clear cache for this user
+    profileCache.delete(session.user.id);
 
     const updatedProfile = {
       id: user._id.toString(),

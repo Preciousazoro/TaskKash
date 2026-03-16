@@ -7,7 +7,8 @@ export enum ActivityType {
   TASK_REJECTED = 'task_rejected',
   DAILY_BONUS = 'daily_bonus',
   WELCOME_BONUS = 'welcome_bonus',
-  PROFILE_UPDATED = 'profile_updated'
+  PROFILE_UPDATED = 'profile_updated',
+  USER_DELETED = 'user_deleted'
 }
 
 export interface IActivity extends Document {

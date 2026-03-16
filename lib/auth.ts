@@ -53,6 +53,11 @@ export const {
 
           if (!isPasswordValid) return null;
 
+          // Check if email is verified
+          if (!user.emailVerified) {
+            throw new Error('EMAIL_NOT_VERIFIED');
+          }
+
           /**
            * 🎁 Daily login bonus (background processing)
            */

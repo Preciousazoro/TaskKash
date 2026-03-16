@@ -4,6 +4,7 @@ import { isAdmin } from '@/lib/admin-auth';
 import ContactMessage, { ContactStatus } from '@/models/ContactMessage';
 import mongoose from 'mongoose';
 import { AdminNotifications } from '@/lib/adminNotifications';
+import { sendSupportEmail } from '@/lib/email';
 
 // POST - Create new contact message (public)
 export async function POST(request: NextRequest) {
@@ -75,6 +76,20 @@ export async function POST(request: NextRequest) {
     } catch (error) {
       console.error('Failed to create contact message notification:', error);
       // Don't fail the request if notification fails
+    }
+
+    // Send email to support team
+    try {
+      const emailSent = await sendSupportEmail(name, email, subject, message);
+      if (!emailSent) {
+        console.error('Failed to send support email notification');
+        // Don't fail the request but log the error
+      } else {
+        console.log('Support email sent successfully for:', subject);
+      }
+    } catch (error) {
+      console.error('Error sending support email:', error);
+      // Don't fail the request but log the error
     }
 
     return NextResponse.json({

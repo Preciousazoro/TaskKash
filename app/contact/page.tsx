@@ -142,8 +142,8 @@ export default function ContactPage() {
                 <div className="space-y-4">
                   <div className="flex items-center justify-center space-x-2">
                     <span className="font-medium">Email:</span>
-                    <a href="mailto:taskkash.web3@gmail.com" className="text-green-400 hover:text-green-300 transition-colors">
-                      taskkash.web3@gmail.com
+                    <a href="mailto:info@taskkash.xyz" className="text-green-400 hover:text-green-300 transition-colors">
+                      info@taskkash.xyz
                     </a>
                   </div>
                   <div className="flex items-center justify-center space-x-2">

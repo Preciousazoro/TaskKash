@@ -271,13 +271,21 @@ export default function AdminUsersPage() {
             method: 'DELETE'
           });
 
+          const responseData = await response.json();
+
           if (!response.ok) {
-            throw new Error('Failed to delete user');
+            console.error('Delete API Error:', responseData);
+            throw new Error(responseData.error || 'Failed to delete user');
           }
+
+          console.log('Delete Success:', responseData);
 
           // Refresh user list
           setDetailOpen(false);
           await fetchUsers(pagination.currentPage, pagination.limit);
+        } catch (error) {
+          console.error('Delete user error:', error);
+          throw error; // Re-throw to let confirmToast handle the error display
         } finally {
           setLoadingActions(prev => {
             const p = { ...prev };

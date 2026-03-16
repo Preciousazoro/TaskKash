@@ -3,6 +3,10 @@ import { auth } from '@/lib/auth';
 import connectDB from '@/lib/mongodb';
 import User from '@/models/User';
 
+// Simple in-memory cache for balance data (2 minutes TTL)
+const balanceCache = new Map<string, { data: any; timestamp: number }>();
+const CACHE_TTL = 2 * 60 * 1000; // 2 minutes
+
 export async function GET(request: NextRequest) {
   try {
     const session = await auth();
@@ -14,10 +18,19 @@ export async function GET(request: NextRequest) {
       );
     }
 
+    // Check cache first (only if no welcome bonus needs to be applied)
+    const cached = balanceCache.get(session.user.id);
+    if (cached && Date.now() - cached.timestamp < CACHE_TTL && !cached.data.welcomeBonusApplied) {
+      return NextResponse.json(cached.data);
+    }
+
     await connectDB();
 
-    // Find user
-    const user = await User.findById(session.user.id);
+    // Find user with lean query for better performance
+    const user = await User.findById(session.user.id)
+      .select('taskPoints tasksCompleted welcomeBonusGranted')
+      .lean()
+      .maxTimeMS(3000) as any; // Add timeout
     
     if (!user) {
       return NextResponse.json(
@@ -35,22 +48,36 @@ export async function GET(request: NextRequest) {
         welcomeBonusApplied = true;
         
         // Refresh user data after bonus
-        const updatedUser = await User.findById(session.user.id);
-        return NextResponse.json({
+        const updatedUser = await User.findById(session.user.id)
+          .select('taskPoints tasksCompleted')
+          .lean()
+          .maxTimeMS(3000) as any;
+          
+        const result = {
           taskPoints: updatedUser?.taskPoints || 50,
           tasksCompleted: updatedUser?.tasksCompleted || 0,
           welcomeBonusApplied
-        });
+        };
+        
+        // Cache the result
+        balanceCache.set(session.user.id, { data: result, timestamp: Date.now() });
+        
+        return NextResponse.json(result);
       } catch (error) {
         console.error('Error applying welcome bonus:', error);
       }
     }
 
-    return NextResponse.json({
+    const result = {
       taskPoints: user.taskPoints || 0,
       tasksCompleted: user.tasksCompleted || 0,
       welcomeBonusApplied
-    });
+    };
+
+    // Cache the result
+    balanceCache.set(session.user.id, { data: result, timestamp: Date.now() });
+
+    return NextResponse.json(result);
 
   } catch (error) {
     console.error('Get user points error:', error);

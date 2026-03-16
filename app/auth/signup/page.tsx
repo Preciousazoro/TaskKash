@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
 import { CheckCircle2, Eye, EyeOff, Lock, Loader2 } from "lucide-react";
 import { toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 export default function RegisterPage() {
   const [showPassword, setShowPassword] = useState(false);
@@ -49,7 +50,7 @@ export default function RegisterPage() {
     setIsLoading(true);
 
     try {
-      const response = await fetch('/api/auth/register', {
+      const response = await fetch('/api/auth/send-otp', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -64,12 +65,14 @@ export default function RegisterPage() {
       const data = await response.json();
 
       if (response.ok) {
-        toast.success('Account created successfully! Welcome bonus: +50 TP');
+        toast.success('Verification code sent to your email!');
+        // Store email in sessionStorage for verification page
+        sessionStorage.setItem('signupEmail', form.email);
         setTimeout(() => {
-          router.push('/auth/login');
-        }, 2000);
+          router.push('/auth/verify-otp');
+        }, 1500);
       } else {
-        toast.error(data.error || 'Registration failed');
+        toast.error(data.error || 'Failed to send verification code');
       }
     } catch (error) {
       console.error('Registration error:', error);

@@ -3,6 +3,7 @@ import connectDB from "@/lib/mongodb";
 import Booking from "@/models/Booking";
 import { getCurrentAdmin } from "@/lib/admin-auth";
 import { AdminNotifications } from "@/lib/adminNotifications";
+import { sendMarketingEmail } from "@/lib/email";
 
 // GET /api/booking - Fetch all bookings (admin only)
 export async function GET(request: NextRequest) {
@@ -16,16 +17,51 @@ export async function GET(request: NextRequest) {
       );
     }
 
+    // Parse query parameters
+    const { searchParams } = new URL(request.url);
+    const page = parseInt(searchParams.get('page') || '1');
+    const limit = parseInt(searchParams.get('limit') || '10');
+    const status = searchParams.get('status');
+
+    // Validate pagination
+    if (page < 1 || limit < 1 || limit > 50) {
+      return NextResponse.json(
+        { error: 'Invalid pagination parameters' },
+        { status: 400 }
+      );
+    }
+
     await connectDB();
 
-    // Fetch all bookings, sorted by newest first
-    const bookings = await Booking.find({})
+    // Build query
+    const query: any = {};
+    
+    // Filter by status if specified
+    if (status && status !== 'All') {
+      query.status = status.toLowerCase();
+    }
+
+    // Get total count for pagination
+    const total = await Booking.countDocuments(query);
+
+    // Fetch bookings with pagination
+    const bookings = await Booking.find(query)
       .sort({ createdAt: -1 })
+      .skip((page - 1) * limit)
+      .limit(limit)
       .lean();
 
     return NextResponse.json({
       success: true,
       bookings,
+      pagination: {
+        page,
+        limit,
+        total,
+        totalPages: Math.ceil(total / limit),
+        hasNext: page * limit < total,
+        hasPrev: page > 1
+      }
     });
 
   } catch (error) {
@@ -84,9 +120,19 @@ export async function POST(request: NextRequest) {
       // Don't fail the request if notification fails
     }
 
-    // TODO: Send confirmation email
-    // TODO: Send notification to admin team
-    // TODO: Integrate with calendar service (Calendly/Cal.com)
+    // Send email to marketing team
+    try {
+      const emailSent = await sendMarketingEmail(companyName, email, phone, message);
+      if (!emailSent) {
+        console.error('Failed to send marketing email notification');
+        // Don't fail the request but log the error
+      } else {
+        console.log('Marketing email sent successfully for:', companyName);
+      }
+    } catch (error) {
+      console.error('Error sending marketing email:', error);
+      // Don't fail the request but log the error
+    }
 
     return NextResponse.json({
       success: true,

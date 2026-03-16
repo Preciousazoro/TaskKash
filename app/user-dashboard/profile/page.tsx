@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import Image from "next/image";
 import {
   Pencil,
@@ -20,6 +20,7 @@ import { toast } from 'react-toastify';
 import UserSidebar from "@/components/user-dashboard/UserSidebar";
 import UserHeader from "@/components/user-dashboard/UserHeader";
 import { ContentOnlySkeleton } from "@/components/ui/LoadingSkeleton";
+import { useApi, useApiCall } from "@/hooks/useApi";
 
 type SocialMedia = {
   twitter?: string | null;
@@ -45,6 +46,7 @@ export default function ProfilePage() {
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
+  const { fetchWithCache } = useApi();
 
   const [user, setUser] = useState<UserProfile>({
     id: "",
@@ -74,48 +76,42 @@ export default function ProfilePage() {
     return `${cleanName}_${randomNum}`;
   };
 
-  // Fetch user profile from API
-  useEffect(() => {
-    const fetchProfile = async () => {
-      try {
-        const response = await fetch('/api/profile');
-        
-        if (!response.ok) {
-          throw new Error('Failed to fetch profile');
-        }
-        
-        const data = await response.json();
-        
-        const userProfile: UserProfile = {
-          id: data.id,
-          name: data.name,
-          username: data.username,
-          email: data.email,
-          role: "user",
-          image: data.avatarUrl,
-          avatarPublicId: data.avatarPublicId,
-          points: data.taskPoints,
-          dailyStreak: data.dailyStreak || 0,
-          socialMedia: data.socialLinks || {
-            twitter: null,
-            instagram: null,
-            linkedin: null,
-          },
-        };
-        
-        setUser(userProfile);
-        setEditableUser(userProfile);
-        setAvatarPreview(data.avatarUrl || null);
-      } catch (error) {
-        console.error('Error fetching profile:', error);
-        toast.error('Failed to load profile data');
-      } finally {
-        setIsLoading(false);
-      }
-    };
+  // Fetch user profile from API with caching
+  const fetchProfile = useApiCall(async () => {
+    try {
+      const data = await fetchWithCache('/api/profile', {}, { cacheTTL: 300000 }); // 5 minutes cache
+      
+      const userProfile: UserProfile = {
+        id: data.id,
+        name: data.name,
+        username: data.username,
+        email: data.email,
+        role: "user",
+        image: data.avatarUrl,
+        avatarPublicId: data.avatarPublicId,
+        points: data.taskPoints,
+        dailyStreak: data.dailyStreak || 0,
+        socialMedia: data.socialLinks || {
+          twitter: null,
+          instagram: null,
+          linkedin: null,
+        },
+      };
+      
+      setUser(userProfile);
+      setEditableUser(userProfile);
+      setAvatarPreview(data.avatarUrl || null);
+      setIsLoading(false);
+    } catch (error) {
+      console.error('Error fetching profile:', error);
+      toast.error('Failed to load profile data');
+      setIsLoading(false);
+    }
+  }, [], { cacheKey: 'user-profile' });
 
+  useEffect(() => {
     fetchProfile();
-  }, []);
+  }, [fetchProfile]);
 
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     if (!e.target.files?.length) return;

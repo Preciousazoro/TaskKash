@@ -1,16 +1,19 @@
 import nodemailer from 'nodemailer';
+import { EMAIL_PROVIDER, NOREPLY_EMAIL, SUPPORT_EMAIL, MARKETING_EMAIL, getEmailConfig, type EmailType } from './emailConfig';
 
 interface EmailOptions {
   to: string;
   subject: string;
   html: string;
   text?: string;
+  from?: EmailType; // Email type to use as sender
+  replyTo?: string; // Optional reply-to override
 }
 
 // Create transporter using Gmail
 const createTransporter = () => {
-  const emailUser = process.env.EMAIL_USER || 'taskkash.web3@gmail.com';
-  const emailPassword = process.env.EMAIL_PASSWORD;
+  const emailUser = EMAIL_PROVIDER.user;
+  const emailPassword = EMAIL_PROVIDER.password;
 
   console.log('Email configuration check:');
   console.log('- Email user:', emailUser);
@@ -21,7 +24,7 @@ const createTransporter = () => {
   }
 
   return nodemailer.createTransport({
-    service: 'gmail',
+    service: EMAIL_PROVIDER.service,
     auth: {
       user: emailUser,
       pass: emailPassword, // Use app password for Gmail
@@ -30,26 +33,44 @@ const createTransporter = () => {
 };
 
 // Send email function
-export async function sendEmail({ to, subject, html, text }: EmailOptions): Promise<boolean> {
+export async function sendEmail({ to, subject, html, text, from = 'NOREPLY', replyTo }: EmailOptions): Promise<boolean> {
   try {
     console.log('=== EMAIL SEND ATTEMPT ===');
     console.log('To:', to);
     console.log('Subject:', subject);
+    console.log('From type:', from);
     
     const transporter = createTransporter();
+    const emailConfig = getEmailConfig(from);
 
-    const mailOptions = {
-      from: `"TaskKash" <${process.env.EMAIL_USER || 'taskkash.web3@gmail.com'}>`,
+    const mailOptions: any = {
+      from: `"${emailConfig.name}" <${EMAIL_PROVIDER.user}>`,
       to,
       subject,
       html,
       text,
     };
 
-    console.log('Sending mail with options:', { ...mailOptions, html: '[HTML CONTENT]', text: '[TEXT CONTENT]' });
+    // Add sender if supported by the transport
+    if (emailConfig.email !== EMAIL_PROVIDER.user) {
+      mailOptions.sender = emailConfig.email;
+    }
+
+    // Add replyTo if provided
+    const finalReplyTo = replyTo || emailConfig.replyTo;
+    if (finalReplyTo) {
+      mailOptions.replyTo = finalReplyTo;
+    }
+
+    console.log('Sending mail with options:', { 
+      ...mailOptions, 
+      html: '[HTML CONTENT]', 
+      text: '[TEXT CONTENT]',
+      sender: mailOptions.sender
+    });
 
     const result = await transporter.sendMail(mailOptions);
-    console.log('✅ Email sent successfully:', result.messageId);
+    console.log('✅ Email sent successfully:', (result as any)?.messageId);
     console.log('=== EMAIL SEND SUCCESS ===');
     return true;
   } catch (error) {
@@ -224,5 +245,504 @@ export async function sendPasswordResetEmail(email: string, resetUrl: string, us
     subject: 'Reset Your Password - TaskKash',
     html,
     text,
+    from: 'NOREPLY' // Explicitly use noreply email for system messages
+  });
+}
+
+// Email verification OTP template
+export function createVerificationEmail(otpCode: string, userName?: string): { html: string; text: string } {
+  const html = `
+    <!DOCTYPE html>
+    <html>
+    <head>
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <title>Email Verification - TaskKash</title>
+      <style>
+        body {
+          font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+          line-height: 1.6;
+          color: #333;
+          max-width: 600px;
+          margin: 0 auto;
+          padding: 20px;
+          background-color: #f4f4f4;
+        }
+        .container {
+          background-color: #ffffff;
+          border-radius: 10px;
+          padding: 30px;
+          box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .header {
+          text-align: center;
+          margin-bottom: 30px;
+        }
+        .logo {
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          gap: 12px;
+          margin-bottom: 20px;
+        }
+        .logo img {
+          width: 40px;
+          height: 40px;
+          border-radius: 8px;
+          object-fit: contain;
+          background: #f8f9fa;
+          padding: 4px;
+          border: 1px solid #e9ecef;
+        }
+        .logo-text {
+          font-size: 24px;
+          font-weight: bold;
+          background: linear-gradient(45deg, #00ff9d, #8a2be2);
+          -webkit-background-clip: text;
+          -webkit-text-fill-color: transparent;
+          background-clip: text;
+        }
+        .title {
+          color: #333;
+          font-size: 24px;
+          margin-bottom: 10px;
+        }
+        .content {
+          margin-bottom: 30px;
+        }
+        .otp-container {
+          background: linear-gradient(45deg, #00ff9d, #8a2be2);
+          color: white;
+          padding: 20px;
+          border-radius: 10px;
+          text-align: center;
+          margin: 20px 0;
+          font-size: 32px;
+          font-weight: bold;
+          letter-spacing: 8px;
+          font-family: 'Courier New', monospace;
+        }
+        .footer {
+          text-align: center;
+          color: #666;
+          font-size: 14px;
+          margin-top: 30px;
+          padding-top: 20px;
+          border-top: 1px solid #eee;
+        }
+        .warning {
+          background-color: #fff3cd;
+          border: 1px solid #ffeaa7;
+          border-radius: 5px;
+          padding: 15px;
+          margin: 20px 0;
+          color: #856404;
+        }
+      </style>
+    </head>
+    <body>
+      <div class="container">
+        <div class="header">
+          <div class="logo">
+            <img src="https://taskkash.xyz/taskkash-logo.png" alt="TaskKash Logo" onerror="this.src='http://localhost:3000/taskkash-logo.png'" />
+            <span class="logo-text">TaskKash</span>
+          </div>
+          <h1 class="title">Email Verification</h1>
+        </div>
+        
+        <div class="content">
+          <p>Hello${userName ? ` ${userName}` : ''},</p>
+          
+          <p>Thank you for signing up for TaskKash! To complete your registration, please enter the verification code below:</p>
+          
+          <div class="otp-container">
+            ${otpCode}
+          </div>
+          
+          <p>This code will expire in <strong>2 minutes</strong> for security reasons.</p>
+          
+          <div class="warning">
+            <strong>Important:</strong> If you didn't request this verification, please ignore this email. Never share this code with anyone.
+          </div>
+        </div>
+        
+        <div class="footer">
+          <p>Best regards,<br>The TaskKash Team</p>
+          <p style="font-size: 12px; color: #999;">
+            This is an automated message. Please do not reply to this email.
+          </p>
+        </div>
+      </div>
+    </body>
+    </html>
+  `;
+
+  const text = `
+    Email Verification - TaskKash
+    
+    Hello${userName ? ` ${userName}` : ''},
+    
+    Thank you for signing up for TaskKash! Your verification code is:
+    
+    ${otpCode}
+    
+    This code will expire in 2 minutes for security reasons.
+    
+    If you didn't request this verification, please ignore this email. Never share this code with anyone.
+    
+    Best regards,
+    The TaskKash Team
+  `;
+
+  return { html, text };
+}
+
+// Send email verification OTP
+export async function sendVerificationEmail(email: string, otpCode: string, userName?: string): Promise<boolean> {
+  const { html, text } = createVerificationEmail(otpCode, userName);
+  
+  return await sendEmail({
+    to: email,
+    subject: 'Taskkash Email Verification Code',
+    html,
+    text,
+    from: 'NOREPLY' // Explicitly use noreply email for system messages
+  });
+}
+
+// Support email template for contact form submissions
+export function createSupportEmail(name: string, userEmail: string, subject: string, message: string): { html: string; text: string } {
+  const html = `
+    <!DOCTYPE html>
+    <html>
+    <head>
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <title>New Support Request - TaskKash</title>
+      <style>
+        body {
+          font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+          line-height: 1.6;
+          color: #333;
+          max-width: 600px;
+          margin: 0 auto;
+          padding: 20px;
+          background-color: #f4f4f4;
+        }
+        .container {
+          background-color: #ffffff;
+          border-radius: 10px;
+          padding: 30px;
+          box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .header {
+          text-align: center;
+          margin-bottom: 30px;
+        }
+        .logo {
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          gap: 12px;
+          margin-bottom: 20px;
+        }
+        .logo img {
+          width: 40px;
+          height: 40px;
+          border-radius: 8px;
+          object-fit: contain;
+          background: #f8f9fa;
+          padding: 4px;
+          border: 1px solid #e9ecef;
+        }
+        .logo-text {
+          font-size: 24px;
+          font-weight: bold;
+          background: linear-gradient(45deg, #00ff9d, #8a2be2);
+          -webkit-background-clip: text;
+          -webkit-text-fill-color: transparent;
+          background-clip: text;
+        }
+        .title {
+          color: #333;
+          font-size: 24px;
+          margin-bottom: 10px;
+        }
+        .content {
+          margin-bottom: 30px;
+        }
+        .field {
+          margin-bottom: 20px;
+        }
+        .field-label {
+          font-weight: bold;
+          color: #555;
+          margin-bottom: 5px;
+        }
+        .field-value {
+          background: #f8f9fa;
+          padding: 10px;
+          border-radius: 5px;
+          border-left: 4px solid #00ff9d;
+        }
+        .message-content {
+          background: #f8f9fa;
+          padding: 15px;
+          border-radius: 5px;
+          border-left: 4px solid #8a2be2;
+          white-space: pre-wrap;
+        }
+        .footer {
+          text-align: center;
+          color: #666;
+          font-size: 14px;
+          margin-top: 30px;
+          padding-top: 20px;
+          border-top: 1px solid #eee;
+        }
+      </style>
+    </head>
+    <body>
+      <div class="container">
+        <div class="header">
+          <div class="logo">
+            <img src="https://taskkash.xyz/taskkash-logo.png" alt="TaskKash Logo" onerror="this.src='http://localhost:3000/taskkash-logo.png'" />
+            <span class="logo-text">TaskKash</span>
+          </div>
+          <h1 class="title">New Support Request</h1>
+        </div>
+        
+        <div class="content">
+          <div class="field">
+            <div class="field-label">From:</div>
+            <div class="field-value">${name} &lt;${userEmail}&gt;</div>
+          </div>
+          
+          <div class="field">
+            <div class="field-label">Subject:</div>
+            <div class="field-value">${subject}</div>
+          </div>
+          
+          <div class="field">
+            <div class="field-label">Message:</div>
+            <div class="message-content">${message}</div>
+          </div>
+        </div>
+        
+        <div class="footer">
+          <p>This support request was submitted via the TaskKash contact form.</p>
+          <p>Please respond to the user at: ${userEmail}</p>
+        </div>
+      </div>
+    </body>
+    </html>
+  `;
+
+  const text = `
+    New Support Request - TaskKash
+    
+    From: ${name} <${userEmail}>
+    Subject: ${subject}
+    
+    Message:
+    ${message}
+    
+    ---
+    This support request was submitted via the TaskKash contact form.
+    Please respond to the user at: ${userEmail}
+  `;
+
+  return { html, text };
+}
+
+// Send support email (for contact form submissions)
+export async function sendSupportEmail(name: string, userEmail: string, subject: string, message: string): Promise<boolean> {
+  const { html, text } = createSupportEmail(name, userEmail, subject, message);
+  
+  return await sendEmail({
+    to: 'support@taskkash.xyz', // Send to support team
+    subject: `Support Request: ${subject}`,
+    html,
+    text,
+    from: 'SUPPORT', // Use support email as sender
+    replyTo: userEmail // Reply directly to the user
+  });
+}
+
+// Marketing email template for booking submissions
+export function createMarketingEmail(companyName: string, email: string, phone: string, message: string): { html: string; text: string } {
+  const html = `
+    <!DOCTYPE html>
+    <html>
+    <head>
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <title>New Booking Request - TaskKash</title>
+      <style>
+        body {
+          font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+          line-height: 1.6;
+          color: #333;
+          max-width: 600px;
+          margin: 0 auto;
+          padding: 20px;
+          background-color: #f4f4f4;
+        }
+        .container {
+          background-color: #ffffff;
+          border-radius: 10px;
+          padding: 30px;
+          box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .header {
+          text-align: center;
+          margin-bottom: 30px;
+        }
+        .logo {
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          gap: 12px;
+          margin-bottom: 20px;
+        }
+        .logo img {
+          width: 40px;
+          height: 40px;
+          border-radius: 8px;
+          object-fit: contain;
+          background: #f8f9fa;
+          padding: 4px;
+          border: 1px solid #e9ecef;
+        }
+        .logo-text {
+          font-size: 24px;
+          font-weight: bold;
+          background: linear-gradient(45deg, #00ff9d, #8a2be2);
+          -webkit-background-clip: text;
+          -webkit-text-fill-color: transparent;
+          background-clip: text;
+        }
+        .title {
+          color: #333;
+          font-size: 24px;
+          margin-bottom: 10px;
+        }
+        .content {
+          margin-bottom: 30px;
+        }
+        .field {
+          margin-bottom: 20px;
+        }
+        .field-label {
+          font-weight: bold;
+          color: #555;
+          margin-bottom: 5px;
+        }
+        .field-value {
+          background: #f8f9fa;
+          padding: 10px;
+          border-radius: 5px;
+          border-left: 4px solid #00ff9d;
+        }
+        .message-content {
+          background: #f8f9fa;
+          padding: 15px;
+          border-radius: 5px;
+          border-left: 4px solid #8a2be2;
+          white-space: pre-wrap;
+        }
+        .footer {
+          text-align: center;
+          color: #666;
+          font-size: 14px;
+          margin-top: 30px;
+          padding-top: 20px;
+          border-top: 1px solid #eee;
+        }
+        .badge {
+          display: inline-block;
+          background: linear-gradient(45deg, #00ff9d, #8a2be2);
+          color: white;
+          padding: 4px 12px;
+          border-radius: 20px;
+          font-size: 12px;
+          font-weight: bold;
+          margin-bottom: 20px;
+        }
+      </style>
+    </head>
+    <body>
+      <div class="container">
+        <div class="header">
+          <div class="logo">
+            <img src="https://taskkash.xyz/taskkash-logo.png" alt="TaskKash Logo" onerror="this.src='http://localhost:3000/taskkash-logo.png'" />
+            <span class="logo-text">TaskKash</span>
+          </div>
+          <div class="badge">BUSINESS INQUIRY</div>
+          <h1 class="title">New Booking Request</h1>
+        </div>
+        
+        <div class="content">
+          <div class="field">
+            <div class="field-label">Company Name:</div>
+            <div class="field-value">${companyName}</div>
+          </div>
+          
+          <div class="field">
+            <div class="field-label">Email:</div>
+            <div class="field-value">${email}</div>
+          </div>
+          
+          ${phone ? `
+          <div class="field">
+            <div class="field-label">Phone:</div>
+            <div class="field-value">${phone}</div>
+          </div>
+          ` : ''}
+          
+          <div class="field">
+            <div class="field-label">Message/Requirements:</div>
+            <div class="message-content">${message || 'No additional message provided'}</div>
+          </div>
+        </div>
+        
+        <div class="footer">
+          <p>This booking request was submitted via the TaskKash booking form.</p>
+          <p>Please respond to the business inquiry at: ${email}</p>
+        </div>
+      </div>
+    </body>
+    </html>
+  `;
+
+  const text = `
+    New Booking Request - TaskKash Business
+    
+    Company Name: ${companyName}
+    Email: ${email}
+    ${phone ? `Phone: ${phone}` : ''}
+    
+    Message/Requirements:
+    ${message || 'No additional message provided'}
+    
+    ---
+    This booking request was submitted via the TaskKash booking form.
+    Please respond to the business inquiry at: ${email}
+  `;
+
+  return { html, text };
+}
+
+// Send marketing email (for booking submissions)
+export async function sendMarketingEmail(companyName: string, email: string, phone: string, message: string): Promise<boolean> {
+  const { html, text } = createMarketingEmail(companyName, email, phone, message);
+  
+  return await sendEmail({
+    to: 'marketing@taskkash.xyz', // Send to marketing team
+    subject: `Booking Request: ${companyName}`,
+    html,
+    text,
+    from: 'MARKETING', // Use marketing email as sender
+    replyTo: email // Reply directly to the business
   });
 }

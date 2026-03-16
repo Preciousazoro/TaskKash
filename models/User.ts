@@ -26,6 +26,7 @@ export interface IUser extends Document {
   lastStreakDate?: Date;
   passwordResetToken?: string | null;
   passwordResetExpires?: Date | null;
+  emailVerified: boolean;
   createdAt: Date;
   updatedAt: Date;
   comparePassword(candidatePassword: string): Promise<boolean>;
@@ -151,6 +152,10 @@ const UserSchema = new Schema<IUser>({
     type: Date,
     default: null,
     select: false
+  },
+  emailVerified: {
+    type: Boolean,
+    default: false
   }
 }, {
   timestamps: true
@@ -163,6 +168,13 @@ UserSchema.index({ role: 1 }); // Role-based queries
 UserSchema.index({ status: 1 }); // Status-based queries
 UserSchema.index({ createdAt: -1 }); // Sort by creation date
 UserSchema.index({ role: 1, status: 1 }); // Compound index for admin queries
+
+// Add missing indexes for better performance
+UserSchema.index({ taskPoints: -1 }); // For leaderboard queries
+UserSchema.index({ tasksCompleted: -1 }); // For user ranking
+UserSchema.index({ dailyStreak: -1 }); // For streak queries
+UserSchema.index({ emailVerified: 1 }); // For verification queries
+UserSchema.index({ welcomeBonusGranted: 1 }); // For bonus queries
 
 // Hash password before saving
 UserSchema.pre('save', async function() {

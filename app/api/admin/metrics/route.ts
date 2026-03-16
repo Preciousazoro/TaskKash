@@ -5,33 +5,47 @@ import User from '@/models/User';
 import Task from '@/models/Task';
 import Transaction from '@/models/Transaction';
 import Submission from '@/models/Submission';
+import { withTimeout, aggregateWithTimeout } from '@/lib/timeout';
+
+// Simple in-memory cache for metrics (2 minutes TTL)
+const metricsCache = new Map<string, { data: any; timestamp: number }>();
+const CACHE_TTL = 2 * 60 * 1000; // 2 minutes
 
 export async function GET(request: NextRequest) {
   try {
+    // Check cache first
+    const cached = metricsCache.get('dashboard-metrics');
+    if (cached && Date.now() - cached.timestamp < CACHE_TTL) {
+      return NextResponse.json({
+        success: true,
+        data: cached.data
+      });
+    }
+
     // Connect to database
     await connectDB();
 
-    // Get all metrics in parallel for better performance
+    // Get all metrics in parallel for better performance with timeouts
     const [
       totalUsers,
       tasksCompleted,
       pendingReviews
     ] = await Promise.all([
       // Total Users - Count all registered users
-      User.countDocuments(),
+      withTimeout(User.countDocuments(), 3000),
       
       // Tasks Completed - Sum of tasksCompleted field across all users
-      User.aggregate([
+      aggregateWithTimeout(User.aggregate([
         {
           $group: {
             _id: null,
             total: { $sum: '$tasksCompleted' }
           }
         }
-      ]),
+      ]), 5000),
       
       // Pending Reviews - Count pending submissions
-      Submission.countDocuments({ status: 'pending' })
+      withTimeout(Submission.countDocuments({ status: 'pending' }), 3000)
     ]);
 
     // Extract values from aggregation results
@@ -43,6 +57,9 @@ export async function GET(request: NextRequest) {
       pendingReviews,
       lastUpdated: new Date().toISOString()
     };
+
+    // Cache the result
+    metricsCache.set('dashboard-metrics', { data: metrics, timestamp: Date.now() });
 
     return NextResponse.json({
       success: true,

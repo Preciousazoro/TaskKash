@@ -8,6 +8,7 @@ import Submission from '@/models/Submission';
 import mongoose from 'mongoose';
 import { AdminNotifications } from '@/lib/adminNotifications';
 import { UserNotifications } from '@/lib/userNotifications';
+import { withTimeout, aggregateWithTimeout } from '@/lib/timeout';
 
 // GET all submissions for admin
 export async function GET(request: NextRequest) {
@@ -51,33 +52,68 @@ export async function GET(request: NextRequest) {
     // Get total count for pagination
     const total = await Submission.countDocuments(query);
 
-    // Fetch submissions with populated user and task data
-    const submissions = await Submission.find(query)
-      .populate('userId', 'name email username avatarUrl')
-      .populate('taskId', 'title description instructions rewardPoints category')
-      .populate('progressId', 'status startedAt submittedAt reviewedAt')
-      .sort({ createdAt: -1 })
-      .skip((page - 1) * limit)
-      .limit(limit)
-      .lean();
+    // Fetch submissions with optimized aggregation instead of populate
+    const submissions = aggregateWithTimeout(Submission.aggregate([
+      { $match: query },
+      { $sort: { createdAt: -1 } },
+      { $skip: (page - 1) * limit },
+      { $limit: limit },
+      {
+        $lookup: {
+          from: 'users',
+          localField: 'userId',
+          foreignField: '_id',
+          as: 'userId',
+          pipeline: [
+            { $project: { name: 1, email: 1, username: 1, avatarUrl: 1 } }
+          ]
+        }
+      },
+      {
+        $lookup: {
+          from: 'tasks',
+          localField: 'taskId',
+          foreignField: '_id',
+          as: 'taskId',
+          pipeline: [
+            { $project: { title: 1, description: 1, instructions: 1, rewardPoints: 1, category: 1 } }
+          ]
+        }
+      },
+      {
+        $lookup: {
+          from: 'usertasks',
+          localField: 'progressId',
+          foreignField: '_id',
+          as: 'progressId',
+          pipeline: [
+            { $project: { status: 1, startedAt: 1, submittedAt: 1, reviewedAt: 1 } }
+          ]
+        }
+      },
+      { $unwind: { path: '$userId', preserveNullAndEmptyArrays: true } },
+      { $unwind: { path: '$taskId', preserveNullAndEmptyArrays: true } },
+      { $unwind: { path: '$progressId', preserveNullAndEmptyArrays: true } },
+      { $limit: limit } // Final limit after joins
+    ]), 10000); // 10 second timeout
 
-    // Format submissions for frontend
-    const formattedSubmissions = submissions.map(submission => ({
+    // Format submissions for frontend (handle aggregation results)
+    const formattedSubmissions = (await submissions).map((submission: any) => ({
       _id: submission._id,
       userSnapshot: {
-        _id: (submission.userId as any)._id,
-        name: (submission.userId as any).name || 'Unknown User',
-        email: (submission.userId as any).email || 'unknown@example.com',
-        username: (submission.userId as any).username,
-        avatarUrl: (submission.userId as any).avatarUrl
+        _id: submission.userId?._id,
+        name: submission.userId?.name || 'Unknown User',
+        email: submission.userId?.email || 'unknown@example.com',
+        username: submission.userId?.username,
+        avatarUrl: submission.userId?.avatarUrl
       },
       taskSnapshot: {
         _id: submission.taskId,
-        title: (submission.taskId as any)?.title || 'Unknown Task',
-        description: (submission.taskId as any)?.description || '',
-        instructions: (submission.taskId as any)?.instructions || '',
-        rewardPoints: (submission.taskId as any)?.rewardPoints || 0,
-        category: (submission.taskId as any)?.category || 'social'
+        title: submission.taskId?.title || 'Unknown Task',
+        description: submission.taskId?.description || '',
+        instructions: submission.taskId?.instructions || '',
+        rewardPoints: submission.taskId?.rewardPoints || 0,
+        category: submission.taskId?.category || 'social'
       },
       status: submission.status,
       proofUrls: submission.proofUrls || [],
@@ -144,11 +180,10 @@ export async function PUT(request: NextRequest) {
       await mongoose.connect(process.env.MONGODB_URI!);
     }
 
-    // Find the submission
+    // Find the submission with lean query
     const submission = await Submission.findById(submissionId)
-      .populate('userId', 'name email taskPoints')
-      .populate('taskId', 'rewardPoints title')
-      .populate('progressId');
+      .lean()
+      .maxTimeMS(5000);
 
     if (!submission) {
       return NextResponse.json(
@@ -157,74 +192,75 @@ export async function PUT(request: NextRequest) {
       );
     }
 
-    // Extract user from populated submission
-    const user = submission.userId as any;
-
-    if (submission.status !== 'pending') {
+    if ((submission as any).status !== 'pending') {
       return NextResponse.json(
         { error: 'Submission has already been reviewed' },
         { status: 400 }
       );
     }
 
-    // Update submission status
-    submission.status = status.toLowerCase();
-    submission.reviewedAt = new Date();
-    submission.reviewedBy = new mongoose.Types.ObjectId(session.user.id);
-    
-    if (status.toLowerCase() === 'rejected' && rejectionReason) {
-      submission.rejectionReason = rejectionReason;
+    // Get user and task data in parallel for better performance
+    const [user, task] = await Promise.all([
+      User.findById((submission as any).userId).select('name email taskPoints').lean().maxTimeMS(3000),
+      Task.findById((submission as any).taskId).select('rewardPoints title category').lean().maxTimeMS(3000)
+    ]);
+
+    if (!user) {
+      return NextResponse.json(
+        { error: 'User not found' },
+        { status: 404 }
+      );
     }
 
-    await submission.save();
-
-    // Update submission status
-    await Submission.findByIdAndUpdate(submission._id, {
-      status: status.toLowerCase() === 'approved' ? 'approved' : 'rejected',
-      reviewedAt: new Date()
-    });
+    // Update submission status with atomic operation
+    await Submission.findByIdAndUpdate((submission as any)._id, {
+      status: status.toLowerCase(),
+      reviewedAt: new Date(),
+      reviewedBy: new mongoose.Types.ObjectId(session.user.id),
+      ...(status.toLowerCase() === 'rejected' && rejectionReason && { rejectionReason })
+    }).maxTimeMS(5000);
 
     // If approved, award points to user
     let awardedPoints = 0;
     if (status.toLowerCase() === 'approved') {
-      const rewardPoints = (submission.taskId as any)?.rewardPoints || 0;
-      const user = submission.userId as any;
+      const rewardPoints = (task as any)?.rewardPoints || 0;
       
       if (rewardPoints > 0 && user) {
         // Update user's task points and tasks completed
-        await User.findByIdAndUpdate(user._id, {
+        await User.findByIdAndUpdate((user as any)._id, {
           $inc: { 
             taskPoints: rewardPoints,
             tasksCompleted: 1
           }
-        });
+        }).maxTimeMS(3000);
 
         // Update submission with awarded points
-        submission.awardedPoints = rewardPoints;
-        await submission.save();
+        await Submission.findByIdAndUpdate((submission as any)._id, {
+          awardedPoints: rewardPoints
+        }).maxTimeMS(3000);
 
         // Create approved activity record
-        await Activity.create({
-          userId: user._id,
-          taskId: submission.taskId,
+        await withTimeout(Activity.create({
+          userId: (user as any)._id,
+          taskId: (submission as any).taskId,
           type: 'task_approved',
           status: 'completed',
-          title: `Task Approved: ${(submission.taskId as any)?.title}`,
+          title: `Task Approved: ${(task as any)?.title}`,
           description: `You earned ${rewardPoints} TP!`,
           rewardPoints,
           metadata: {
-            taskTitle: (submission.taskId as any)?.title,
-            taskCategory: (submission.taskId as any)?.category,
-            submissionId: submission._id
+            taskTitle: (task as any)?.title,
+            taskCategory: (task as any)?.category,
+            submissionId: (submission as any)._id
           }
-        });
+        }), 3000);
 
         // Create admin notification for task approval
         try {
           await AdminNotifications.taskApproved(
-            submission._id.toString(),
-            (submission.taskId as any)?.title,
-            user.name
+            (submission as any)._id.toString(),
+            (task as any)?.title,
+            (user as any).name
           );
         } catch (error) {
           console.error('Failed to create task approval notification:', error);
@@ -233,10 +269,10 @@ export async function PUT(request: NextRequest) {
 
         // Create user notification for task approval
         try {
-          console.log('🔔 Creating approval notification for user:', user._id.toString());
+          console.log('🔔 Creating approval notification for user:', (user as any)._id.toString());
           await UserNotifications.taskApproved(
-            user._id.toString(),
-            (submission.taskId as any)?.title,
+            (user as any)._id.toString(),
+            (task as any)?.title,
             rewardPoints
           );
           console.log('✅ Approval notification created successfully');
@@ -249,28 +285,28 @@ export async function PUT(request: NextRequest) {
       }
     } else if (status.toLowerCase() === 'rejected') {
       // Create rejected activity record
-      await Activity.create({
-        userId: submission.userId,
-        taskId: submission.taskId,
+      await withTimeout(Activity.create({
+        userId: (submission as any).userId,
+        taskId: (submission as any).taskId,
         type: 'task_rejected',
         status: 'completed',
-        title: `Task Rejected: ${(submission.taskId as any)?.title}`,
+        title: `Task Rejected: ${(task as any)?.title}`,
         description: rejectionReason || 'Your submission was not approved',
         rewardPoints: 0,
         metadata: {
-          taskTitle: (submission.taskId as any)?.title,
-          taskCategory: (submission.taskId as any)?.category,
+          taskTitle: (task as any)?.title,
+          taskCategory: (task as any)?.category,
           rejectionReason,
-          submissionId: submission._id
+          submissionId: (submission as any)._id
         }
-      });
+      }), 3000);
 
       // Create admin notification for task rejection
       try {
         await AdminNotifications.taskRejected(
-          submission._id.toString(),
-          (submission.taskId as any)?.title,
-          user.name
+          (submission as any)._id.toString(),
+          (task as any)?.title,
+          (user as any).name
         );
       } catch (error) {
         console.error('Failed to create task rejection notification:', error);
@@ -279,10 +315,10 @@ export async function PUT(request: NextRequest) {
 
       // Create user notification for task rejection
       try {
-        console.log('🔔 Creating rejection notification for user:', user._id.toString());
+        console.log('🔔 Creating rejection notification for user:', (user as any)._id.toString());
         await UserNotifications.taskRejected(
-          user._id.toString(),
-          (submission.taskId as any)?.title,
+          (user as any)._id.toString(),
+          (task as any)?.title,
           rejectionReason
         );
         console.log('✅ Rejection notification created successfully');
@@ -296,7 +332,7 @@ export async function PUT(request: NextRequest) {
       success: true,
       message: `Submission ${status.toLowerCase()} successfully`,
       awardedPoints,
-      newStatus: submission.status
+      newStatus: (submission as any).status
     });
 
   } catch (error) {
