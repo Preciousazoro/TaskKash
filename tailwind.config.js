@@ -8,7 +8,7 @@ module.exports = {
   theme: {
     extend: {},
   },
-  plugins: [],
+  plugins: [require('@tailwindcss/typography')],
   // This config is for IDE compatibility
   // The actual styling uses Tailwind CSS v4 syntax in globals.css
 }

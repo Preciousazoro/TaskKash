@@ -239,12 +239,12 @@ export default function DashboardPage() {
             </div>
 
             {/* Filter Tabs */}
-            <div className="flex gap-2 p-1 bg-muted/50 rounded-lg w-fit">
+            <div className="flex gap-2 p-1 bg-muted/50 rounded-lg overflow-x-auto w-full sm:w-fit">
               {tabs.map((tab) => (
                 <button
                   key={tab}
                   onClick={() => handleTabChange(tab)}
-                  className={`px-4 py-2 rounded-md text-sm font-medium transition-all ${
+                  className={`px-4 py-2 rounded-md text-sm font-medium transition-all whitespace-nowrap ${
                     activeTab === tab
                       ? 'bg-background text-foreground shadow-sm'
                       : 'text-muted-foreground hover:text-foreground hover:bg-background/50'

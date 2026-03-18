@@ -34,6 +34,8 @@ export function useNotifications(limit: number = 5) {
 }
 
 export function useMarkNotificationsRead() {
+  const { mutate } = useSWRConfig();
+  
   const markAsRead = async (notificationId?: string) => {
     try {
       const url = notificationId 
@@ -43,7 +45,6 @@ export function useMarkNotificationsRead() {
       await fetch(url, { method: 'PATCH' });
       
       // Trigger revalidation of notifications
-      const { mutate } = useSWRConfig();
       mutate('/api/notifications?limit=5');
     } catch (error) {
       console.error('Error marking notification as read:', error);

@@ -5,6 +5,7 @@ import Link from "next/link";
 import ModeToggle from "@/components/ui/ModeToggle";
 import { Bell, ChevronDown, User as UserIcon, Check, Settings, LogOut } from "lucide-react";
 import { toast } from 'react-toastify';
+import { SafeHTMLRenderer } from "@/components/ui/SafeHTMLRenderer";
 
 interface Notification {
   id: string;
@@ -266,9 +267,10 @@ const AdminHeader = () => {
                               <span className="h-2 w-2 rounded-full bg-primary"></span>
                             )}
                           </div>
-                          <p className="text-xs text-muted-foreground mt-1">
-                            {notification.message}
-                          </p>
+                          <SafeHTMLRenderer 
+                            content={notification.message}
+                            className="text-xs text-muted-foreground mt-1"
+                          />
                           <p className="text-xs text-muted-foreground mt-2">
                             {formatTimeAgo(notification.createdAt)}
                           </p>
@@ -427,9 +429,10 @@ const AdminHeader = () => {
                               <span className="h-2 w-2 rounded-full bg-primary"></span>
                             )}
                           </div>
-                          <p className="text-xs text-muted-foreground mt-1">
-                            {notification.message}
-                          </p>
+                          <SafeHTMLRenderer 
+                            content={notification.message}
+                            className="text-xs text-muted-foreground mt-1"
+                          />
                           <p className="text-xs text-muted-foreground mt-2">
                             {formatTimeAgo(notification.createdAt)}
                           </p>

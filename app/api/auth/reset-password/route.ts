@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import connectDB from '@/lib/mongodb';
 import User from '@/models/User';
+import { auth } from '@/lib/auth';
 
 export async function POST(request: NextRequest) {
   try {
@@ -40,10 +41,15 @@ export async function POST(request: NextRequest) {
     user.password = password;
     user.passwordResetToken = undefined;
     user.passwordResetExpires = undefined;
+    
+    // Force the pre-save hook to hash the password
     await user.save();
 
     return NextResponse.json(
-      { message: 'Password reset successfully' },
+      { 
+        message: 'Password reset successfully',
+        forceLogout: true 
+      },
       { status: 200 }
     );
 

@@ -1,7 +1,7 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { Trophy, Clock, ExternalLink, Info } from "lucide-react";
+import { Trophy, Clock, ExternalLink, Eye } from "lucide-react";
 import { StatusBadge } from "./StatusBadge";
 import { Button } from "@/components/ui/button";
 import { TaskDocument } from "@/types/shared-task";
@@ -15,6 +15,18 @@ interface TaskCardProps {
   onSubmitProof: (task: TaskDocument) => void;
 }
 
+// Helper function to truncate HTML content and strip tags
+const truncateText = (html: string, maxLength: number = 120): string => {
+  // Remove HTML tags
+  const plainText = html.replace(/<[^>]*>/g, '').replace(/&nbsp;/g, ' ').trim();
+  
+  if (plainText.length <= maxLength) {
+    return plainText;
+  }
+  
+  return plainText.slice(0, maxLength) + '...';
+};
+
 export function TaskCard({
   task,
   onClick,
@@ -25,6 +37,7 @@ export function TaskCard({
   const isApproved = task.userTaskStatus === 'approved';
   const isRejected = task.userTaskStatus === 'rejected';
   const isAvailable = task.userTaskStatus === 'available';
+  const isStarted = TaskStateManager.isTaskStarted(task._id) && !isPending && !isApproved && !isRejected;
   const categoryStyles = {
     social: "from-pink-500/40 to-purple-500/40",
     content: "from-blue-500/40 to-cyan-500/40",
@@ -33,11 +46,11 @@ export function TaskCard({
 
   return (
     <motion.div
-      whileHover={{ y: isPending || isApproved ? 0 : -4 }}
-      whileTap={{ scale: isPending || isApproved ? 1 : 0.98 }}
+      whileHover={{ y: -2 }}
+      whileTap={{ scale: 0.98 }}
       onClick={() => !isPending && !isApproved && onClick(task)}
-      className={`relative rounded-2xl border border-border/60 bg-card/70 backdrop-blur-xl shadow-sm hover:shadow-xl transition-all overflow-hidden flex flex-col h-full min-h-[320px] ${
-        isPending ? 'opacity-50 cursor-not-allowed' : isApproved ? 'opacity-60 cursor-not-allowed' : 'cursor-pointer'
+      className={`relative rounded-2xl border border-border/60 bg-card/70 backdrop-blur-xl shadow-sm hover:shadow-xl transition-all overflow-hidden flex flex-col h-[280px] ${
+        isPending || isApproved ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'
       }`}
     >
       {/* Accent gradient strip */}
@@ -50,7 +63,7 @@ export function TaskCard({
       <div className="relative p-6 space-y-4 flex flex-col h-full">
         {/* Header - Fixed */}
         <div className="flex items-start justify-between gap-4 shrink-0">
-          <div className="space-y-1">
+          <div className="space-y-1 flex-1">
             <span className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
               {task.category}
             </span>
@@ -62,33 +75,20 @@ export function TaskCard({
           <StatusBadge status={task.userTaskStatus || 'available'} />
         </div>
 
-        {/* Scrollable Content Area */}
-        <div className="flex-1 overflow-y-auto space-y-4 min-h-0">
-          {/* Description */}
-          <p className="text-sm text-muted-foreground leading-relaxed line-clamp-3">
-            {task.description}
-          </p>
+        {/* Preview Content - Truncated */}
+        <div className="flex-1 space-y-3">
+          {/* Short Description Preview */}
+          <div className="text-sm text-muted-foreground leading-relaxed line-clamp-3">
+            {truncateText(task.description, 150)}
+          </div>
 
-          {/* Instructions */}
-          {task.instructions && (
-            <div className="space-y-2">
-              <div className="flex items-center gap-2 text-xs font-medium text-muted-foreground">
-                <Info className="w-3 h-3" />
-                Instructions
-              </div>
-              <p className="text-xs text-muted-foreground leading-relaxed">
-                {task.instructions}
-              </p>
-            </div>
-          )}
-
-          {/* Additional Info */}
+          {/* Quick Info */}
           <div className="flex items-center justify-between gap-2 text-xs text-muted-foreground">
             {/* URL Indicator */}
             {(task.taskLink || task.alternateUrl) && (
               <div className="flex items-center gap-1">
                 <ExternalLink className="w-3 h-3" />
-                <span>Task URL available</span>
+                <span>Task URL</span>
               </div>
             )}
             
@@ -102,31 +102,56 @@ export function TaskCard({
           </div>
         </div>
 
-        {/* Footer - Fixed */}
+        {/* Footer - Fixed with Actions */}
         <div className="flex items-center justify-between gap-4 pt-2 shrink-0">
           {/* Reward */}
-          <div className="inline-flex items-center gap-2 rounded-full bg-primary/10 px-4 py-2 text-sm font-bold text-primary">
-            <Trophy className="h-4 w-4" />
+          <div className="inline-flex items-center gap-2 rounded-full bg-primary/10 px-3 py-1.5 text-sm font-bold text-primary">
+            <Trophy className="h-3 w-3" />
             {task.rewardPoints} TP
           </div>
 
           {/* Actions */}
           <div className="flex gap-2">
             {isAvailable && (
+              <>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onStartTask(task);
+                  }}
+                  className="font-semibold h-8 px-3"
+                >
+                  Start
+                </Button>
+                <Button
+                  size="sm"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onSubmitProof(task);
+                  }}
+                  className="font-semibold h-8 px-3 bg-linear-to-r from-green-500 to-purple-600 hover:from-green-600 hover:to-purple-700"
+                >
+                  Submit
+                </Button>
+              </>
+            )}
+
+            {isStarted && (
               <Button
                 size="sm"
-                variant="secondary"
                 onClick={(e) => {
                   e.stopPropagation();
-                  onStartTask(task);
+                  onSubmitProof(task);
                 }}
-                className="font-semibold"
+                className="font-semibold h-8 px-3 bg-linear-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700"
               >
-                Start
+                Submit
               </Button>
             )}
 
-            {(isAvailable || isRejected) && (
+            {(isRejected) && (
               <Button
                 size="sm"
                 onClick={(e) => {
@@ -138,20 +163,20 @@ export function TaskCard({
                     toast.error("Please start the task first before submitting proof.");
                   }
                 }}
-                className="font-semibold bg-linear-to-r from-green-500 to-purple-600 hover:from-green-600 hover:to-purple-700"
+                className="font-semibold h-8 px-3 bg-linear-to-r from-green-500 to-purple-600 hover:from-green-600 hover:to-purple-700"
               >
-                {isRejected ? 'Resubmit' : 'Submit'}
+                Resubmit
               </Button>
             )}
 
             {isPending && (
-              <div className="flex items-center text-xs text-muted-foreground font-medium">
-                Pending review
+              <div className="flex items-center text-xs text-muted-foreground font-medium px-2">
+                Pending
               </div>
             )}
 
             {isApproved && (
-              <div className="flex items-center text-xs text-green-600 font-medium">
+              <div className="flex items-center text-xs text-green-600 font-medium px-2">
                 Completed
               </div>
             )}

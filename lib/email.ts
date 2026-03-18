@@ -746,3 +746,263 @@ export async function sendMarketingEmail(companyName: string, email: string, pho
     replyTo: email // Reply directly to the business
   });
 }
+
+// Broadcast email template
+export function createBroadcastEmail(title: string, message: string, userName?: string): { html: string; text: string } {
+  const html = `
+    <!DOCTYPE html>
+    <html>
+    <head>
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <title>${title} - TaskKash</title>
+      <style>
+        body {
+          font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+          line-height: 1.6;
+          color: #f9fafb;
+          max-width: 600px;
+          margin: 0 auto;
+          padding: 20px;
+          background-color: #0f172a;
+        }
+        .container {
+          background-color: #111827;
+          border-radius: 10px;
+          padding: 30px;
+          box-shadow: 0 2px 10px rgba(0,0,0,0.3);
+          border: 1px solid #374151;
+        }
+        .header {
+          text-align: center;
+          margin-bottom: 30px;
+        }
+        .logo {
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          gap: 12px;
+          margin-bottom: 20px;
+        }
+        .logo img {
+          width: 40px;
+          height: 40px;
+          border-radius: 8px;
+          object-fit: contain;
+          background: #1f2937;
+          padding: 4px;
+          border: 1px solid #374151;
+        }
+        .logo-text {
+          font-size: 24px;
+          font-weight: bold;
+          background: linear-gradient(45deg, #7c3aed, #a855f7);
+          -webkit-background-clip: text;
+          -webkit-text-fill-color: transparent;
+          background-clip: text;
+        }
+        .title {
+          color: #7c3aed;
+          font-size: 28px;
+          margin-bottom: 10px;
+          font-weight: bold;
+        }
+        .content {
+          margin-bottom: 30px;
+        }
+        .message-content {
+          background: #1f2937;
+          padding: 25px;
+          border-radius: 10px;
+          border-left: 5px solid #7c3aed;
+          white-space: pre-wrap;
+          font-size: 16px;
+          line-height: 1.8;
+          margin: 20px 0;
+          color: #f9fafb;
+        }
+        .badge {
+          display: inline-block;
+          background: linear-gradient(45deg, #7c3aed, #a855f7);
+          color: white;
+          padding: 6px 16px;
+          border-radius: 20px;
+          font-size: 12px;
+          font-weight: bold;
+          margin-bottom: 20px;
+          text-transform: uppercase;
+          letter-spacing: 1px;
+        }
+        .footer {
+          text-align: center;
+          color: #9ca3af;
+          font-size: 14px;
+          margin-top: 30px;
+          padding-top: 20px;
+          border-top: 1px solid #374151;
+        }
+        .cta-button {
+          display: inline-block;
+          background: linear-gradient(45deg, #7c3aed, #a855f7);
+          color: white;
+          padding: 15px 30px;
+          text-decoration: none;
+          border-radius: 5px;
+          font-weight: bold;
+          margin: 20px 0;
+          text-align: center;
+        }
+        .cta-button:hover {
+          opacity: 0.9;
+        }
+        p {
+          color: #f9fafb;
+        }
+      </style>
+    </head>
+    <body>
+      <div class="container">
+        <div class="header">
+          <div class="logo">
+            <img src="https://taskkash.xyz/taskkash-logo.png" alt="TaskKash Logo" onerror="this.src='http://localhost:3000/taskkash-logo.png'" />
+            <span class="logo-text">TaskKash</span>
+          </div>
+          <div class="badge">Official Announcement</div>
+          <h1 class="title">${title}</h1>
+        </div>
+        
+        <div class="content">
+          <p>Hello${userName ? ` ${userName}` : ''},</p>
+          
+          <p>We have an important announcement to share with you:</p>
+          
+          <div class="message-content">${message}</div>
+          
+          <div style="text-align: center;">
+            <a href="https://taskkash.xyz" class="cta-button">Visit TaskKash</a>
+          </div>
+        </div>
+        
+        <div class="footer">
+          <p>Best regards,<br>The TaskKash Team</p>
+          <p style="font-size: 12px; color: #6b7280;">
+            This is an official announcement from TaskKash. You received this because you are a registered user.
+          </p>
+        </div>
+      </div>
+    </body>
+    </html>
+  `;
+
+  const text = `
+    ${title} - TaskKash Official Announcement
+    
+    Hello${userName ? ` ${userName}` : ''},
+    
+    We have an important announcement to share with you:
+    
+    ${message}
+    
+    Visit TaskKash: https://taskkash.xyz
+    
+    Best regards,
+    The TaskKash Team
+    
+    ---
+    This is an official announcement from TaskKash. You received this because you are a registered user.
+  `;
+
+  return { html, text };
+}
+
+// Send broadcast email to multiple users with optimized batch processing
+export async function sendBroadcastEmail(users: { email: string; name?: string }[], title: string, message: string): Promise<{ sent: number; errors: string[] }> {
+  const results = { sent: 0, errors: [] as string[] };
+  
+  if (users.length === 0) {
+    console.log('📧 No users to send broadcast to');
+    return results;
+  }
+
+  console.log(`📧 Starting broadcast email send to ${users.length} users`);
+  console.log(`📧 Title: "${title}"`);
+  
+  const BATCH_SIZE = 15; // Send emails in batches of 15 to balance performance and server load
+  const batches = [];
+  
+  // Create batches of users
+  for (let i = 0; i < users.length; i += BATCH_SIZE) {
+    batches.push(users.slice(i, i + BATCH_SIZE));
+  }
+  
+  console.log(`📧 Processing ${batches.length} batches of up to ${BATCH_SIZE} emails each`);
+  
+  // Process each batch sequentially, but emails within each batch in parallel
+  for (let batchIndex = 0; batchIndex < batches.length; batchIndex++) {
+    const batch = batches[batchIndex];
+    const batchNumber = batchIndex + 1;
+    const totalBatches = batches.length;
+    
+    console.log(`📧 Sending batch ${batchNumber}/${totalBatches} (${batch.length} emails)`);
+    
+    try {
+      // Send all emails in this batch in parallel using Promise.all()
+      const batchPromises = batch.map(async (user) => {
+        try {
+          const { html, text } = createBroadcastEmail(title, message, user.name);
+          
+          const success = await sendEmail({
+            to: user.email,
+            subject: title,
+            html,
+            text,
+            from: 'NOREPLY' // Use NOREPLY to match SMTP email and avoid mismatch
+          });
+          
+          return {
+            email: user.email,
+            success,
+            error: success ? null : `Failed to send to ${user.email}`
+          };
+        } catch (error) {
+          console.error(`Error sending broadcast email to ${user.email}:`, error);
+          return {
+            email: user.email,
+            success: false,
+            error: `Error sending to ${user.email}: ${error instanceof Error ? error.message : 'Unknown error'}`
+          };
+        }
+      });
+      
+      // Wait for all emails in this batch to complete
+      const batchResults = await Promise.all(batchPromises);
+      
+      // Process results from this batch
+      for (const result of batchResults) {
+        if (result.success) {
+          results.sent++;
+        } else {
+          results.errors.push(result.error || `Failed to send to ${result.email}`);
+        }
+      }
+      
+      console.log(`✅ Batch ${batchNumber}/${totalBatches} completed: ${batchResults.filter(r => r.success).length}/${batchResults.length} emails sent successfully`);
+      
+      // Add small delay between batches to prevent overwhelming the server
+      if (batchIndex < batches.length - 1) {
+        await new Promise(resolve => setTimeout(resolve, 100)); // 100ms delay between batches
+      }
+      
+    } catch (batchError) {
+      console.error(`❌ Batch ${batchNumber}/${totalBatches} failed:`, batchError);
+      results.errors.push(`Batch ${batchNumber} failed: ${batchError instanceof Error ? batchError.message : 'Unknown error'}`);
+    }
+  }
+  
+  console.log(`📧 Broadcast completed: ${results.sent}/${users.length} emails sent successfully`);
+  if (results.errors.length > 0) {
+    console.log(`📧 Errors encountered: ${results.errors.length}`);
+  }
+  
+  return results;
+}

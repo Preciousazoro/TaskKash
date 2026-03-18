@@ -7,6 +7,7 @@ import { TaskDocument } from "@/types/shared-task";
 import { StatusBadge } from "./StatusBadge";
 import { toast } from 'react-toastify';
 import { TaskStateManager } from "@/lib/taskState";
+import { SafeHTMLRenderer } from "@/components/ui/SafeHTMLRenderer";
 
 interface TaskPreviewModalProps {
   task: TaskDocument | null;
@@ -165,9 +166,10 @@ export function TaskPreviewModal({ task, isOpen, onClose }: TaskPreviewModalProp
                   Description
                 </h3>
                 <div className="p-4 bg-card rounded-xl border border-border">
-                  <p className="text-sm text-muted-foreground leading-relaxed">
-                    {task.description}
-                  </p>
+                  <SafeHTMLRenderer 
+                    content={task.description}
+                    className="text-sm text-muted-foreground"
+                  />
                 </div>
               </div>
 
@@ -178,9 +180,10 @@ export function TaskPreviewModal({ task, isOpen, onClose }: TaskPreviewModalProp
                     Instructions
                   </h3>
                   <div className="p-4 bg-card rounded-xl border border-border">
-                    <p className="text-sm text-muted-foreground leading-relaxed">
-                      {task.instructions}
-                    </p>
+                    <SafeHTMLRenderer 
+                      content={task.instructions}
+                      className="text-sm text-muted-foreground"
+                    />
                   </div>
                 </div>
               )}

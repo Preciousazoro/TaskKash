@@ -13,6 +13,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from ".
 import { Checkbox } from "../../../components/ui/checkbox";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "../../../components/ui/dropdown-menu";
 import { AdminContentOnlySkeleton } from "@/components/ui/LoadingSkeleton";
+import { RichTextEditor } from "@/components/ui/RichTextEditor";
 
 interface Task {
   _id: string;
@@ -710,15 +711,15 @@ const ManageTasks = () => {
               <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4">
                 <form
                   onSubmit={handleCreateTask}
-                  className="bg-gray-900 p-8 rounded-2xl w-full max-w-2xl max-h-[90vh] space-y-6 text-white overflow-y-auto"
+                  className="bg-card p-8 rounded-2xl w-full max-w-2xl max-h-[90vh] space-y-6 text-foreground overflow-y-auto border border-border"
                 >
-                  <h3 className="text-2xl font-bold text-center sticky top-0 bg-gray-900 pb-4 border-b border-gray-700">Create Task</h3>
+                  <h3 className="text-2xl font-bold text-center sticky top-0 bg-card pb-4 border-b border-border">Create Task</h3>
 
                   {/* Title */}
                   <div>
-                    <label className="block text-sm font-medium mb-2 text-gray-200">Title</label>
+                    <label className="block text-sm font-medium mb-2 text-foreground">Title</label>
                     <input
-                      className="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-3 text-white placeholder-gray-400 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20"
+                      className="w-full bg-card border border-border rounded-lg px-4 py-3 text-foreground placeholder-muted-foreground focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20"
                       placeholder="Enter task title"
                       value={title}
                       onChange={(e) => setTitle(e.target.value)}
@@ -728,9 +729,9 @@ const ManageTasks = () => {
 
                   {/* Category */}
                   <div>
-                    <label className="block text-sm font-medium mb-2 text-gray-200">Category</label>
+                    <label className="block text-sm font-medium mb-2 text-foreground">Category</label>
                     <select
-                      className="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20"
+                      className="w-full bg-card border border-border rounded-lg px-4 py-3 text-foreground focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20"
                       value={category}
                       onChange={(e) => setCategory(e.target.value as 'social' | 'content' | 'commerce')}
                       required
@@ -744,23 +745,21 @@ const ManageTasks = () => {
 
                   {/* Description */}
                   <div>
-                    <label className="block text-sm font-medium mb-2 text-gray-200">Description</label>
-                    <textarea
-                      className="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-3 text-white placeholder-gray-400 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 resize-none"
+                    <label className="block text-sm font-medium mb-2 text-foreground">Description</label>
+                    <RichTextEditor
+                      content={description}
+                      onChange={setDescription}
                       placeholder="Enter task description"
-                      value={description}
-                      onChange={(e) => setDescription(e.target.value)}
-                      rows={4}
-                      required
+                      className="bg-card border-border text-foreground placeholder-muted-foreground"
                     />
                   </div>
 
                   {/* Reward Points */}
                   <div>
-                    <label className="block text-sm font-medium mb-2 text-gray-200">Reward Points</label>
+                    <label className="block text-sm font-medium mb-2 text-foreground">Reward Points</label>
                     <input
                       type="number"
-                      className="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-3 text-white placeholder-gray-400 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20"
+                      className="w-full bg-card border border-border rounded-lg px-4 py-3 text-foreground placeholder-muted-foreground focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20"
                       placeholder="Enter reward points"
                       value={rewardPoints}
                       onChange={(e) =>
@@ -772,9 +771,9 @@ const ManageTasks = () => {
 
                   {/* Validation Type */}
                   <div>
-                    <label className="block text-sm font-medium mb-2 text-gray-200">Validation Type</label>
+                    <label className="block text-sm font-medium mb-2 text-foreground">Validation Type</label>
                     <select
-                      className="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20"
+                      className="w-full bg-card border border-border rounded-lg px-4 py-3 text-foreground focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20"
                       value={validationType}
                       onChange={(e) => setValidationType(e.target.value)}
                       required
@@ -789,24 +788,22 @@ const ManageTasks = () => {
 
                   {/* Instructions */}
                   <div>
-                    <label className="block text-sm font-medium mb-2 text-gray-200">Instructions</label>
-                    <textarea
-                      className="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-3 text-white placeholder-gray-400 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 resize-none"
+                    <label className="block text-sm font-medium mb-2 text-foreground">Instructions</label>
+                    <RichTextEditor
+                      content={instructions}
+                      onChange={setInstructions}
                       placeholder="Enter task instructions"
-                      value={instructions}
-                      onChange={(e) => setInstructions(e.target.value)}
-                      rows={4}
-                      required
+                      className="bg-card border-border text-foreground placeholder-muted-foreground"
                     />
                   </div>
 
                   {/* Task Links */}
                   <div className="space-y-4">
                     <div>
-                      <label className="block text-sm font-medium mb-2 text-gray-200">Task Link (preferred)</label>
+                      <label className="block text-sm font-medium mb-2 text-foreground">Task Link (preferred)</label>
                       <input
                         type="url"
-                        className="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-3 text-white placeholder-gray-400 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20"
+                        className="w-full bg-card border border-border rounded-lg px-4 py-3 text-foreground placeholder-muted-foreground focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20"
                         placeholder="https://example.com/task"
                         value={taskLink}
                         onChange={(e) => setTaskLink(e.target.value)}
@@ -814,27 +811,27 @@ const ManageTasks = () => {
                     </div>
 
                     <div>
-                      <label className="block text-sm font-medium mb-2 text-gray-200">Alternate URL</label>
+                      <label className="block text-sm font-medium mb-2 text-foreground">Alternate URL</label>
                       <input
                         type="url"
-                        className="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-3 text-white placeholder-gray-400 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20"
+                        className="w-full bg-card border border-border rounded-lg px-4 py-3 text-foreground placeholder-muted-foreground focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20"
                         placeholder="https://example.com/alternate"
                         value={alternateUrl}
                         onChange={(e) => setAlternateUrl(e.target.value)}
                       />
                     </div>
 
-                    <p className="text-xs text-gray-400 bg-gray-800 p-3 rounded-lg border border-gray-700">
+                    <p className="text-xs text-muted-foreground bg-card p-3 rounded-lg border border-border">
                       ⚠️ At least one link is required (Task Link or Alternate URL)
                     </p>
                   </div>
 
                   {/* Deadline */}
                   <div>
-                    <label className="block text-sm font-medium mb-2 text-gray-200">Deadline</label>
+                    <label className="block text-sm font-medium mb-2 text-foreground">Deadline</label>
                     <input
                       type="datetime-local"
-                      className="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-3 text-white placeholder-gray-400 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20"
+                      className="w-full bg-card border border-border rounded-lg px-4 py-3 text-foreground placeholder-muted-foreground focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20"
                       value={deadline}
                       onChange={(e) => setDeadline(e.target.value)}
                       min={new Date().toISOString().slice(0, 16)}
@@ -842,19 +839,19 @@ const ManageTasks = () => {
                   </div>
 
                   {/* Form Actions - Sticky at bottom */}
-                  <div className="sticky bottom-0 bg-gray-900 pt-6 border-t border-gray-700">
+                  <div className="sticky bottom-0 bg-card pt-6 border-t border-border">
                     <div className="flex justify-end gap-4">
                       <button
                         type="button"
                         onClick={() => setShowCreateModal(false)}
-                        className="px-6 py-3 border border-gray-600 rounded-lg text-white hover:bg-gray-800 transition-colors focus:outline-none focus:ring-2 focus:ring-gray-500/20"
+                        className="px-6 py-3 border border-border rounded-lg text-foreground hover:bg-muted transition-colors focus:outline-none focus:ring-2 focus:ring-border/20"
                         disabled={isSubmitting}
                       >
                         Cancel
                       </button>
                       <button
                         type="submit"
-                        className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+                        className="px-6 py-3 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed focus:outline-none focus:ring-2 focus:ring-primary/20"
                         disabled={isSubmitting}
                       >
                         {isSubmitting ? (
@@ -877,15 +874,15 @@ const ManageTasks = () => {
               <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4">
                 <form
                   onSubmit={handleEditTask}
-                  className="bg-black p-8 rounded-2xl w-full max-w-2xl max-h-[90vh] space-y-6 text-white overflow-y-auto"
+                  className="bg-card p-8 rounded-2xl w-full max-w-2xl max-h-[90vh] space-y-6 text-foreground overflow-y-auto border border-border"
                 >
-                  <h3 className="text-2xl font-bold text-center sticky top-0 bg-black pb-4 border-b border-gray-700">Edit Task</h3>
+                  <h3 className="text-2xl font-bold text-center sticky top-0 bg-card pb-4 border-b border-border">Edit Task</h3>
 
                   {/* Title */}
                   <div>
-                    <label className="block text-sm font-medium mb-2 text-gray-200">Title</label>
+                    <label className="block text-sm font-medium mb-2 text-foreground">Title</label>
                     <input
-                      className="w-full bg-black border border-gray-700 rounded-lg px-4 py-3 text-white placeholder-gray-400 focus:outline-none focus:border-black focus:ring-2 focus:ring-black/20"
+                      className="w-full bg-card border border-border rounded-lg px-4 py-3 text-foreground placeholder-muted-foreground focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20"
                       placeholder="Enter task title"
                       value={title}
                       onChange={(e) => setTitle(e.target.value)}
@@ -895,9 +892,9 @@ const ManageTasks = () => {
 
                   {/* Category */}
                   <div>
-                    <label className="block text-sm font-medium mb-2 text-gray-200">Category</label>
+                    <label className="block text-sm font-medium mb-2 text-foreground">Category</label>
                     <select
-                      className="w-full bg-black border border-gray-700 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-black focus:ring-2 focus:ring-black/20"
+                      className="w-full bg-card border border-border rounded-lg px-4 py-3 text-foreground focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20"
                       value={category}
                       onChange={(e) => setCategory(e.target.value as 'social' | 'content' | 'commerce')}
                       required
@@ -910,23 +907,21 @@ const ManageTasks = () => {
 
                   {/* Description */}
                   <div>
-                    <label className="block text-sm font-medium mb-2 text-gray-200">Description</label>
-                    <textarea
-                      className="w-full bg-black border border-gray-700 rounded-lg px-4 py-3 text-white placeholder-gray-400 focus:outline-none focus:border-black focus:ring-2 focus:ring-black/20 resize-none"
+                    <label className="block text-sm font-medium mb-2 text-foreground">Description</label>
+                    <RichTextEditor
+                      content={description}
+                      onChange={setDescription}
                       placeholder="Enter task description"
-                      value={description}
-                      onChange={(e) => setDescription(e.target.value)}
-                      rows={4}
-                      required
+                      className="bg-card border-border text-foreground placeholder-muted-foreground"
                     />
                   </div>
 
                   {/* Reward Points */}
                   <div>
-                    <label className="block text-sm font-medium mb-2 text-gray-200">Reward Points</label>
+                    <label className="block text-sm font-medium mb-2 text-foreground">Reward Points</label>
                     <input
                       type="number"
-                      className="w-full bg-black border border-gray-700 rounded-lg px-4 py-3 text-white placeholder-gray-400 focus:outline-none focus:border-black focus:ring-2 focus:ring-black/20"
+                      className="w-full bg-card border border-border rounded-lg px-4 py-3 text-foreground placeholder-muted-foreground focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20"
                       placeholder="Enter reward points"
                       value={rewardPoints}
                       onChange={(e) =>
@@ -938,9 +933,9 @@ const ManageTasks = () => {
 
                   {/* Validation Type */}
                   <div>
-                    <label className="block text-sm font-medium mb-2 text-gray-200">Validation Type</label>
+                    <label className="block text-sm font-medium mb-2 text-foreground">Validation Type</label>
                     <select
-                      className="w-full bg-black border border-gray-700 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-black focus:ring-2 focus:ring-black/20"
+                      className="w-full bg-card border border-border rounded-lg px-4 py-3 text-foreground focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20"
                       value={validationType}
                       onChange={(e) => setValidationType(e.target.value)}
                       required
@@ -954,24 +949,22 @@ const ManageTasks = () => {
 
                   {/* Instructions */}
                   <div>
-                    <label className="block text-sm font-medium mb-2 text-gray-200">Instructions</label>
-                    <textarea
-                      className="w-full bg-black border border-gray-700 rounded-lg px-4 py-3 text-white placeholder-gray-400 focus:outline-none focus:border-black focus:ring-2 focus:ring-black/20 resize-none"
+                    <label className="block text-sm font-medium mb-2 text-foreground">Instructions</label>
+                    <RichTextEditor
+                      content={instructions}
+                      onChange={setInstructions}
                       placeholder="Enter task instructions"
-                      value={instructions}
-                      onChange={(e) => setInstructions(e.target.value)}
-                      rows={4}
-                      required
+                      className="bg-card border-border text-foreground placeholder-muted-foreground"
                     />
                   </div>
 
                   {/* Task Links */}
                   <div className="space-y-4">
                     <div>
-                      <label className="block text-sm font-medium mb-2 text-gray-200">Task Link (preferred)</label>
+                      <label className="block text-sm font-medium mb-2 text-foreground">Task Link (preferred)</label>
                       <input
                         type="url"
-                        className="w-full bg-black border border-gray-700 rounded-lg px-4 py-3 text-white placeholder-gray-400 focus:outline-none focus:border-black focus:ring-2 focus:ring-black/20"
+                        className="w-full bg-card border border-border rounded-lg px-4 py-3 text-foreground placeholder-muted-foreground focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20"
                         placeholder="https://example.com/task"
                         value={taskLink}
                         onChange={(e) => setTaskLink(e.target.value)}
@@ -979,27 +972,27 @@ const ManageTasks = () => {
                     </div>
 
                     <div>
-                      <label className="block text-sm font-medium mb-2 text-gray-200">Alternate URL</label>
+                      <label className="block text-sm font-medium mb-2 text-foreground">Alternate URL</label>
                       <input
                         type="url"
-                        className="w-full bg-black border border-gray-700 rounded-lg px-4 py-3 text-white placeholder-gray-400 focus:outline-none focus:border-black focus:ring-2 focus:ring-black/20"
+                        className="w-full bg-card border border-border rounded-lg px-4 py-3 text-foreground placeholder-muted-foreground focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20"
                         placeholder="https://example.com/alternate"
                         value={alternateUrl}
                         onChange={(e) => setAlternateUrl(e.target.value)}
                       />
                     </div>
 
-                    <p className="text-xs text-gray-400 bg-black p-3 rounded-lg border border-gray-700">
+                    <p className="text-xs text-muted-foreground bg-card p-3 rounded-lg border border-border">
                       ⚠️ At least one link is required (Task Link or Alternate URL)
                     </p>
                   </div>
 
                   {/* Deadline */}
                   <div>
-                    <label className="block text-sm font-medium mb-2 text-gray-200">Deadline</label>
+                    <label className="block text-sm font-medium mb-2 text-foreground">Deadline</label>
                     <input
                       type="datetime-local"
-                      className="w-full bg-black border border-gray-700 rounded-lg px-4 py-3 text-white placeholder-gray-400 focus:outline-none focus:border-black focus:ring-2 focus:ring-black/20"
+                      className="w-full bg-card border border-border rounded-lg px-4 py-3 text-foreground placeholder-muted-foreground focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20"
                       value={deadline}
                       onChange={(e) => setDeadline(e.target.value)}
                       min={new Date().toISOString().slice(0, 16)}
@@ -1009,9 +1002,9 @@ const ManageTasks = () => {
 
                   {/* Status */}
                   <div>
-                    <label className="block text-sm font-medium mb-2 text-gray-200">Status</label>
+                    <label className="block text-sm font-medium mb-2 text-foreground">Status</label>
                     <select
-                      className="w-full bg-black border border-gray-700 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-black focus:ring-2 focus:ring-black/20"
+                      className="w-full bg-card border border-border rounded-lg px-4 py-3 text-foreground focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20"
                       value={status}
                       onChange={(e) => setStatus(e.target.value as 'active' | 'expired' | 'disabled')}
                       required
@@ -1023,7 +1016,7 @@ const ManageTasks = () => {
                   </div>
 
                   {/* Form Actions - Sticky at bottom */}
-                  <div className="sticky bottom-0 bg-black pt-6 border-t border-gray-700">
+                  <div className="sticky bottom-0 bg-card pt-6 border-t border-border">
                     <div className="flex justify-end gap-4">
                       <button
                         type="button"
@@ -1042,7 +1035,7 @@ const ManageTasks = () => {
                           setDeadline("");
                           setStatus('active');
                         }}
-                        className="px-6 py-3 border border-gray-600 rounded-lg text-white hover:bg-gray-800 transition-colors focus:outline-none focus:ring-2 focus:ring-gray-500/20"
+                        className="px-6 py-3 border border-border rounded-lg text-foreground hover:bg-muted transition-colors focus:outline-none focus:ring-2 focus:ring-border/20"
                         disabled={isSubmitting}
                       >
                         Cancel

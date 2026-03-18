@@ -17,6 +17,7 @@ import {
   Calendar,
   MessageSquare,
   ArrowDown,
+  Send,
 } from "lucide-react";
 
 interface AdminUser {
@@ -81,6 +82,7 @@ const AdminSidebar = () => {
     { icon: <ArrowDown className={iconClass} />, label: "Withdrawals", href: "/admin-dashboard/withdrawals", color: "text-red-500" },
     { icon: <MessageSquare className={iconClass} />, label: "Contact Messages", href: "/admin-dashboard/contact-messages", color: "text-green-500" },
     { icon: <Calendar className={iconClass} />, label: "Bookings", href: "/admin-dashboard/bookings", color: "text-green-500" },
+    { icon: <Send className={iconClass} />, label: "Broadcast", href: "/admin-dashboard/broadcast", color: "text-purple-500" },
     { icon: <Award className={iconClass} />, label: "Rewards", href: "/admin-dashboard/rewards", color: "text-green-500" },
     { icon: <Settings className={iconClass} />, label: "Settings", href: "/admin-dashboard/settings", color: "text-green-500" },
   ];

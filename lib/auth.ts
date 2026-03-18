@@ -41,17 +41,35 @@ export const {
           await connectDB();
 
           // Find user including password
-          const user = await User.findOne({ email: credentials.email }).select(
-            "+password"
-          );
+          const normalizedEmail = (credentials.email as string).toLowerCase();
+          console.log('🔐 Login attempt:', { email: normalizedEmail, timestamp: new Date().toISOString() });
+          
+          const user = await User.findOne({ 
+            email: normalizedEmail 
+          }).select("+password");
 
-          if (!user) return null;
+          if (!user) {
+            console.log('❌ User not found:', normalizedEmail);
+            return null;
+          }
+
+          console.log('👤 User found:', { 
+            id: user._id, 
+            email: user.email, 
+            hasPassword: !!user.password,
+            passwordLength: user.password?.length 
+          });
 
           const isPasswordValid = await user.comparePassword(
             credentials.password
           );
 
-          if (!isPasswordValid) return null;
+          if (!isPasswordValid) {
+            console.log('❌ Invalid password for:', normalizedEmail);
+            return null;
+          }
+
+          console.log('✅ Authentication successful for:', normalizedEmail);
 
           // Check if email is verified
           if (!user.emailVerified) {
