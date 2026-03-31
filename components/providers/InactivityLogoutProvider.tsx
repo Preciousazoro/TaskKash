@@ -1,8 +1,7 @@
 'use client';
 
 import { useEffect, useRef, useState, useCallback } from 'react';
-import { useSession, signOut } from 'next-auth/react';
-import { useSession as useOptimizedSession } from './OptimizedSessionProvider';
+import { signOut } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import { toast } from 'react-toastify';
 
@@ -19,7 +18,8 @@ export function InactivityLogoutProvider({
   warningMinutes = 14,  // Increased from 9 to 14 minutes
   enabled = true,
 }: InactivityLogoutProviderProps) {
-  const { data: session, status } = useOptimizedSession();
+  // Use a simple session check without causing re-renders
+  const [sessionStatus, setSessionStatus] = useState<'loading' | 'authenticated' | 'unauthenticated'>('loading');
   const router = useRouter();
   const [showWarning, setShowWarning] = useState(false);
   const [warningCountdown, setWarningCountdown] = useState(60);
@@ -30,12 +30,62 @@ export function InactivityLogoutProvider({
   const timeoutRef = useRef<NodeJS.Timeout | null>(null);
   const warningTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const lastActivityRef = useRef<number>(Date.now());
+  const sessionCheckRef = useRef<boolean>(false);
+  const activityTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+  // Check session status once on mount
+  useEffect(() => {
+    if (sessionCheckRef.current) return;
+    sessionCheckRef.current = true;
+    
+    const checkSession = async () => {
+      try {
+        const response = await fetch('/api/auth/session');
+        const session = await response.json();
+        setSessionStatus(session ? 'authenticated' : 'unauthenticated');
+      } catch (error) {
+        console.error('❌ Error checking session:', error);
+        setSessionStatus('unauthenticated');
+      }
+    };
+    
+    checkSession();
+  }, []);
+
+  const handleLogout = useCallback(async () => {
+    try {
+      // Clear all timers
+      if (timeoutRef.current) clearTimeout(timeoutRef.current);
+      if (warningTimeoutRef.current) clearTimeout(warningTimeoutRef.current);
+      if (countdownIntervalRef.current) clearInterval(countdownIntervalRef.current);
+
+      // Clear localStorage
+      localStorage.removeItem('lastActivity');
+      
+      // Sign out from NextAuth
+      await signOut({ redirect: false });
+      
+      // Clear sessionStorage
+      sessionStorage.clear();
+      
+      // Show toast notification
+      toast.info('You have been logged out due to inactivity');
+      
+      // Redirect to login
+      router.push('/auth/login');
+    } catch (error) {
+      console.error('Error during logout:', error);
+      // Fallback redirect
+      window.location.href = '/auth/login';
+    }
+  }, [router]);
 
   const resetTimers = useCallback(() => {
     // Clear existing timers
     if (timeoutRef.current) clearTimeout(timeoutRef.current);
     if (warningTimeoutRef.current) clearTimeout(warningTimeoutRef.current);
     if (countdownIntervalRef.current) clearInterval(countdownIntervalRef.current);
+    if (activityTimeoutRef.current) clearTimeout(activityTimeoutRef.current);
 
     // Update last activity
     lastActivityRef.current = Date.now();
@@ -71,49 +121,24 @@ export function InactivityLogoutProvider({
     timeoutRef.current = setTimeout(() => {
       handleLogout();
     }, timeoutMs);
-  }, [timeoutMs, warningMs, warningMinutes, timeoutMinutes]);
-
-  const handleLogout = useCallback(async () => {
-    try {
-      // Clear all timers
-      if (timeoutRef.current) clearTimeout(timeoutRef.current);
-      if (warningTimeoutRef.current) clearTimeout(warningTimeoutRef.current);
-      if (countdownIntervalRef.current) clearInterval(countdownIntervalRef.current);
-
-      // Clear localStorage
-      localStorage.removeItem('lastActivity');
-      
-      // Sign out from NextAuth
-      await signOut({ redirect: false });
-      
-      // Clear sessionStorage
-      sessionStorage.clear();
-      
-      // Show toast notification
-      toast.info('You have been logged out due to inactivity');
-      
-      // Redirect to login
-      router.push('/auth/login');
-    } catch (error) {
-      console.error('Error during logout:', error);
-      // Fallback redirect
-      window.location.href = '/auth/login';
-    }
-  }, [router]);
+  }, [warningMs, timeoutMs, warningMinutes, timeoutMinutes, handleLogout]);
 
   const handleActivity = useCallback(() => {
-    if (!enabled || status !== 'authenticated') return;
+    if (!enabled || sessionStatus !== 'authenticated') return;
     
-    // Throttle activity handling to prevent excessive calls
-    const now = Date.now();
-    if (now - lastActivityRef.current < 1000) return; // Ignore if less than 1 second since last activity
+    // Debounced activity handling to prevent excessive calls
+    if (activityTimeoutRef.current) return;
     
-    resetTimers();
-  }, [enabled, status, resetTimers]);
+    // Set a timeout to reset timers after a short delay
+    activityTimeoutRef.current = setTimeout(() => {
+      resetTimers();
+      activityTimeoutRef.current = null;
+    }, 100); // 100ms debounce
+  }, [enabled, sessionStatus, resetTimers]);
 
   // Setup activity event listeners
   useEffect(() => {
-    if (!enabled || status !== 'authenticated') return;
+    if (!enabled || sessionStatus !== 'authenticated') return;
 
     const activityEvents = [
       'mousedown',
@@ -134,7 +159,7 @@ export function InactivityLogoutProvider({
 
     // Handle visibility change (tab switching)
     const handleVisibilityChange = () => {
-      if (!document.hidden && status === 'authenticated') {
+      if (!document.hidden && sessionStatus === 'authenticated') {
         handleActivity();
       }
     };
@@ -166,12 +191,13 @@ export function InactivityLogoutProvider({
       if (timeoutRef.current) clearTimeout(timeoutRef.current);
       if (warningTimeoutRef.current) clearTimeout(warningTimeoutRef.current);
       if (countdownIntervalRef.current) clearInterval(countdownIntervalRef.current);
+      if (activityTimeoutRef.current) clearTimeout(activityTimeoutRef.current);
     };
-  }, [enabled, status, handleActivity, resetTimers]);
+  }, [enabled, sessionStatus, handleActivity, resetTimers]);
 
   // Check for existing activity on mount
   useEffect(() => {
-    if (!enabled || status !== 'authenticated') return;
+    if (!enabled || sessionStatus !== 'authenticated') return;
 
     const storedActivity = localStorage.getItem('lastActivity');
     if (storedActivity) {
@@ -205,10 +231,10 @@ export function InactivityLogoutProvider({
       // No stored activity, start fresh
       resetTimers();
     }
-  }, [enabled, status, timeoutMs, warningMs, resetTimers, handleLogout]);
+  }, [enabled, sessionStatus, timeoutMs, warningMs, resetTimers, handleLogout]);
 
   // Don't render anything if not enabled or not authenticated
-  if (!enabled || status !== 'authenticated') {
+  if (!enabled || sessionStatus !== 'authenticated') {
     return <>{children}</>;
   }
 

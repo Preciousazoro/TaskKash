@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@/lib/auth';
 import Activity from '@/models/Activity';
+import TaskHistory from '@/models/TaskHistory';
 import mongoose from 'mongoose';
 
 export async function GET(request: NextRequest) {
@@ -70,32 +71,62 @@ export async function GET(request: NextRequest) {
 
     // Fetch activities with pagination
     const activities = await Activity.find(query)
-      .populate('taskId', 'title category rewardPoints')
       .sort({ createdAt: -1 })
       .skip((page - 1) * limit)
       .limit(limit)
       .lean();
 
-    // Format activities for frontend
-    const formattedActivities = activities.map(activity => ({
-      _id: activity._id,
-      type: activity.type,
-      status: activity.status,
-      title: activity.title,
-      description: activity.description,
-      rewardPoints: activity.rewardPoints,
-      taskDetails: activity.taskId ? {
-        title: (activity.taskId as any).title || activity.metadata?.taskTitle,
-        category: (activity.taskId as any).category || activity.metadata?.taskCategory,
-        rewardPoints: (activity.taskId as any).rewardPoints || activity.rewardPoints
-      } : {
-        title: activity.metadata?.taskTitle,
-        category: activity.metadata?.taskCategory,
-        rewardPoints: activity.rewardPoints
-      },
-      metadata: activity.metadata,
-      createdAt: activity.createdAt,
-      updatedAt: activity.updatedAt
+    // For each activity, try to resolve task details from both active tasks and archived tasks
+    const formattedActivities = await Promise.all(activities.map(async (activity) => {
+      let taskDetails = null;
+      
+      if (activity.taskId) {
+        // First try to find the active task
+        try {
+          const Task = mongoose.models.Task;
+          const activeTask = await Task.findById(activity.taskId)
+            .select('title category rewardPoints')
+            .lean() as any;
+          
+          if (activeTask) {
+            taskDetails = {
+              title: activeTask.title,
+              category: activeTask.category,
+              rewardPoints: activeTask.rewardPoints
+            };
+          } else {
+            // If not found in active tasks, check archived tasks
+            const TaskHistoryModel = TaskHistory as any;
+            const archivedTask = await TaskHistoryModel.findByOriginalTaskId(activity.taskId);
+            if (archivedTask) {
+              taskDetails = {
+                title: archivedTask.title,
+                category: archivedTask.category,
+                rewardPoints: archivedTask.rewardPoints
+              };
+            }
+          }
+        } catch (error) {
+          console.error('Error resolving task details for activity:', activity._id, error);
+        }
+      }
+
+      return {
+        _id: activity._id,
+        type: activity.type,
+        status: activity.status,
+        title: activity.title,
+        description: activity.description,
+        rewardPoints: activity.rewardPoints,
+        taskDetails: taskDetails || {
+          title: activity.metadata?.taskTitle || 'Archived Task',
+          category: activity.metadata?.taskCategory,
+          rewardPoints: activity.rewardPoints
+        },
+        metadata: activity.metadata,
+        createdAt: activity.createdAt,
+        updatedAt: activity.updatedAt
+      };
     }));
 
     return NextResponse.json({

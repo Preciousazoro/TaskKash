@@ -1,73 +1,120 @@
 import nodemailer from 'nodemailer';
-import { EMAIL_PROVIDER, NOREPLY_EMAIL, SUPPORT_EMAIL, MARKETING_EMAIL, getEmailConfig, type EmailType } from './emailConfig';
+
+// Permanent email sending configuration for TaskKash
+// All outbound email uses support@taskkash.xyz as the real sender
+
+// Single real sender mailbox - permanent production setup
+const ACTUAL_FROM_EMAIL = "support@taskkash.xyz";
+const ACTUAL_FROM_NAME = "TaskKash Support";
+
+// Email flow rules - centralized configuration
+const EMAIL_FLOW_RULES = {
+  // System emails - no replyTo allowed
+  SYSTEM_EMAILS: {
+    allowedReplyTo: false,
+    description: "OTP, password reset, security notifications, broadcasts"
+  },
+  
+  // User-submitted forms - replyTo allowed to submitter
+  USER_FORMS: {
+    allowedReplyTo: true,
+    description: "Contact form, booking inquiries"
+  }
+} as const;
+
+// Email type mapping to flow rules
+const EMAIL_TYPE_RULES = {
+  NOREPLY: EMAIL_FLOW_RULES.SYSTEM_EMAILS,
+  SUPPORT: EMAIL_FLOW_RULES.USER_FORMS,
+  MARKETING: EMAIL_FLOW_RULES.USER_FORMS,
+  INFO: EMAIL_FLOW_RULES.SYSTEM_EMAILS,
+  UPDATES: EMAIL_FLOW_RULES.SYSTEM_EMAILS
+} as const;
 
 interface EmailOptions {
   to: string;
   subject: string;
   html: string;
   text?: string;
-  from?: EmailType; // Email type to use as sender
-  replyTo?: string; // Optional reply-to override
+  from?: string; // Legacy parameter - now maps to unified sender
+  replyTo?: string; // Only allowed for user form submissions
+  forceReplyTo?: boolean; // Override for specific user form flows
 }
 
-// Create transporter using Gmail
+// Create transporter using hosting SMTP configuration
 const createTransporter = () => {
-  const emailUser = EMAIL_PROVIDER.user;
-  const emailPassword = EMAIL_PROVIDER.password;
+  const smtpHost = process.env.SMTP_HOST;
+  const smtpPort = process.env.SMTP_PORT;
+  const smtpUser = process.env.SMTP_USER;
+  const smtpPass = process.env.SMTP_PASS;
 
-  console.log('Email configuration check:');
-  console.log('- Email user:', emailUser);
-  console.log('- Email password configured:', emailPassword ? 'Yes' : 'No');
+  console.log('=== SMTP CONFIGURATION ===');
+  console.log('SMTP Host:', smtpHost || 'NOT CONFIGURED');
+  console.log('SMTP Port:', smtpPort || 'NOT CONFIGURED');
+  console.log('SMTP User:', smtpUser || 'NOT CONFIGURED');
+  console.log('SMTP Password configured:', smtpPass ? 'Yes' : 'No');
+  console.log('===========================');
 
-  if (!emailPassword) {
-    throw new Error('EMAIL_PASSWORD environment variable is not configured. Please set up email credentials.');
+  if (!smtpHost || !smtpPort || !smtpUser || !smtpPass) {
+    throw new Error('SMTP configuration is incomplete. Please set SMTP_HOST, SMTP_PORT, SMTP_USER, and SMTP_PASS environment variables.');
   }
 
+  // Determine secure setting based on port
+  const port = parseInt(smtpPort);
+  const secure = port === 465; // true for port 465, false for 587
+
+  // Create transporter with hosting SMTP
   return nodemailer.createTransport({
-    service: EMAIL_PROVIDER.service,
+    host: smtpHost,
+    port: port,
+    secure: secure, // MUST be false for port 587, true for 465
     auth: {
-      user: emailUser,
-      pass: emailPassword, // Use app password for Gmail
+      user: smtpUser,
+      pass: smtpPass,
+    },
+    tls: {
+      rejectUnauthorized: false, // Required for some hosting providers
     },
   });
 };
 
-// Send email function
-export async function sendEmail({ to, subject, html, text, from = 'NOREPLY', replyTo }: EmailOptions): Promise<boolean> {
+// Permanent send email function - unified sender architecture
+export async function sendEmail({ to, subject, html, text, from, replyTo, forceReplyTo = false }: EmailOptions): Promise<boolean> {
   try {
     console.log('=== EMAIL SEND ATTEMPT ===');
     console.log('To:', to);
     console.log('Subject:', subject);
-    console.log('From type:', from);
+    console.log('Legacy from type:', from || 'not specified');
     
     const transporter = createTransporter();
-    const emailConfig = getEmailConfig(from);
-
+    
+    // UNIFIED SENDER: Always use the real support mailbox
     const mailOptions: any = {
-      from: `"${emailConfig.name}" <${EMAIL_PROVIDER.user}>`,
+      from: `"${ACTUAL_FROM_NAME}" <${ACTUAL_FROM_EMAIL}>`,
       to,
       subject,
       html,
       text,
     };
 
-    // Add sender if supported by the transport
-    if (emailConfig.email !== EMAIL_PROVIDER.user) {
-      mailOptions.sender = emailConfig.email;
+    // REPLY-TO RULES: Only allow for user form submissions
+    const flowRule = from ? EMAIL_TYPE_RULES[from as keyof typeof EMAIL_TYPE_RULES] : EMAIL_FLOW_RULES.SYSTEM_EMAILS;
+    const allowReplyTo = forceReplyTo || (flowRule?.allowedReplyTo && !!replyTo);
+    
+    if (allowReplyTo && replyTo) {
+      mailOptions.replyTo = replyTo;
+      console.log('ReplyTo allowed:', replyTo);
+    } else {
+      console.log('ReplyTo: DISABLED for this flow type');
     }
 
-    // Add replyTo if provided
-    const finalReplyTo = replyTo || emailConfig.replyTo;
-    if (finalReplyTo) {
-      mailOptions.replyTo = finalReplyTo;
-    }
-
-    console.log('Sending mail with options:', { 
-      ...mailOptions, 
-      html: '[HTML CONTENT]', 
-      text: '[TEXT CONTENT]',
-      sender: mailOptions.sender
-    });
+    console.log('=== PERMANENT EMAIL CONFIG ===');
+    console.log('Final from:', mailOptions.from);
+    console.log('ReplyTo:', mailOptions.replyTo || 'DISABLED');
+    console.log('Flow type:', from || 'SYSTEM_EMAILS');
+    console.log('SMTP Host:', process.env.SMTP_HOST);
+    console.log('SMTP User:', process.env.SMTP_USER);
+    console.log('===============================');
 
     const result = await transporter.sendMail(mailOptions);
     console.log('✅ Email sent successfully:', (result as any)?.messageId);
@@ -236,16 +283,21 @@ export function createPasswordResetEmail(resetUrl: string, userName?: string): {
   return { html, text };
 }
 
-// Send password reset email
+// Send password reset email - SYSTEM EMAIL (no replyTo)
 export async function sendPasswordResetEmail(email: string, resetUrl: string, userName?: string): Promise<boolean> {
   const { html, text } = createPasswordResetEmail(resetUrl, userName);
+  
+  console.log('=== PASSWORD RESET EMAIL FLOW ===');
+  console.log('Type: SYSTEM_EMAIL (no replyTo allowed)');
+  console.log('Sender: TaskKash Support <support@taskkash.xyz>');
+  console.log('===================================');
   
   return await sendEmail({
     to: email,
     subject: 'Reset Your Password - TaskKash',
     html,
     text,
-    from: 'NOREPLY' // Explicitly use noreply email for system messages
+    from: 'NOREPLY' // Maps to SYSTEM_EMAIL flow rule
   });
 }
 
@@ -397,16 +449,21 @@ export function createVerificationEmail(otpCode: string, userName?: string): { h
   return { html, text };
 }
 
-// Send email verification OTP
+// Send email verification OTP - SYSTEM EMAIL (no replyTo)
 export async function sendVerificationEmail(email: string, otpCode: string, userName?: string): Promise<boolean> {
   const { html, text } = createVerificationEmail(otpCode, userName);
+  
+  console.log('=== OTP VERIFICATION EMAIL FLOW ===');
+  console.log('Type: SYSTEM_EMAIL (no replyTo allowed)');
+  console.log('Sender: TaskKash Support <support@taskkash.xyz>');
+  console.log('===================================');
   
   return await sendEmail({
     to: email,
     subject: 'Taskkash Email Verification Code',
     html,
     text,
-    from: 'NOREPLY' // Explicitly use noreply email for system messages
+    from: 'NOREPLY' // Maps to SYSTEM_EMAIL flow rule
   });
 }
 
@@ -555,17 +612,24 @@ export function createSupportEmail(name: string, userEmail: string, subject: str
   return { html, text };
 }
 
-// Send support email (for contact form submissions)
+// Send support email - USER FORM (replyTo allowed to submitter)
 export async function sendSupportEmail(name: string, userEmail: string, subject: string, message: string): Promise<boolean> {
   const { html, text } = createSupportEmail(name, userEmail, subject, message);
+  
+  console.log('=== CONTACT SUPPORT EMAIL FLOW ===');
+  console.log('Type: USER_FORM (replyTo allowed to submitter)');
+  console.log('Sender: TaskKash Support <support@taskkash.xyz>');
+  console.log('ReplyTo:', userEmail);
+  console.log('=====================================');
   
   return await sendEmail({
     to: 'support@taskkash.xyz', // Send to support team
     subject: `Support Request: ${subject}`,
     html,
     text,
-    from: 'SUPPORT', // Use support email as sender
-    replyTo: userEmail // Reply directly to the user
+    from: 'SUPPORT', // Maps to USER_FORM flow rule
+    replyTo: userEmail, // Reply directly to the user who submitted
+    forceReplyTo: true // Explicitly enable replyTo for user form
   });
 }
 
@@ -733,17 +797,24 @@ export function createMarketingEmail(companyName: string, email: string, phone: 
   return { html, text };
 }
 
-// Send marketing email (for booking submissions)
+// Send marketing email - USER FORM (replyTo allowed to submitter)
 export async function sendMarketingEmail(companyName: string, email: string, phone: string, message: string): Promise<boolean> {
   const { html, text } = createMarketingEmail(companyName, email, phone, message);
+  
+  console.log('=== BOOKING INQUIRY EMAIL FLOW ===');
+  console.log('Type: USER_FORM (replyTo allowed to submitter)');
+  console.log('Sender: TaskKash Support <support@taskkash.xyz>');
+  console.log('ReplyTo:', email);
+  console.log('=====================================');
   
   return await sendEmail({
     to: 'marketing@taskkash.xyz', // Send to marketing team
     subject: `Booking Request: ${companyName}`,
     html,
     text,
-    from: 'MARKETING', // Use marketing email as sender
-    replyTo: email // Reply directly to the business
+    from: 'MARKETING', // Maps to USER_FORM flow rule
+    replyTo: email, // Reply directly to the business
+    forceReplyTo: true // Explicitly enable replyTo for user form
   });
 }
 
@@ -757,26 +828,44 @@ export function createBroadcastEmail(title: string, message: string, userName?: 
       <meta name="viewport" content="width=device-width, initial-scale=1.0">
       <title>${title} - TaskKash</title>
       <style>
+        /* Reset and base styles */
+        body, table, td, div, p, a {
+          margin: 0;
+          padding: 0;
+          font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+          -webkit-text-size-adjust: 100%;
+          -ms-text-size-adjust: 100%;
+        }
+        
         body {
-          font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+          background-color: #f8fafc;
+          color: #1e293b;
           line-height: 1.6;
-          color: #f9fafb;
+        }
+        
+        /* Container for email clients that don't support body background */
+        .email-wrapper {
+          background-color: #f8fafc;
+          padding: 20px;
+        }
+        
+        .container {
           max-width: 600px;
           margin: 0 auto;
-          padding: 20px;
-          background-color: #0f172a;
+          background-color: #ffffff;
+          border-radius: 8px;
+          overflow: hidden;
+          border: 1px solid #e2e8f0;
         }
-        .container {
-          background-color: #111827;
-          border-radius: 10px;
-          padding: 30px;
-          box-shadow: 0 2px 10px rgba(0,0,0,0.3);
-          border: 1px solid #374151;
-        }
+        
+        /* Header section */
         .header {
+          background-color: #ffffff;
+          padding: 30px;
           text-align: center;
-          margin-bottom: 30px;
+          border-bottom: 1px solid #e2e8f0;
         }
+        
         .logo {
           display: flex;
           align-items: center;
@@ -784,110 +873,229 @@ export function createBroadcastEmail(title: string, message: string, userName?: 
           gap: 12px;
           margin-bottom: 20px;
         }
+        
         .logo img {
           width: 40px;
           height: 40px;
           border-radius: 8px;
           object-fit: contain;
-          background: #1f2937;
-          padding: 4px;
-          border: 1px solid #374151;
         }
+        
         .logo-text {
           font-size: 24px;
-          font-weight: bold;
-          background: linear-gradient(45deg, #7c3aed, #a855f7);
-          -webkit-background-clip: text;
-          -webkit-text-fill-color: transparent;
-          background-clip: text;
+          font-weight: 700;
+          color: #1e293b;
         }
-        .title {
-          color: #7c3aed;
-          font-size: 28px;
-          margin-bottom: 10px;
-          font-weight: bold;
-        }
-        .content {
-          margin-bottom: 30px;
-        }
-        .message-content {
-          background: #1f2937;
-          padding: 25px;
-          border-radius: 10px;
-          border-left: 5px solid #7c3aed;
-          white-space: pre-wrap;
-          font-size: 16px;
-          line-height: 1.8;
-          margin: 20px 0;
-          color: #f9fafb;
-        }
+        
         .badge {
           display: inline-block;
-          background: linear-gradient(45deg, #7c3aed, #a855f7);
-          color: white;
+          background-color: #10b981;
+          color: #ffffff;
           padding: 6px 16px;
           border-radius: 20px;
           font-size: 12px;
-          font-weight: bold;
+          font-weight: 600;
           margin-bottom: 20px;
           text-transform: uppercase;
-          letter-spacing: 1px;
+          letter-spacing: 0.5px;
         }
-        .footer {
+        
+        .title {
+          color: #0f172a;
+          font-size: 28px;
+          font-weight: 700;
+          margin-bottom: 0;
+          line-height: 1.3;
+        }
+        
+        /* Content section */
+        .content {
+          padding: 40px 30px;
+        }
+        
+        .greeting {
+          font-size: 18px;
+          color: #374151;
+          margin-bottom: 16px;
+        }
+        
+        .intro-text {
+          font-size: 16px;
+          color: #6b7280;
+          margin-bottom: 24px;
+          line-height: 1.6;
+        }
+        
+        .message-content {
+          background-color: #f9fafb;
+          border: 1px solid #e5e7eb;
+          border-left: 4px solid #10b981;
+          padding: 24px;
+          border-radius: 6px;
+          margin: 24px 0;
+        }
+        
+        .message-content p {
+          color: #1f2937;
+          font-size: 16px;
+          line-height: 1.7;
+          font-weight: 400;
+          margin-bottom: 16px;
+        }
+        
+        .message-content p:last-child {
+          margin-bottom: 0;
+        }
+        
+        .message-content h1, .message-content h2, .message-content h3 {
+          color: #1f2937;
+          font-weight: 600;
+          margin-bottom: 12px;
+          margin-top: 20px;
+        }
+        
+        .message-content h1:first-child, .message-content h2:first-child, .message-content h3:first-child {
+          margin-top: 0;
+        }
+        
+        .message-content ul, .message-content ol {
+          color: #1f2937;
+          font-size: 16px;
+          line-height: 1.7;
+          margin-bottom: 16px;
+          padding-left: 20px;
+        }
+        
+        .message-content li {
+          margin-bottom: 8px;
+        }
+        
+        /* CTA Button */
+        .cta-container {
           text-align: center;
-          color: #9ca3af;
-          font-size: 14px;
-          margin-top: 30px;
-          padding-top: 20px;
-          border-top: 1px solid #374151;
+          margin: 32px 0;
         }
+        
         .cta-button {
           display: inline-block;
-          background: linear-gradient(45deg, #7c3aed, #a855f7);
-          color: white;
-          padding: 15px 30px;
+          background-color: #10b981;
+          color: #ffffff;
+          padding: 14px 32px;
           text-decoration: none;
-          border-radius: 5px;
-          font-weight: bold;
-          margin: 20px 0;
-          text-align: center;
+          border-radius: 6px;
+          font-weight: 600;
+          font-size: 16px;
         }
+        
         .cta-button:hover {
-          opacity: 0.9;
+          background-color: #059669;
         }
-        p {
-          color: #f9fafb;
+        
+        /* Footer section */
+        .footer {
+          background-color: #f9fafb;
+          padding: 30px;
+          text-align: center;
+          border-top: 1px solid #e2e8f0;
+        }
+        
+        .footer-text {
+          color: #6b7280;
+          font-size: 14px;
+          line-height: 1.6;
+          margin-bottom: 12px;
+        }
+        
+        .footer-signature {
+          color: #374151;
+          font-weight: 600;
+          margin-bottom: 8px;
+        }
+        
+        .footer-disclaimer {
+          font-size: 12px;
+          color: #9ca3af;
+          margin-top: 16px;
+          padding-top: 16px;
+          border-top: 1px solid #e5e7eb;
+        }
+        
+        /* Mobile optimizations */
+        @media screen and (max-width: 600px) {
+          .email-wrapper {
+            padding: 10px;
+          }
+          
+          .container {
+            margin: 0;
+            border-radius: 0;
+          }
+          
+          .header {
+            padding: 24px 20px;
+          }
+          
+          .title {
+            font-size: 24px;
+          }
+          
+          .content {
+            padding: 24px 20px;
+          }
+          
+          .message-content {
+            padding: 20px;
+          }
+          
+          .cta-button {
+            padding: 12px 24px;
+            font-size: 15px;
+          }
+          
+          .footer {
+            padding: 24px 20px;
+          }
         }
       </style>
     </head>
     <body>
-      <div class="container">
-        <div class="header">
-          <div class="logo">
-            <img src="https://taskkash.xyz/taskkash-logo.png" alt="TaskKash Logo" onerror="this.src='http://localhost:3000/taskkash-logo.png'" />
-            <span class="logo-text">TaskKash</span>
+      <div class="email-wrapper">
+        <div class="container">
+          <!-- Header Section -->
+          <div class="header">
+            <div class="logo">
+              <img src="https://taskkash.xyz/taskkash-logo.png" alt="TaskKash Logo" onerror="this.src='http://localhost:3000/taskkash-logo.png'" />
+              <span class="logo-text">TaskKash</span>
+            </div>
+            <div class="badge">Official Announcement</div>
+            <h1 class="title">${title}</h1>
           </div>
-          <div class="badge">Official Announcement</div>
-          <h1 class="title">${title}</h1>
-        </div>
-        
-        <div class="content">
-          <p>Hello${userName ? ` ${userName}` : ''},</p>
           
-          <p>We have an important announcement to share with you:</p>
-          
-          <div class="message-content">${message}</div>
-          
-          <div style="text-align: center;">
-            <a href="https://taskkash.xyz" class="cta-button">Visit TaskKash</a>
+          <!-- Content Section -->
+          <div class="content">
+            <p class="greeting">Hello${userName ? ` ${userName}` : ''},</p>
+            
+            <p class="intro-text">We have an important announcement to share with you:</p>
+            
+            <div class="message-content">
+              ${message}
+            </div>
+            
+            <div class="cta-container">
+              <a href="https://taskkash.xyz" class="cta-button">Visit TaskKash</a>
+            </div>
           </div>
-        </div>
-        
-        <div class="footer">
-          <p>Best regards,<br>The TaskKash Team</p>
-          <p style="font-size: 12px; color: #6b7280;">
-            This is an official announcement from TaskKash. You received this because you are a registered user.
-          </p>
+          
+          <!-- Footer Section -->
+          <div class="footer">
+            <p class="footer-signature">Best regards,<br>The TaskKash Team</p>
+            <p class="footer-text">
+              Thank you for being part of our community!
+            </p>
+            <div class="footer-disclaimer">
+              This is an official announcement from TaskKash. You received this because you are a registered user.
+            </div>
+          </div>
         </div>
       </div>
     </body>
@@ -915,9 +1123,14 @@ export function createBroadcastEmail(title: string, message: string, userName?: 
   return { html, text };
 }
 
-// Send broadcast email to multiple users with optimized batch processing
+// Send broadcast email to multiple users - SYSTEM EMAIL (no replyTo)
 export async function sendBroadcastEmail(users: { email: string; name?: string }[], title: string, message: string): Promise<{ sent: number; errors: string[] }> {
   const results = { sent: 0, errors: [] as string[] };
+  
+  console.log('=== BROADCAST EMAIL FLOW ===');
+  console.log('Type: SYSTEM_EMAIL (no replyTo allowed)');
+  console.log('Sender: TaskKash Support <support@taskkash.xyz>');
+  console.log('==============================');
   
   if (users.length === 0) {
     console.log('📧 No users to send broadcast to');
@@ -956,7 +1169,7 @@ export async function sendBroadcastEmail(users: { email: string; name?: string }
             subject: title,
             html,
             text,
-            from: 'NOREPLY' // Use NOREPLY to match SMTP email and avoid mismatch
+            from: 'UPDATES' // Maps to SYSTEM_EMAIL flow rule (no replyTo)
           });
           
           return {

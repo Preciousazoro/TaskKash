@@ -85,7 +85,7 @@ export default function ContactReplyModal({
       // Extract more specific error message
       let errorMessage = 'Failed to send reply';
       if (error instanceof Error) {
-        if (error.message.includes('EMAIL_PASSWORD')) {
+        if (error.message.includes('SMTP') || error.message.includes('configuration')) {
           errorMessage = 'Email service not configured. Please contact administrator.';
         } else if (error.message.includes('535')) {
           errorMessage = 'Email authentication failed. Please check email credentials.';

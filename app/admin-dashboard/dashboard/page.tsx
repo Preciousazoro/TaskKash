@@ -1,6 +1,6 @@
-"use client";
+'use client';
 
-import React, { useEffect, useMemo, useState, useRef, lazy, Suspense } from "react";
+import { useEffect, useMemo, useState, useRef, lazy, Suspense, useCallback } from "react";
 import AdminHeader from "@/components/admin-dashboard/AdminHeader";
 import AdminSidebar from "@/components/admin-dashboard/AdminSidebar";
 import { AdminContentOnlySkeleton } from "@/components/ui/LoadingSkeleton";
@@ -13,6 +13,7 @@ import {
   Loader2,
 } from "lucide-react";
 import { toast } from "react-toastify";
+
 
 // Simple chart implementation with proper cleanup
 const SimpleChart = ({ data, type }: { data: any; type: string }) => {
@@ -92,7 +93,7 @@ const Dashboard = () => {
   const [activitiesTotalPages, setActivitiesTotalPages] = useState(1);
 
   /* ---------- FETCH METRICS ---------- */
-  const fetchMetrics = async () => {
+  const fetchMetrics = useCallback(async () => {
     try {
       setMetricsLoading(true);
       setMetricsError(null);
@@ -112,10 +113,10 @@ const Dashboard = () => {
     } finally {
       setMetricsLoading(false);
     }
-  };
+  }, []);
 
   /* ---------- FETCH ACTIVITIES ---------- */
-  const fetchActivities = async (page: number = 1) => {
+  const fetchActivities = useCallback(async (page: number = 1) => {
     try {
       setActivitiesLoading(true);
       setActivitiesError(null);
@@ -137,16 +138,25 @@ const Dashboard = () => {
     } finally {
       setActivitiesLoading(false);
     }
-  };
+  }, []);
 
   /* ---------- EFFECTS ---------- */
   useEffect(() => {
     fetchMetrics();
     fetchActivities();
-    // Refresh metrics every 30 seconds
-    const interval = setInterval(fetchMetrics, 30000);
-    return () => clearInterval(interval);
-  }, []);
+  }, [fetchMetrics, fetchActivities]);
+
+  // Set up polling with optimized intervals
+  useEffect(() => {
+    // Only set up polling if not already set up
+    const metricsInterval = setInterval(() => {
+      fetchMetrics();
+    }, 60000); // Increased from 30 to 60 seconds
+
+    return () => {
+      clearInterval(metricsInterval);
+    };
+  }, [fetchMetrics]);
 
   /* ---------- STATS ---------- */
   const stats = useMemo(() => {
@@ -238,6 +248,9 @@ const Dashboard = () => {
       
       // Refresh activities to show the new task creation
       fetchActivities();
+      
+      // Also refresh metrics to get updated counts
+      fetchMetrics();
     } catch (error: any) {
       console.error('Error creating task:', error);
       toast.error(error.message || 'Failed to create task');

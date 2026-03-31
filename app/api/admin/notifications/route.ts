@@ -3,6 +3,10 @@ import { getCurrentAdmin } from '@/lib/admin-auth';
 import AdminNotification from '@/models/AdminNotification';
 import connectDB from '@/lib/mongodb';
 
+// Cache notifications for 15 seconds to reduce database hits
+let notificationsCache: { data: any; timestamp: number } | null = null;
+const CACHE_DURATION = 15 * 1000; // 15 seconds
+
 // Helper function to generate notification links
 function getNotificationLink(notification: any): string {
   if (!notification.referenceId || !notification.referenceType) {
@@ -41,16 +45,27 @@ export async function GET(request: NextRequest) {
 
     const { searchParams } = new URL(request.url);
     const limit = parseInt(searchParams.get('limit') || '10');
+    
+    const now = Date.now();
+    
+    // Check cache first
+    if (notificationsCache && (now - notificationsCache.timestamp) < CACHE_DURATION) {
+      return NextResponse.json({
+        success: true,
+        notifications: notificationsCache.data.notifications,
+        unreadCount: notificationsCache.data.unreadCount
+      });
+    }
 
-    // Fetch admin notifications
-    const notifications = await AdminNotification.find()
-      .sort({ createdAt: -1 })
-      .limit(limit)
-      .lean();
-
-    const unreadCount = await AdminNotification.countDocuments({
-      isRead: false
-    });
+    // Fetch notifications and unread count in parallel for better performance
+    const [notifications, unreadCount] = await Promise.all([
+      AdminNotification.find()
+        .sort({ createdAt: -1 })
+        .limit(limit)
+        .lean() // Use lean for better performance
+        .exec(),
+      AdminNotification.countDocuments({ isRead: false })
+    ]);
 
     // Format notifications for frontend
     const formattedNotifications = notifications.map((notification: any) => ({
@@ -64,6 +79,15 @@ export async function GET(request: NextRequest) {
       createdAt: notification.createdAt,
       read: notification.isRead
     }));
+    
+    // Cache the result
+    notificationsCache = {
+      data: {
+        notifications: formattedNotifications,
+        unreadCount
+      },
+      timestamp: now
+    };
 
     return NextResponse.json({
       success: true,
@@ -102,7 +126,10 @@ export async function PATCH(request: NextRequest) {
       await AdminNotification.updateMany(
         { isRead: false },
         { isRead: true }
-      );
+      ).exec();
+      
+      // Clear cache after update
+      notificationsCache = null;
 
       return NextResponse.json({
         success: true,
@@ -114,7 +141,7 @@ export async function PATCH(request: NextRequest) {
         notificationId,
         { isRead: true },
         { new: true }
-      );
+      ).lean().exec();
 
       if (!notification) {
         return NextResponse.json(
@@ -122,6 +149,9 @@ export async function PATCH(request: NextRequest) {
           { status: 404 }
         );
       }
+      
+      // Clear cache after update
+      notificationsCache = null;
 
       return NextResponse.json({
         success: true,

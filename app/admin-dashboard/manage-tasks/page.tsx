@@ -344,7 +344,8 @@ const ManageTasks = () => {
         });
 
         if (!response.ok) {
-          throw new Error('Failed to delete task');
+          const errorData = await response.json().catch(() => ({}));
+          throw new Error(errorData.error || 'Failed to delete task');
         }
 
         toast.success('Task deleted successfully!');

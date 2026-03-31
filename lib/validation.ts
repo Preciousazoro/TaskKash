@@ -77,6 +77,31 @@ export const validateTaskDescription = (description: string): { isValid: boolean
     return { isValid: false, error: 'Task description cannot exceed 500 characters' };
   }
   
+  // Check for potentially problematic HTML patterns (lighter validation for description)
+  const htmlTagCount = (description.match(/<[^>]+>/g) || []).length;
+  if (htmlTagCount > 25) {
+    return { isValid: false, error: 'Too many HTML tags in description. Please simplify the formatting.' };
+  }
+  
+  // Check for forbidden tags
+  const forbiddenPatterns = [
+    /<script/i,
+    /<iframe/i,
+    /<object/i,
+    /<embed/i,
+    /<form/i,
+    /<input/i,
+    /<button/i,
+    /on\w+\s*=/i, // Event handlers
+    /javascript:/i
+  ];
+  
+  for (const pattern of forbiddenPatterns) {
+    if (pattern.test(description)) {
+      return { isValid: false, error: 'Invalid HTML content detected in description. Please remove scripts, forms, or event handlers.' };
+    }
+  }
+  
   return { isValid: true };
 };
 
@@ -91,6 +116,38 @@ export const validateTaskInstructions = (instructions: string): { isValid: boole
   
   if (instructions.trim().length > 1000) {
     return { isValid: false, error: 'Task instructions cannot exceed 1000 characters' };
+  }
+  
+  // Check for potentially problematic HTML patterns that could cause performance issues
+  const htmlTagCount = (instructions.match(/<[^>]+>/g) || []).length;
+  if (htmlTagCount > 50) {
+    return { isValid: false, error: 'Too many HTML tags. Please simplify the formatting.' };
+  }
+  
+  // Check for deeply nested HTML (performance risk)
+  const maxNestingDepth = 10;
+  const nestingPattern = new RegExp(`^(<[^>]+>){${maxNestingDepth},}`, 'i');
+  if (nestingPattern.test(instructions.substring(0, 100))) {
+    return { isValid: false, error: 'HTML nesting is too deep. Please simplify the formatting.' };
+  }
+  
+  // Check for forbidden tags that could cause security/performance issues
+  const forbiddenPatterns = [
+    /<script/i,
+    /<iframe/i,
+    /<object/i,
+    /<embed/i,
+    /<form/i,
+    /<input/i,
+    /<button/i,
+    /on\w+\s*=/i, // Event handlers
+    /javascript:/i
+  ];
+  
+  for (const pattern of forbiddenPatterns) {
+    if (pattern.test(instructions)) {
+      return { isValid: false, error: 'Invalid HTML content detected. Please remove scripts, forms, or event handlers.' };
+    }
   }
   
   return { isValid: true };

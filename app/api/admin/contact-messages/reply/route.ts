@@ -52,8 +52,9 @@ export async function POST(request: NextRequest) {
 
     // Send email
     console.log('Attempting to send email to:', contactMessage.email);
-    console.log('Email user configured:', process.env.EMAIL_USER);
-    console.log('Email password configured:', process.env.EMAIL_PASSWORD ? 'Yes' : 'No');
+    console.log('SMTP Host:', process.env.SMTP_HOST || 'NOT CONFIGURED');
+    console.log('SMTP User:', process.env.SMTP_USER || 'NOT CONFIGURED');
+    console.log('SMTP Password configured:', process.env.SMTP_PASS ? 'Yes' : 'No');
     
     const emailSent = await sendEmail({
       to: contactMessage.email,

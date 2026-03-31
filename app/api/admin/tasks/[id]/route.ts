@@ -2,8 +2,10 @@ import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@/lib/auth';
 import connectDB from '@/lib/mongodb';
 import Task from '@/models/Task';
+import TaskHistory from '@/models/TaskHistory';
 import User from '@/models/User';
 import { validateTaskData } from '@/lib/validation';
+import { ArchiveReason } from '@/models/TaskHistory';
 
 // PUT /api/admin/tasks/[id] - Update a task
 export const runtime = "nodejs";
@@ -131,7 +133,7 @@ export async function PUT(
   }
 }
 
-// DELETE /api/admin/tasks/[id] - Delete a task
+// DELETE /api/admin/tasks/[id] - Archive a task (soft delete)
 export async function DELETE(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
@@ -160,31 +162,90 @@ export async function DELETE(
 
     const { id } = await params;
 
-    // Find and delete the task
-    const task = await Task.findByIdAndDelete(id);
-
+    // Find the task first
+    const task = await Task.findById(id);
     if (!task) {
       return NextResponse.json({ error: 'Task not found' }, { status: 404 });
     }
 
-    return NextResponse.json(
-      { message: 'Task deleted successfully' },
-      { status: 200 }
-    );
+    // Check if task is already archived
+    const TaskHistoryModel = TaskHistory as any;
+    const existingHistory = await TaskHistoryModel.findByOriginalTaskId(task._id);
+    if (existingHistory) {
+      return NextResponse.json({ error: 'Task is already archived' }, { status: 400 });
+    }
+
+    try {
+      // Archive the task before deleting
+      const retentionDays = parseInt(process.env.TASK_RETENTION_DAYS || '90');
+      
+      // Prepare task data with proper timestamps
+      const taskData = {
+        ...task.toObject(),
+        createdAt: task.createdAt,
+        updatedAt: task.updatedAt
+      };
+      
+      await TaskHistoryModel.archiveTask(
+        taskData,
+        ArchiveReason.DELETED,
+        retentionDays,
+        user._id,
+        'Deleted by admin via manage tasks'
+      );
+
+      // Now safely delete the original task
+      await Task.findByIdAndDelete(id);
+
+      console.log(`Task archived and deleted: ${task.title} (ID: ${task._id})`);
+
+      return NextResponse.json(
+        { 
+          message: 'Task archived successfully',
+          archivedTask: {
+            title: task.title,
+            archiveReason: 'deleted',
+            retentionDays,
+            deleteAfter: new Date(Date.now() + (retentionDays * 24 * 60 * 60 * 1000))
+          }
+        },
+        { status: 200 }
+      );
+    } catch (archiveError) {
+      console.error('Error archiving task:', archiveError);
+      
+      // Provide more specific error messages
+      let errorMessage = 'Failed to archive task. Task not deleted for safety.';
+      if (archiveError instanceof Error) {
+        if (archiveError.message.includes('required for archiving')) {
+          errorMessage = `Archive failed: ${archiveError.message}`;
+        } else if (archiveError.message.includes('duplicate key')) {
+          errorMessage = 'Task is already archived';
+        } else {
+          errorMessage = `Archive failed: ${archiveError.message}`;
+        }
+      }
+      
+      // If archiving fails, don't delete the task
+      return NextResponse.json(
+        { error: errorMessage },
+        { status: 500 }
+      );
+    }
   } catch (error: unknown) {
-    console.error('Error deleting task:', error);
+    console.error('Error archiving task:', error);
     
     // Handle generic Error objects
     if (error instanceof Error) {
       return NextResponse.json(
-        { error: 'Failed to delete task', details: error.message },
+        { error: 'Failed to archive task', details: error.message },
         { status: 500 }
       );
     }
     
     // Handle unknown error types
     return NextResponse.json(
-      { error: 'Failed to delete task', details: 'An unknown error occurred' },
+      { error: 'Failed to archive task', details: 'An unknown error occurred' },
       { status: 500 }
     );
   }

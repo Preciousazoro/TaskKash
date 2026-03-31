@@ -2,10 +2,10 @@ import type { Metadata } from "next";
 import localFont from "next/font/local";
 import "./globals.css";
 import { ThemeProvider } from "@/components/providers/ThemeProvider";
-import { AuthProviderWrapper } from "@/components/providers/AuthProvider";
-import { OptimizedSessionProvider } from "@/components/providers/OptimizedSessionProvider";
+import { SessionProvider } from "next-auth/react";
 import { ToastContainer } from 'react-toastify';
 import "react-toastify/dist/ReactToastify.css";
+
 
 const inter = localFont({
   src: [
@@ -67,30 +67,31 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <body className={`${inter.variable} font-sans`}>
-        <AuthProviderWrapper>
-          <OptimizedSessionProvider>
-            <ThemeProvider
-              attribute="class"
-              defaultTheme="dark"
-              enableSystem
-              disableTransitionOnChange
-            >
-              {children}
-              <ToastContainer
-                position="top-right"
-                autoClose={4000}
-                hideProgressBar={false}
-                newestOnTop={false}
-                closeOnClick
-                rtl={false}
-                pauseOnFocusLoss
-                draggable
-                pauseOnHover
-                theme="light"
-              />
-            </ThemeProvider>
-          </OptimizedSessionProvider>
-        </AuthProviderWrapper>
+        <SessionProvider 
+          refetchInterval={15 * 60} // Refetch every 15 minutes instead of 5
+          refetchOnWindowFocus={false} // Disable refetch on window focus
+        >
+          <ThemeProvider
+            attribute="class"
+            defaultTheme="dark"
+            enableSystem
+            disableTransitionOnChange
+          >
+            {children}
+            <ToastContainer
+              position="top-right"
+              autoClose={4000}
+              hideProgressBar={false}
+              newestOnTop={false}
+              closeOnClick
+              rtl={false}
+              pauseOnFocusLoss
+              draggable
+              pauseOnHover
+              theme="light"
+            />
+          </ThemeProvider>
+        </SessionProvider>
       </body>
     </html>
   );

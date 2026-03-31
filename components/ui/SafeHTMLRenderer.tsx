@@ -1,6 +1,7 @@
 "use client";
 
-import React from 'react';
+import React, { useMemo, useCallback } from 'react';
+import DOMPurify from 'dompurify';
 
 interface SafeHTMLRendererProps {
   content: string;
@@ -8,125 +9,121 @@ interface SafeHTMLRendererProps {
   fallback?: 'plain-text' | 'html-stripped';
 }
 
+// DOMPurify configuration
+const DOMPURIFY_CONFIG = {
+  ALLOWED_TAGS: [
+    'p', 'br', 'strong', 'b', 'em', 'i', 'u', 
+    'ul', 'ol', 'li', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6',
+    'a', 'span'
+  ],
+  ALLOWED_ATTR: ['href', 'target', 'rel', 'class', 'style'],
+  ALLOW_DATA_ATTR: false,
+  FORBID_TAGS: ['script', 'style', 'iframe', 'object', 'embed', 'form', 'input', 'button'],
+  FORBID_ATTR: ['onclick', 'onload', 'onerror', 'onmouseover', 'onfocus', 'onblur'],
+  SANITIZE_DOM: true,
+  SAFE_FOR_TEMPLATES: true,
+  WHOLE_DOCUMENT: false,
+  RETURN_DOM: false,
+  RETURN_DOM_FRAGMENT: false
+};
+
+// Performance monitoring for debugging
+let renderCount = 0;
+let totalSanitizeTime = 0;
+
 export function SafeHTMLRenderer({ 
   content, 
   className = "", 
   fallback = 'plain-text' 
 }: SafeHTMLRendererProps) {
-  // Check if content contains HTML tags
-  const hasHTML = /<[a-z][\s\S]*>/i.test(content);
+  
+  // Fast HTML detection - avoid expensive regex on large content
+  const hasHTML = useMemo(() => {
+    // Quick check for common HTML patterns
+    const quickCheck = content.includes('<') && content.includes('>');
+    if (!quickCheck) return false;
+    
+    // More precise check only if needed
+    return /<[a-z][\s\S]*>/i.test(content);
+  }, [content]);
 
-  if (!hasHTML) {
-    // Plain text content - render with line breaks preserved
+  // Sanitize HTML with DOMPurify - memoized for performance
+  const sanitizedContent = useMemo(() => {
+    if (!hasHTML) {
+      return content; // Return plain text as-is
+    }
+
+    const startTime = performance.now();
+    
+    try {
+      // Sanitize HTML with DOMPurify using configuration
+      let clean = DOMPurify.sanitize(content, {
+        ...DOMPURIFY_CONFIG,
+        ADD_ATTR: ['target', 'rel']
+      });
+      
+      // Ensure external links open safely
+      clean = clean.replace(/<a\s+href=(["'])(http[^"']+)\1[^>]*>/gi, (match, quote, url) => {
+        return match.replace(/>/, ' target="_blank" rel="noopener noreferrer">');
+      });
+      
+      const endTime = performance.now();
+      totalSanitizeTime += (endTime - startTime);
+      renderCount++;
+      
+      // Log performance metrics in development
+      if (process.env.NODE_ENV === 'development' && renderCount % 10 === 0) {
+        console.log(`SafeHTMLRenderer: ${renderCount} renders, avg sanitize time: ${(totalSanitizeTime / renderCount).toFixed(2)}ms`);
+      }
+      
+      return clean;
+    } catch (error) {
+      console.error('DOMPurify sanitization failed:', error);
+      return null; // Signal fallback needed
+    }
+  }, [content, hasHTML]);
+
+  // Fallback rendering for errors
+  const renderFallback = useCallback((fallbackContent: string, useStripped: boolean = false) => {
+    const finalContent = useStripped 
+      ? fallbackContent.replace(/<[^>]*>/g, '')
+      : fallbackContent;
+    
     return (
       <div className={`whitespace-pre-line leading-relaxed ${className}`}>
-        {content}
+        {finalContent}
       </div>
     );
+  }, [className]);
+
+  // Render plain text directly (most common case)
+  if (!hasHTML) {
+    return renderFallback(content, false);
   }
 
-  // HTML content - sanitize and render safely
-  const sanitizeHTML = (html: string) => {
-    // Allowed tags for rich text content
-    const allowedTags = [
-      'p', 'br', 'strong', 'b', 'em', 'i', 'u', 
-      'ul', 'ol', 'li', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6',
-      'a', 'span'
-    ];
-    
-    // Allowed attributes
-    const allowedAttributes: Record<string, string[]> = {
-      'a': ['href', 'target', 'rel'],
-      'span': ['style'],
-      '*': ['class']
-    };
-
-    // Create a temporary div to parse HTML
-    const tempDiv = document.createElement('div');
-    tempDiv.innerHTML = html;
-
-    // Recursive function to sanitize nodes
-    const sanitizeNode = (node: Node): void => {
-      if (node.nodeType === Node.ELEMENT_NODE) {
-        const element = node as Element;
-        const tagName = element.tagName.toLowerCase();
-
-        // Check if tag is allowed
-        if (!allowedTags.includes(tagName)) {
-          // Replace disallowed element with its text content
-          while (element.firstChild) {
-            element.parentNode?.insertBefore(element.firstChild, element);
-          }
-          element.parentNode?.removeChild(element);
-          return;
-        }
-
-        // Remove disallowed attributes
-        const attributes = Array.from(element.attributes);
-        attributes.forEach(attr => {
-          const attrName = attr.name.toLowerCase();
-          const allowedAttrs = allowedAttributes[tagName] || allowedAttributes['*'] || [];
-          
-          if (!allowedAttrs.includes(attrName)) {
-            element.removeAttribute(attr.name);
-          }
-        });
-
-        // Sanitize links
-        if (tagName === 'a') {
-          const href = element.getAttribute('href');
-          if (href && !href.startsWith('http') && !href.startsWith('mailto') && !href.startsWith('#')) {
-            element.removeAttribute('href');
-          } else if (href && href.startsWith('http')) {
-            element.setAttribute('target', '_blank');
-            element.setAttribute('rel', 'noopener noreferrer');
-          }
-        }
-      }
-
-      // Recursively sanitize child nodes
-      const childNodes = Array.from(node.childNodes);
-      childNodes.forEach(child => {
-        if (child.parentNode === node) {
-          sanitizeNode(child);
-        }
-      });
-    };
-
-    // Start sanitization
-    sanitizeNode(tempDiv);
-
-    // Return sanitized HTML
-    return tempDiv.innerHTML;
-  };
-
-  try {
-    const sanitizedContent = sanitizeHTML(content);
-    
+  // Render sanitized HTML
+  if (sanitizedContent !== null) {
     return (
       <div 
         className={`prose prose-sm dark:prose-invert max-w-none leading-relaxed ${className}`}
         dangerouslySetInnerHTML={{ __html: sanitizedContent }}
       />
     );
-  } catch (error) {
-    console.error('Error rendering HTML content:', error);
-    
-    // Fallback rendering
-    if (fallback === 'html-stripped') {
-      const strippedContent = content.replace(/<[^>]*>/g, '');
-      return (
-        <div className={`whitespace-pre-line leading-relaxed ${className}`}>
-          {strippedContent}
-        </div>
-      );
-    }
-    
-    // Default plain text fallback
-    return (
-      <div className={`whitespace-pre-line leading-relaxed ${className}`}>
-        {content}
-      </div>
-    );
   }
+
+  // Fallback for sanitization errors
+  return renderFallback(content, fallback === 'html-stripped');
 }
+
+// Export performance stats for debugging
+export const getSafeHTMLRendererStats = () => ({
+  renderCount,
+  totalSanitizeTime,
+  averageTime: renderCount > 0 ? totalSanitizeTime / renderCount : 0
+});
+
+// Reset stats (useful for testing)
+export const resetSafeHTMLRendererStats = () => {
+  renderCount = 0;
+  totalSanitizeTime = 0;
+};

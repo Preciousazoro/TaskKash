@@ -5,11 +5,12 @@ import User from '@/models/User';
 import Task from '@/models/Task';
 import Transaction from '@/models/Transaction';
 import Submission from '@/models/Submission';
+import Activity from '@/models/Activity';
 import { withTimeout, aggregateWithTimeout } from '@/lib/timeout';
 
-// Simple in-memory cache for metrics (2 minutes TTL)
+// Simple in-memory cache for metrics (3 minutes TTL)
 const metricsCache = new Map<string, { data: any; timestamp: number }>();
-const CACHE_TTL = 2 * 60 * 1000; // 2 minutes
+const CACHE_TTL = 3 * 60 * 1000; // 3 minutes
 
 export async function GET(request: NextRequest) {
   try {
@@ -29,7 +30,8 @@ export async function GET(request: NextRequest) {
     const [
       totalUsers,
       tasksCompleted,
-      pendingReviews
+      pendingReviews,
+      recentActivity
     ] = await Promise.all([
       // Total Users - Count all registered users
       withTimeout(User.countDocuments(), 3000),
@@ -45,7 +47,12 @@ export async function GET(request: NextRequest) {
       ]), 5000),
       
       // Pending Reviews - Count pending submissions
-      withTimeout(Submission.countDocuments({ status: 'pending' }), 3000)
+      withTimeout(Submission.countDocuments({ status: 'pending' }), 3000),
+      
+      // Recent Activity - Count activities in last 24 hours
+      withTimeout(Activity.countDocuments({
+        createdAt: { $gte: new Date(Date.now() - 24 * 60 * 60 * 1000) }
+      }), 3000)
     ]);
 
     // Extract values from aggregation results
@@ -55,6 +62,7 @@ export async function GET(request: NextRequest) {
       totalUsers,
       tasksCompleted: totalTasksCompleted,
       pendingReviews,
+      recentActivity,
       lastUpdated: new Date().toISOString()
     };
 

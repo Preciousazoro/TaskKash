@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Link as LinkIcon, ExternalLink, Trophy, CheckCircle2, Flame, Loader2, ChevronLeft, ChevronRight } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { TaskDocument, TaskCard, transformTaskToCard } from "@/types/shared-task";
@@ -27,6 +27,7 @@ export default function DashboardPage() {
   const [currentPage, setCurrentPage] = useState(1);
   const pageSize = 9;
   const router = useRouter();
+  const isNavigating = useRef(false);
 
   // Fetch user data
   useEffect(() => {
@@ -95,8 +96,17 @@ export default function DashboardPage() {
 
 
   const handleTaskClick = (task: TaskDocument) => {
+    // Prevent multiple rapid clicks
+    if (isNavigating.current) return;
+    
+    isNavigating.current = true;
     setSelectedTask(task);
     setIsModalOpen(true);
+    
+    // Reset navigation guard after a short delay
+    setTimeout(() => {
+      isNavigating.current = false;
+    }, 300);
   };
 
   const handleCloseModal = () => {
@@ -105,12 +115,13 @@ export default function DashboardPage() {
   };
 
   const handleStartTask = (task: TaskDocument) => {
-    // This will be handled by TaskCard component
-    // The modal will also handle starting tasks
-    handleTaskClick(task);
+    // Start task is now handled directly in TaskCard component
+    // This handler is kept for compatibility but can be removed if not needed
   };
 
   const handleSubmitProof = (task: TaskDocument) => {
+    // Submit proof is now handled directly in TaskPreviewModal
+    // This handler is kept for compatibility but can be removed if not needed
     handleTaskClick(task);
   };
 
@@ -263,7 +274,6 @@ export default function DashboardPage() {
                     task={task} 
                     onClick={handleTaskClick}
                     onStartTask={handleStartTask}
-                    onSubmitProof={handleSubmitProof}
                   />
                 ))
               ) : (

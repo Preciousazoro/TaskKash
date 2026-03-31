@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import React from "react";
 import feather from "feather-icons";
 import AdminHeader from "../../../components/admin-dashboard/AdminHeader";
@@ -8,6 +8,9 @@ import AdminSidebar from "../../../components/admin-dashboard/AdminSidebar";
 import { Pagination } from "@/components/ui/Pagination";
 import { AdminContentOnlySkeleton } from "@/components/ui/LoadingSkeleton";
 import { toast } from 'react-toastify';
+
+// Debug logging to track renders
+console.log('🔄 Submissions page rendering at:', new Date().toISOString());
 
 /* ---------------- TYPES ---------------- */
 
@@ -106,13 +109,15 @@ export default function AdminSubmissionsPage() {
   });
 
   useEffect(() => {
+    console.log('🚀 Submissions page useEffect triggered');
     feather.replace();
     fetchSubmissions();
   }, [statusFilter, pagination.page, pagination.limit]);
 
   /* ---------------- DATA FETCHING ---------------- */
 
-  const fetchSubmissions = async () => {
+  const fetchSubmissions = useCallback(async () => {
+    console.log('📋 Fetching submissions with filter:', statusFilter, 'page:', pagination.page);
     try {
       setLoading(true);
       const params = new URLSearchParams({
@@ -134,13 +139,14 @@ export default function AdminSubmissionsPage() {
         total: data.pagination.total,
         totalPages: data.pagination.totalPages,
       }));
+      console.log('✅ Submissions fetched successfully:', data.submissions.length);
     } catch (error) {
-      console.error('Error fetching submissions:', error);
+      console.error('❌ Error fetching submissions:', error);
       toast.error('Failed to load submissions');
     } finally {
       setLoading(false);
     }
-  };
+  }, [statusFilter, pagination.page, pagination.limit]);
 
   /* ---------------- STATUS UPDATE ---------------- */
 

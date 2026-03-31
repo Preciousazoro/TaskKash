@@ -167,7 +167,7 @@ export default function ContactPage() {
                 <p className="text-lg mb-6">👉 Email us or reach out on X</p>
                 <div className="flex flex-col sm:flex-row gap-4 justify-center">
                   <a
-                    href="mailto:taskkash.web3@gmail.com"
+                    href="mailto:support@taskkash.xyz"
                     className="px-6 py-3 rounded-lg border border-green-400 text-green-400 font-medium hover:bg-green-400 hover:text-background transition-colors"
                   >
                     Email Us

@@ -29,6 +29,7 @@ export default function TaskVerificationPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errors, setErrors] = useState<{description?: string; files?: string}>({});
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const isRedirecting = useRef(false);
 
   useEffect(() => {
     const timer = setTimeout(() => setIsLoading(false), 500);
@@ -37,10 +38,11 @@ export default function TaskVerificationPage() {
 
   // Check if task is started
   useEffect(() => {
-    if (taskId) {
+    if (taskId && !isRedirecting.current) {
       const isStarted = TaskStateManager.isTaskStarted(taskId as string);
       
       if (!isStarted) {
+        isRedirecting.current = true;
         toast.error("You must start the task first before submitting proof.", {
           autoClose: 3000
         });
@@ -53,7 +55,7 @@ export default function TaskVerificationPage() {
         return () => clearTimeout(redirectTimer);
       }
     }
-  }, [taskId, router]);
+  }, [taskId]); // Remove router from dependencies to prevent re-runs
 
   const onChooseFile = () => fileInputRef.current?.click();
 
@@ -197,6 +199,7 @@ export default function TaskVerificationPage() {
   };
 
   const goBack = () => {
+    if (isRedirecting.current) return;
     router.back();
   };
 

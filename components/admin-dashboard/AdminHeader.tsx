@@ -1,85 +1,33 @@
 "use client";
 
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useRef, useCallback, useEffect } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import ModeToggle from "@/components/ui/ModeToggle";
 import { Bell, ChevronDown, User as UserIcon, Check, Settings, LogOut } from "lucide-react";
 import { toast } from 'react-toastify';
 import { SafeHTMLRenderer } from "@/components/ui/SafeHTMLRenderer";
+import { useAdminData } from "@/components/providers/AdminDataProvider";
 
-interface Notification {
-  id: string;
-  type: 'task_submission' | 'booking' | 'contact_message' | 'new_user' | 'task_approved' | 'task_rejected' | 'system';
-  title: string;
-  message: string;
-  referenceId?: string;
-  referenceType?: 'task' | 'booking' | 'user' | 'contact' | 'submission' | 'activity';
-  link?: string;
-  createdAt: string;
-  read: boolean;
-}
-
-interface AdminUser {
-  id: string;
-  name: string;
-  email: string;
-  role: string;
-  avatarUrl?: string;
-  createdAt: string;
-}
 
 const AdminHeader = () => {
+  const router = useRouter();
   const [isOpen, setIsOpen] = useState(false);
   const [notificationsOpen, setNotificationsOpen] = useState(false);
-  const [notifications, setNotifications] = useState<Notification[]>([]);
-  const [unreadCount, setUnreadCount] = useState(0);
-  const [admin, setAdmin] = useState<AdminUser | null>(null);
-  const [loading, setLoading] = useState(true);
   const menuRef = useRef<HTMLDivElement>(null);
   const triggerRef = useRef<HTMLButtonElement>(null);
   const notificationsRef = useRef<HTMLDivElement>(null);
   const notificationsTriggerRef = useRef<HTMLButtonElement>(null);
-
-  // Fetch admin data and notifications
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        // Fetch admin data
-        const adminResponse = await fetch('/api/admin/me');
-        if (adminResponse.ok) {
-          const adminData = await adminResponse.json();
-          setAdmin(adminData.admin);
-        }
-
-        // Fetch notifications
-        const notificationsResponse = await fetch('/api/admin/notifications?limit=10');
-        if (notificationsResponse.ok) {
-          const notificationsData = await notificationsResponse.json();
-          setNotifications(notificationsData.notifications);
-          setUnreadCount(notificationsData.unreadCount);
-        }
-      } catch (error) {
-        console.error('Error fetching admin data:', error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchData();
-
-    // Refresh notifications every 60 seconds (reduced frequency)
-    const interval = setInterval(() => {
-      fetch('/api/admin/notifications?limit=10')
-        .then(res => res.json())
-        .then(data => {
-          setNotifications(data.notifications);
-          setUnreadCount(data.unreadCount);
-        })
-        .catch(console.error);
-    }, 60000);
-
-    return () => clearInterval(interval);
-  }, []);
+  
+  // Use centralized admin data
+  const {
+    admin,
+    notifications,
+    unreadCount,
+    loading,
+    markNotificationAsRead,
+    markAllNotificationsAsRead
+  } = useAdminData();
 
   // Close dropdowns when clicking outside
   useEffect(() => {
@@ -115,41 +63,6 @@ const AdminHeader = () => {
     };
   }, [isOpen, notificationsOpen]);
 
-  // Mark notification as read
-  const markAsRead = async (notificationId: string) => {
-    try {
-      const response = await fetch(`/api/admin/notifications?id=${notificationId}`, {
-        method: 'PATCH'
-      });
-
-      if (response.ok) {
-        setNotifications(prev => 
-          prev.map(n => n.id === notificationId ? { ...n, read: true } : n)
-        );
-        setUnreadCount(prev => Math.max(0, prev - 1));
-      }
-    } catch (error) {
-      console.error('Error marking notification as read:', error);
-    }
-  };
-
-  // Mark all notifications as read
-  const markAllAsRead = async () => {
-    try {
-      const response = await fetch('/api/admin/notifications?readAll=true', {
-        method: 'PATCH'
-      });
-
-      if (response.ok) {
-        setNotifications(prev => prev.map(n => ({ ...n, read: true })));
-        setUnreadCount(0);
-        toast.success('All notifications marked as read');
-      }
-    } catch (error) {
-      console.error('Error marking all notifications as read:', error);
-      toast.error('Failed to mark notifications as read');
-    }
-  };
 
   // Format time ago
   const formatTimeAgo = (dateString: string) => {
@@ -224,7 +137,7 @@ const AdminHeader = () => {
                 <h3 className="font-semibold">Notifications</h3>
                 {unreadCount > 0 && (
                   <button
-                    onClick={markAllAsRead}
+                    onClick={markAllNotificationsAsRead}
                     className="text-xs text-primary hover:underline"
                   >
                     Mark all as read
@@ -248,10 +161,10 @@ const AdminHeader = () => {
                       }`}
                       onClick={() => {
                         if (!notification.read) {
-                          markAsRead(notification.id);
+                          markNotificationAsRead(notification.id);
                         }
                         if (notification.link) {
-                          window.location.href = notification.link;
+                          router.push(notification.link);
                         }
                       }}
                     >
@@ -386,7 +299,7 @@ const AdminHeader = () => {
                 <h3 className="font-semibold">Notifications</h3>
                 {unreadCount > 0 && (
                   <button
-                    onClick={markAllAsRead}
+                    onClick={markAllNotificationsAsRead}
                     className="text-xs text-primary hover:underline"
                   >
                     Mark all as read
@@ -410,10 +323,10 @@ const AdminHeader = () => {
                       }`}
                       onClick={() => {
                         if (!notification.read) {
-                          markAsRead(notification.id);
+                          markNotificationAsRead(notification.id);
                         }
                         if (notification.link) {
-                          window.location.href = notification.link;
+                          router.push(notification.link);
                         }
                       }}
                     >

@@ -3,8 +3,22 @@ import { getCurrentAdmin } from '@/lib/admin-auth';
 import connectDB from '@/lib/mongodb';
 import User from '@/models/User';
 
+// Cache admin data for 30 seconds to reduce database hits
+let adminCache: { data: any; timestamp: number } | null = null;
+const CACHE_DURATION = 30 * 1000; // 30 seconds
+
 export async function GET() {
   try {
+    const now = Date.now();
+    
+    // Check cache first
+    if (adminCache && (now - adminCache.timestamp) < CACHE_DURATION) {
+      return NextResponse.json({
+        success: true,
+        admin: adminCache.data
+      });
+    }
+    
     const admin = await getCurrentAdmin();
     
     if (!admin) {
@@ -13,6 +27,12 @@ export async function GET() {
         { status: 401 }
       );
     }
+
+    // Cache the result
+    adminCache = {
+      data: admin,
+      timestamp: now
+    };
 
     return NextResponse.json({
       success: true,
@@ -72,6 +92,9 @@ export async function PATCH(request: Request) {
       updateData,
       { new: true, runValidators: true }
     ).select('name email role avatarUrl createdAt');
+    
+    // Clear cache after update
+    adminCache = null;
 
     if (!updatedUser) {
       return NextResponse.json(
