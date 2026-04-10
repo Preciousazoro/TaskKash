@@ -353,46 +353,73 @@ export default function HomePage() {
         </div>
       </section>
 
-      <section id="faq" className="bg-slate-50 dark:bg-slate-900 container mx-auto px-4 sm:px-6 py-16 sm:py-20 lg:py-24">
-        <div className="max-w-6xl mx-auto w-full">
-          <div className="mb-10 text-center sm:mb-12">
-            <h2 className="text-2xl font-black text-slate-900 dark:text-slate-100 sm:text-3xl lg:text-4xl">
+  <section
+        id="faq"
+        className="bg-slate-50 dark:bg-slate-900/50 container mx-auto px-4 sm:px-6 py-16 sm:py-20 lg:py-24"
+      >
+        <div className="max-w-4xl mx-auto w-full">
+          {" "}
+          {/* Reduced max-width for better readability */}
+          <div className="mb-12 text-center">
+            <h2 className="text-3xl font-black text-slate-900 dark:text-slate-100 sm:text-4xl lg:text-5xl bg-gradient-to-r from-emerald-500 to-purple-600 bg-clip-text text-transparent">
               Frequently Asked Questions
             </h2>
+            <p className="mt-4 text-slate-600 dark:text-slate-400">
+              Everything you need to know about TaskKash rewards and mechanics.
+            </p>
           </div>
-
-          <div className="space-y-3 sm:space-y-4">
+          <div className="space-y-4">
             {faqs.map((faq, index) => {
               const isOpen = openFaq === index;
               return (
                 <div
-                  key={faq.question}
-                  className="overflow-hidden rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 shadow-sm sm:rounded-2xl"
+                  key={index}
+                  className={`transition-all duration-300 rounded-2xl border ${
+                    isOpen
+                      ? "border-emerald-500/50 bg-white dark:bg-slate-800 shadow-md ring-1 ring-emerald-500/20"
+                      : "border-slate-200 dark:border-slate-800 bg-white/50 dark:bg-slate-900/50 hover:border-slate-300 dark:hover:border-slate-700 shadow-sm"
+                  }`}
                 >
                   <button
                     type="button"
                     onClick={() => setOpenFaq(isOpen ? null : index)}
-                    className="flex max-w-full items-center justify-between px-4 py-4 text-left sm:px-6 sm:py-5"
+                    className="flex w-full items-center justify-between px-5 py-5 text-left sm:px-8 sm:py-6"
                   >
                     <span
-                      className={`text-sm font-black sm:text-lg ${
-                        isOpen ? "text-emerald-600 dark:text-emerald-400" : "text-slate-900 dark:text-slate-100"
+                      className={`text-base font-bold sm:text-lg pr-4 transition-colors duration-300 ${
+                        isOpen
+                          ? "text-emerald-600 dark:text-emerald-400"
+                          : "text-slate-900 dark:text-slate-100"
                       }`}
                     >
                       {faq.question}
                     </span>
-                    <ChevronDown
-                      className={`h-5 w-5 text-slate-500 dark:text-slate-400 transition-transform ${
-                        isOpen ? "rotate-180" : ""
-                      }`}
-                    />
+
+                    <div
+                      className={`flex-shrink-0 p-1 rounded-full transition-colors ${isOpen ? "bg-emerald-50 dark:bg-emerald-500/10" : "bg-transparent"}`}
+                    >
+                      <ChevronDown
+                        className={`h-5 w-5 sm:h-6 sm:w-6 text-slate-500 transition-transform duration-500 ${
+                          isOpen
+                            ? "rotate-180 text-emerald-600 dark:text-emerald-400"
+                            : "text-slate-400"
+                        }`}
+                      />
+                    </div>
                   </button>
 
-                  {isOpen && (
-                    <div className="px-4 pb-4 text-slate-600 dark:text-slate-400 sm:px-6 sm:pb-6">
-                      <p className="text-sm sm:text-base">{faq.answer}</p>
+                  {/* Smooth transition for the answer */}
+                  <div
+                    className={`overflow-hidden transition-all duration-300 ease-in-out ${
+                      isOpen ? "max-h-[500px] opacity-100" : "max-h-0 opacity-0"
+                    }`}
+                  >
+                    <div className="px-5 pb-6 text-slate-600 dark:text-slate-400 sm:px-8 sm:pb-8 border-t border-slate-100 dark:border-slate-700/50 pt-4 mt-1 mx-4">
+                      <p className="text-sm sm:text-base leading-relaxed">
+                        {faq.answer}
+                      </p>
                     </div>
-                  )}
+                  </div>
                 </div>
               );
             })}
