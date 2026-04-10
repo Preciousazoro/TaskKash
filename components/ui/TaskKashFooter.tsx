@@ -1,168 +1,320 @@
+"use client";
+
 import Link from "next/link";
+import {
+  Youtube,
+  Twitter,
+  Send,
+  ShieldCheck,
+  Zap,
+  Coins,
+  Layers,
+} from "lucide-react";
+import ScrollToTop from "@/components/ui/ScrollToTop";
 import { FaXTwitter, FaDiscord, FaTelegram, FaYoutube } from "react-icons/fa6";
 
-const socialLinks = [
-  { name: "Twitter", href: "https://twitter.com/taskkash", icon: FaXTwitter },
-  { name: "Discord", href: "https://discord.gg/taskkash", icon: FaDiscord },
-  { name: "Telegram", href: "https://t.me/taskkash", icon: FaTelegram },
-  { name: "YouTube", href: "https://youtube.com/@taskkash", icon: FaYoutube },
-];
 
 export default function TaskKashFooter() {
+  const socialLinks = [
+    {
+      name: "Telegram",
+      icon: <Send size={24} />,
+      href: "https://t.me/taskkash",
+    },
+    { name: "Discord", icon: <FaDiscord size={24} />, href: "https://discord.gg/taskkash" },
+    {
+      name: "X (Twitter)",
+      icon: <Twitter size={24} />,
+      href: "https://twitter.com/taskkash",
+    },
+    { name: "YouTube", icon: <Youtube size={24} />, href: "#" },
+  ];
+
   return (
-    <footer className="relative bg-slate-950 text-slate-300">
-      {/* Subtle background gradient */}
-      <div className="absolute inset-0 bg-gradient-to-b from-slate-900/50 to-slate-950 pointer-events-none" />
-      
-      <div className="relative mx-auto max-w-screen-2xl px-4 py-16 sm:px-6 sm:py-20 lg:px-8">
-        {/* Main Footer Grid */}
-        <div className="grid grid-cols-1 gap-12 sm:grid-cols-2 lg:grid-cols-4 xl:gap-16">
-          
-          {/* Brand Section */}
-          <div className="lg:col-span-1">
-            <Link
-              href="/"
-              className="inline-block bg-gradient-to-r from-emerald-500 via-green-500 to-purple-600 bg-clip-text text-2xl font-black text-transparent transition-all duration-300 hover:opacity-80 sm:text-3xl"
-            >
-              TaskKash
+    <footer className="bg-slate-950 border-t border-slate-900 text-slate-300 pb-12 pt-16 px-6 md:px-16 relative">
+      <div className="max-w-[1400px] mx-auto grid grid-cols-1 md:grid-cols-4 lg:grid-cols-5 gap-12 md:gap-8 lg:gap-24">
+        {/* Brand & Description */}
+        <div className="flex flex-col space-y-6 md:col-span-4 lg:col-span-2">
+          <div>
+            <Link href="/" className="flex items-center gap-2">
+              <img
+                src="/taskkash-logo.png"
+                alt="TaskKash Logo"
+                className="h-10 w-10 object-contain"
+              />
+              <span className="text-2xl md:text-3xl lg:text-3xl font-black tracking-tight bg-gradient-to-r from-[#00C853] via-[#00A86B] to-[#6A0DAD] bg-clip-text text-transparent">
+                TASKKASH
+              </span>
             </Link>
-            <p className="mt-4 max-w-sm text-base leading-relaxed text-slate-400 sm:text-lg">
-              Turn actions into on-chain rewards.
+            <p className="mt-5 leading-relaxed text-slate-400 max-w-sm">
+              The premier Web3 task-to-earn ecosystem on Solana. We bridge the
+              gap between global brands and engaged users, rewarding digital
+              participation with Task Points (TP) convertible directly to SOL.
             </p>
-            
-            {/* Social Icons */}
-            <div className="mt-6 flex gap-3">
-              {socialLinks.map((social) => {
-                const Icon = social.icon;
-                return (
-                  <a
-                    key={social.name}
-                    href={social.href}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="flex h-12 w-12 items-center justify-center rounded-full bg-slate-800/50 text-slate-400 transition-all duration-300 hover:bg-gradient-to-r hover:from-emerald-500 hover:to-purple-600 hover:text-white hover:scale-110 hover:shadow-lg hover:shadow-emerald-500/25"
-                    aria-label={social.name}
-                  >
-                    <Icon className="h-6 w-6" />
-                  </a>
-                );
-              })}
+          </div>
+
+          {/* Social Media links */}
+          <div>
+            <h3 className="text-emerald-500 font-bold uppercase tracking-wider text-sm mb-4">
+              Join the Community
+            </h3>
+            <div className="flex flex-wrap gap-4">
+              {socialLinks.map((social) => (
+                <Link
+                  key={social.name}
+                  href={social.href}
+                  className="p-3 bg-slate-900 rounded-xl hover:bg-emerald-600 hover:text-white transition-all duration-300 shadow-sm border border-slate-800"
+                  title={social.name}
+                >
+                  {social.icon}
+                </Link>
+              ))}
             </div>
-          </div>
-
-          {/* Product Links */}
-          <div>
-            <h3 className="mb-6 text-lg font-bold text-white sm:text-xl">Product</h3>
-            <ul className="space-y-4">
-              <li>
-                <a href="/#how" className="block text-base transition-all duration-200 hover:text-white hover:translate-x-1">
-                  How It Works
-                </a>
-              </li>
-              <li>
-                <a href="/#users" className="block text-base transition-all duration-200 hover:text-white hover:translate-x-1">
-                  For Users
-                </a>
-              </li>
-              <li>
-                <a href="/#brands" className="block text-base transition-all duration-200 hover:text-white hover:translate-x-1">
-                  For Brands
-                </a>
-              </li>
-              <li>
-                <Link href="/auth/signup" className="block text-base transition-all duration-200 hover:text-white hover:translate-x-1">
-                  Earn Rewards
-                </Link>
-              </li>
-            </ul>
-          </div>
-
-          {/* Company Links */}
-          <div>
-            <h3 className="mb-6 text-lg font-bold text-white sm:text-xl">Company</h3>
-            <ul className="space-y-4">
-              <li>
-                <Link href="/about" className="block text-base transition-all duration-200 hover:text-white hover:translate-x-1">
-                  About
-                </Link>
-              </li>
-              <li>
-                <Link href="/whitepaper" className="block text-base transition-all duration-200 hover:text-white hover:translate-x-1">
-                  Whitepaper
-                </Link>
-              </li>
-              <li>
-                <Link href="#" className="block text-base transition-all duration-200 hover:text-white hover:translate-x-1">
-                  Careers
-                </Link>
-              </li>
-              <li>
-                <Link href="#" className="block text-base transition-all duration-200 hover:text-white hover:translate-x-1">
-                  Privacy Policy
-                </Link>
-              </li>
-            </ul>
-          </div>
-
-          {/* Resources Links */}
-          <div>
-            <h3 className="mb-6 text-lg font-bold text-white sm:text-xl">Resources</h3>
-            <ul className="space-y-4">
-              <li>
-                <a href="/#faq" className="block text-base transition-all duration-200 hover:text-white hover:translate-x-1">
-                  FAQ
-                </a>
-              </li>
-              <li>
-                <Link href="#" className="block text-base transition-all duration-200 hover:text-white hover:translate-x-1">
-                  Docs
-                </Link>
-              </li>
-              <li>
-                <Link href="/contact" className="block text-base transition-all duration-200 hover:text-white hover:translate-x-1">
-                  Support
-                </Link>
-              </li>
-              <li>
-                <Link href="#" className="block text-base transition-all duration-200 hover:text-white hover:translate-x-1">
-                  API
-                </Link>
-              </li>
-            </ul>
           </div>
         </div>
 
-        {/* Divider */}
-        <div className="mt-16 border-t border-slate-800 sm:mt-20" />
+        {/* Ecosystem Section */}
+        <div className="flex flex-col space-y-4">
+          <h3 className="text-lg font-bold uppercase tracking-tight bg-gradient-to-b from-white to-slate-500 bg-clip-text text-transparent">
+            Ecosystem
+          </h3>
+          <ul className="space-y-2 text-slate-400">
+            <li>
+              <Link
+                href="/#how"
+                className="hover:text-emerald-500 transition-colors"
+              >
+                How It Works
+              </Link>
+            </li>
+            <li>
+              <Link
+                href="/#users"
+                className="hover:text-emerald-500 transition-colors"
+              >
+                For Users
+              </Link>
+            </li>
+            <li>
+              <Link
+                href="/#brands"
+                className="hover:text-emerald-500 transition-colors"
+              >
+                For Brands
+              </Link>
+            </li>
+            <li>
+              <Link
+                href="/whitepaper"
+                className="hover:text-emerald-500 transition-colors"
+              >
+                Whitepaper
+              </Link>
+            </li>
+            <li>
+              <Link
+                href="#"
+                className="hover:text-emerald-500 transition-colors"
+              >
+                Leaderboard
+              </Link>
+            </li>
+          </ul>
+        </div>
 
-        {/* Bottom Bar */}
-        <div className="mt-8 flex flex-col items-center justify-between gap-4 sm:flex-row">
-          <p className="text-sm text-slate-500 sm:text-base">
-            © 2026 TaskKash. All rights reserved.
-          </p>
-          
-          <div className="flex gap-6 text-sm sm:gap-8 sm:text-base">
-            <Link 
-              href="#" 
-              className="text-slate-500 transition-all duration-200 hover:text-white hover:underline"
-            >
-              Terms of Service
-            </Link>
-            <Link 
-              href="#" 
-              className="text-slate-500 transition-all duration-200 hover:text-white hover:underline"
-            >
-              Privacy Policy
-            </Link>
-            <Link 
-              href="#" 
-              className="text-slate-500 transition-all duration-200 hover:text-white hover:underline"
-            >
-              Security
-            </Link>
+        {/* Wallet Support Section */}
+        <div className="flex flex-col space-y-4">
+          <h3 className="text-lg font-bold uppercase tracking-tight bg-gradient-to-b from-white to-slate-500 bg-clip-text text-transparent">
+            Wallet Support
+          </h3>
+          <ul className="space-y-2 text-slate-400">
+            <li>
+              <Link
+                href="#"
+                className="hover:text-emerald-500 transition-colors"
+              >
+                Phantom Wallet
+              </Link>
+            </li>
+            <li>
+              <Link
+                href="#"
+                className="hover:text-emerald-500 transition-colors"
+              >
+                Solflare Wallet
+              </Link>
+            </li>
+            <li>
+              <Link
+                href="#"
+                className="hover:text-emerald-500 transition-colors"
+              >
+                Backpack
+              </Link>
+            </li>
+            <li>
+              <Link
+                href="#"
+                className="hover:text-emerald-500 transition-colors"
+              >
+                Trust Wallet
+              </Link>
+            </li>
+            <li>
+              <Link
+                href="#"
+                className="hover:text-emerald-500 transition-colors"
+              >
+                Ledger Support
+              </Link>
+            </li>
+          </ul>
+        </div>
+
+        {/* Quick Links */}
+        <div className="flex flex-col space-y-4">
+          <h3 className="text-lg font-bold uppercase tracking-tight bg-gradient-to-b from-white to-slate-500 bg-clip-text text-transparent">
+            User Area
+          </h3>
+          <ul className="space-y-2 text-slate-400">
+            <li>
+              <Link
+                href="/auth/login"
+                className="hover:text-emerald-500 transition-colors"
+              >
+                User Signin
+              </Link>
+            </li>
+            <li>
+              <Link
+                href="/auth/signup"
+                className="hover:text-emerald-500 transition-colors"
+              >
+                User Signup
+              </Link>
+            </li>
+            <li>
+              <Link
+                href="/contact"
+                className="hover:text-emerald-500 transition-colors"
+              >
+                Support Center
+              </Link>
+            </li>
+            <li>
+              <Link
+                href="/about"
+                className="hover:text-emerald-500 transition-colors"
+              >
+                About Us
+              </Link>
+            </li>
+            <li>
+              <Link
+                href="#"
+                className="hover:text-emerald-500 transition-colors"
+              >
+                Task API
+              </Link>
+            </li>
+          </ul>
+        </div>
+      </div>
+
+      {/* Trust Badges */}
+      <div className="max-w-[1400px] mx-auto mt-16 grid grid-cols-1 md:grid-cols-3 gap-8 border-t border-slate-900 pt-12">
+        <div className="flex items-center gap-4 text-slate-400">
+          <ShieldCheck className="text-emerald-500" size={32} />
+          <div>
+            <h4 className="font-bold text-white text-sm uppercase">
+              Verified Gigs
+            </h4>
+            <p className="text-xs">
+              Every task is audited for authentic brand engagement.
+            </p>
+          </div>
+        </div>
+        <div className="flex items-center gap-4 text-slate-400">
+          <Zap className="text-emerald-500" size={32} />
+          <div>
+            <h4 className="font-bold text-white text-sm uppercase">
+              Solana Powered
+            </h4>
+            <p className="text-xs">
+              Lightning fast conversions from TP to SOL on-chain.
+            </p>
+          </div>
+        </div>
+        <div className="flex items-center gap-4 text-slate-400">
+          <Coins className="text-emerald-500" size={32} />
+          <div>
+            <h4 className="font-bold text-white text-sm uppercase">
+              Instant Accruals
+            </h4>
+            <p className="text-xs">
+              Earn Task Points instantly upon proof verification.
+            </p>
           </div>
         </div>
       </div>
+
+      {/* Financial Disclaimer */}
+      <div className="max-w-[1400px] mx-auto mt-16 space-y-8 text-[12px] leading-relaxed text-slate-500 border-t border-slate-900 pt-12">
+        <div className="space-y-4">
+          <p className="text-sm">
+            <span className="font-bold text-slate-300 uppercase">
+              Risk Disclosure:
+            </span>{" "}
+            Participating in Web3 activities and earning cryptocurrency involves
+            significant risk. The value of Solana (SOL) and other digital assets
+            can be highly volatile. Before using TaskKash, ensure you understand
+            the mechanics of digital wallets and on-chain transactions.
+          </p>
+
+          <p className="text-sm">
+            TaskKash is a platform for engagement. Task Points (TP) are internal
+            rewards and have no value until converted. Past earnings of other
+            users do not guarantee your future rewards.
+          </p>
+        </div>
+
+        <div className="space-y-2 border-t border-slate-900 pt-8">
+          <p className="font-bold text-slate-300 uppercase tracking-widest text-[10px]">
+            Platform Governance
+          </p>
+          <p className="text-sm">
+            TaskKash operates as a decentralized-first engagement platform. We
+            utilize automated verification and human-in-the-loop auditing to
+            prevent bot activity. All user data is handled with end-to-end
+            encryption to ensure privacy in the Web3 space.
+          </p>
+        </div>
+      </div>
+
+      {/* Bottom Bar */}
+      <div className="max-w-[1400px] mx-auto border-t border-slate-900 mt-12 pt-8 flex flex-col md:flex-row justify-between items-center gap-4 text-sm text-slate-500">
+        <div className="flex flex-col md:flex-row items-center gap-2 md:gap-6">
+          <p>
+            © {new Date().getFullYear()} TASKKASH — Empowering the Gig Economy.
+          </p>
+          <div className="flex gap-4 text-[12px]">
+            <Link href="#" className="hover:text-emerald-500">
+              Privacy Policy
+            </Link>
+            <Link href="#" className="hover:text-emerald-500">
+              Terms of Service
+            </Link>
+          </div>
+        </div>
+        <p className="italic text-xs text-center md:text-right max-w-md opacity-60">
+          TaskKash is not a financial advisor. Earning crypto through tasks is
+          subject to local tax regulations. Use of this platform constitutes
+          acceptance of our digital asset policy.
+        </p>
+      </div>
+      
+          {/* Add it here */}
+          <ScrollToTop />
     </footer>
   );
 }
