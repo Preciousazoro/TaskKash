@@ -51,7 +51,7 @@ export default function TaskKashHeader() {
         }`}
       >
         <div className="mx-auto max-w-[1400px] px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between h-16 md:h-20">
+          <div className="flex items-center justify-between h-16 md:h-17">
             
             {/* LEFT: LOGO */}
             <Link
@@ -67,7 +67,7 @@ export default function TaskKashHeader() {
             </Link>
 
             {/* MIDDLE: NAV LINKS (Desktop) */}
-            <nav className="hidden md:flex items-center gap-6 lg:gap-8 bg-slate-100/50 dark:bg-slate-800/40 px-6 py-2 rounded-full border border-slate-200/50 dark:border-slate-700/50 backdrop-blur-sm">
+            <nav className="hidden md:flex items-center gap-6 lg:gap-8 bg-slate-100/50 dark:bg-slate-800/40 px-6 py-3 rounded-full border border-slate-200/50 dark:border-slate-700/50 backdrop-blur-sm">
               <a href="/#how" className="text-sm font-medium text-slate-700 dark:text-slate-300 hover:text-emerald-600 transition-colors">How It Works</a>
               <a href="/#users" className="text-sm font-medium text-slate-700 dark:text-slate-300 hover:text-emerald-600 transition-colors">For Users</a>
               <a href="/#brands" className="text-sm font-medium text-slate-700 dark:text-slate-300 hover:text-emerald-600 transition-colors">For Brands</a>
