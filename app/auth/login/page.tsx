@@ -59,8 +59,6 @@ export default function LoginPage() {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-background text-foreground px-4 transition-colors duration-300">
-      {/* Background Glow */}
-      <div className="absolute inset-0 bg-linear-to-tr from-[#00ff9d0a] via-transparent to-[#8a2be20a] pointer-events-none"></div>
       
       <div className="relative w-full max-w-md space-y-6">
         {/* Logo Section */}
@@ -139,7 +137,7 @@ export default function LoginPage() {
           <Button
             type="submit"
             disabled={isLoading}
-            className="w-full bg-linear-to-r from-[#00ff9d] to-[#8a2be2] text-white font-bold hover:opacity-90 transition-all shadow-lg shadow-primary/20 h-11"
+            className="w-full py-5 bg-linear-to-r from-[#00ff9d] to-[#8a2be2] text-white font-bold hover:opacity-90 transition-all"
           >
             {isLoading ? (
               <Loader2 className="w-5 h-5 animate-spin" />
