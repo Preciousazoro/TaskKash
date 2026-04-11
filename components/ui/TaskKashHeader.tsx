@@ -4,12 +4,14 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import { Menu, Moon, Sun, X } from "lucide-react";
 import { useTheme } from "next-themes";
+import { usePathname } from "next/navigation";
 
 export default function TaskKashHeader() {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const { theme, setTheme } = useTheme();
   const [mounted, setMounted] = useState(false);
+  const pathname = usePathname();
 
   // Handle scroll effect for header background
   useEffect(() => {
@@ -71,7 +73,16 @@ export default function TaskKashHeader() {
               <a href="/#how" className="text-sm font-medium text-slate-700 dark:text-slate-300 hover:text-emerald-600 transition-colors">How It Works</a>
               <a href="/#users" className="text-sm font-medium text-slate-700 dark:text-slate-300 hover:text-emerald-600 transition-colors">For Users</a>
               <a href="/#brands" className="text-sm font-medium text-slate-700 dark:text-slate-300 hover:text-emerald-600 transition-colors">For Brands</a>
-              <Link href="/about" className="text-sm font-medium text-slate-700 dark:text-slate-300 hover:text-emerald-600 transition-colors">About</Link>
+              <Link href="/about" className={`text-sm font-medium transition-colors ${
+                pathname === "/about" 
+                  ? "text-emerald-600 font-semibold" 
+                  : "text-slate-700 dark:text-slate-300 hover:text-emerald-600"
+              }`}>About Us</Link>
+              <Link href="/whitepaper" className={`text-sm font-medium transition-colors ${
+                pathname === "/whitepaper" 
+                  ? "text-emerald-600 font-semibold" 
+                  : "text-slate-700 dark:text-slate-300 hover:text-emerald-600"
+              }`}>Whitepaper</Link>
             </nav>
 
             {/* RIGHT: THEME + AUTH */}
@@ -134,11 +145,24 @@ export default function TaskKashHeader() {
         {/* Sidebar Links */}
         <div className="flex-1 overflow-y-auto p-8">
           <nav className="flex flex-col gap-6">
-            <Link href="/about" onClick={handleNavClick} className="text-sm font-bold text-slate-900 dark:text-white border-b border-slate-50 dark:border-slate-900 pb-2">About Us</Link>
+            <Link href="/about" onClick={handleNavClick} className={`text-sm font-bold border-b pb-2 ${
+              pathname === "/about" 
+                ? "text-emerald-600 border-emerald-600" 
+                : "text-slate-900 dark:text-white border-slate-50 dark:border-slate-900"
+            }`}>About Us</Link>
             <a href="/#how" onClick={handleNavClick} className="text-sm font-bold text-slate-900 dark:text-white border-b border-slate-50 dark:border-slate-900 pb-2">How It Works</a>
             <a href="/#users" onClick={handleNavClick} className="text-sm font-bold text-slate-900 dark:text-white border-b border-slate-50 dark:border-slate-900 pb-2">For Users</a>
             <a href="/#brands" onClick={handleNavClick} className="text-sm font-bold text-slate-900 dark:text-white border-b border-slate-50 dark:border-slate-900 pb-2">For Brands</a>
-            <Link href="/contact" onClick={handleNavClick} className="text-sm font-bold text-slate-900 dark:text-white border-b border-slate-50 dark:border-slate-900 pb-2">Contact Support</Link>
+            <Link href="/whitepaper" onClick={handleNavClick} className={`text-sm font-medium border-b pb-2 ${
+              pathname === "/whitepaper" 
+                ? "text-emerald-600 border-emerald-600 font-bold" 
+                : "text-slate-700 dark:text-slate-300 border-transparent hover:text-emerald-600"
+            }`}>Whitepaper</Link>
+            <Link href="/contact" onClick={handleNavClick} className={`text-sm font-bold border-b pb-2 ${
+              pathname === "/contact" 
+                ? "text-emerald-600 border-emerald-600" 
+                : "text-slate-900 dark:text-white border-slate-50 dark:border-slate-900"
+            }`}>Contact Support</Link>
           </nav>
         </div>
 
