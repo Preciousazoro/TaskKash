@@ -85,7 +85,6 @@ export default function RegisterPage() {
 
   return (
     <div className="min-h-screen flex items-center justify-center text-foreground px-4 relative overflow-hidden bg-background transition-colors duration-300">
-      <div className="absolute inset-0 bg-linear-to-tr from-[#00ff9d1a] via-transparent to-[#8a2be21a] blur-3xl opacity-50"></div>
       <div className="relative z-10 w-full max-w-md space-y-6">
         
         {/* Header / Logo */}
@@ -111,7 +110,7 @@ export default function RegisterPage() {
         {/* Sign Up Form */}
         <form
           onSubmit={handleSubmit}
-          className="bg-card border border-border rounded-2xl p-6 space-y-5 shadow-[0_0_20px_rgba(0,255,157,0.05)] transition-colors duration-300"
+          className="bg-card border border-border rounded-2xl p-6 space-y-5 transition-colors duration-300"
         >
           {/* Full Name */}
           <div>
@@ -219,7 +218,7 @@ export default function RegisterPage() {
           {/* Submit Button */}
           <Button
             type="submit"
-            className="w-full bg-linear-to-r from-[#00ff9d] to-[#8a2be2] text-white font-medium hover:opacity-90 transition-all shadow-[0_0_15px_rgba(0,255,157,0.3)]"
+            className="w-full py-5 bg-linear-to-r from-[#00ff9d] to-[#8a2be2] text-white font-bold hover:opacity-90 transition-all"
             disabled={isLoading}
           >
             {isLoading ? (
