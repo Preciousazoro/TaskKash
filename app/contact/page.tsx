@@ -1,12 +1,24 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import Link from "next/link";
-import BookingModal from "@/components/booking/BookingModal";
+import { useState } from "react";
+import { Montserrat } from "next/font/google";
 import { toast } from 'react-toastify';
-import Footer from "@/components/ui/Footer";
+import { 
+  Mail, 
+  Twitter, 
+  Calendar, 
+  Send, 
+  CheckCircle2, 
+  ArrowRight, 
+  ShieldCheck, 
+  Users 
+} from "lucide-react";
+
+import BookingModal from "@/components/booking/BookingModal";
 import TaskKashHeader from "@/components/ui/TaskKashHeader";
 import TaskKashFooter from "@/components/ui/TaskKashFooter";
+
+const montserrat = Montserrat({ subsets: ["latin"] });
 
 export default function ContactPage() {
   const [isBookingModalOpen, setIsBookingModalOpen] = useState(false);
@@ -44,9 +56,7 @@ export default function ContactPage() {
     try {
       const response = await fetch('/api/contact', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(formData),
       });
 
@@ -56,21 +66,16 @@ export default function ContactPage() {
         throw new Error(result.error || 'Failed to submit form');
       }
 
-      toast.success('Message sent successfully! We\'ll get back to you soon.');
+      toast.success('Message sent successfully!');
       setIsSubmitted(true);
       
-      // Reset form
       setFormData({
-        name: '',
-        email: '',
-        subject: '',
-        message: '',
-        subscribedToUpdates: false
+        name: '', email: '', subject: '', message: '', subscribedToUpdates: false
       });
       
     } catch (error) {
       console.error('Form submission error:', error);
-      toast.error(error instanceof Error ? error.message : 'Failed to send message. Please try again.');
+      toast.error(error instanceof Error ? error.message : 'Failed to send message.');
     } finally {
       setIsSubmitting(false);
     }
@@ -78,229 +83,172 @@ export default function ContactPage() {
 
   const resetForm = () => {
     setIsSubmitted(false);
-    setFormData({
-      name: '',
-      email: '',
-      subject: '',
-      message: '',
-      subscribedToUpdates: false
-    });
   };
 
   return (
-    <div className="bg-background text-foreground min-h-screen overflow-x-hidden transition-colors duration-300">
+    <div className="bg-white dark:bg-slate-950 text-slate-900 dark:text-white min-h-screen selection:bg-emerald-500 selection:text-white">
       <TaskKashHeader />
 
-      <main className="container mx-auto px-6 py-20">
-        <div className="max-w-4xl mx-auto">
-          <h1 className="text-4xl md:text-6xl font-bold mb-8 text-center">
-            <span className="gradient-text">Contact Us</span>
-          </h1>
+      <main className="container mx-auto px-6 py-24">
+        <div className="max-w-6xl mx-auto">
+          {/* Header Section */}
+          <div className="mb-20 text-center md:text-left">
+            <h1 className={`${montserrat.className} text-6xl md:text-8xl font-black uppercase tracking-tighter leading-none mb-6`}>
+              Get In <span className="text-emerald-500">Touch</span>
+            </h1>
+            <p className="text-xl text-slate-500 dark:text-slate-400 font-medium max-w-2xl">
+              Have a question about the Solana ecosystem or want to launch a campaign? Our team is ready to scale with you.
+            </p>
+          </div>
 
-          <div className="space-y-16">
-            {/* For Brands Section */}
-            <div className="text-center">
-              <h2 className="text-3xl font-bold mb-4">For Brands 🤝</h2>
-              <p className="text-xl text-muted-foreground mb-8">
-                Want to promote your brand, product, or campaign on TaskKash?
-              </p>
+          <div className="grid lg:grid-cols-12 gap-16">
+            
+            {/* Left Column: Info Cards */}
+            <div className="lg:col-span-5 space-y-8">
               
-              <div className="bg-card/50 backdrop-blur-sm rounded-xl p-8 border border-border max-w-2xl mx-auto">
-                <p className="text-lg mb-6">Book a session with us to:</p>
-                <ul className="text-left space-y-3 mb-8 max-w-md mx-auto">
-                  <li className="flex items-start">
-                    <span className="text-green-400 mr-2">•</span>
-                    Discuss your project or brand goals
-                  </li>
-                  <li className="flex items-start">
-                    <span className="text-green-400 mr-2">•</span>
-                    Explore how TaskKash can help you reach real users
-                  </li>
-                  <li className="flex items-start">
-                    <span className="text-green-400 mr-2">•</span>
-                    Launch tasks and campaigns tailored to your needs
-                  </li>
-                </ul>
-                
+              {/* Brands Card */}
+              <div className="group p-8 rounded-3xl border-2 border-slate-900 dark:border-white bg-transparent hover:bg-emerald-500 hover:border-emerald-500 transition-all duration-300">
+                <div className="flex items-center gap-4 mb-4">
+                  <div className="p-3 bg-slate-900 dark:bg-white text-white dark:text-slate-900 rounded-2xl group-hover:bg-white group-hover:text-emerald-500 transition-colors">
+                    <Calendar size={24} />
+                  </div>
+                  <h2 className={`${montserrat.className} text-2xl font-black uppercase group-hover:text-white`}>For Brands</h2>
+                </div>
+                <p className="text-slate-500 dark:text-slate-400 group-hover:text-emerald-50 mb-6 font-medium leading-relaxed">
+                  Discuss project goals, custom tasks, and how to reach verified on-chain users.
+                </p>
                 <button
                   onClick={() => setIsBookingModalOpen(true)}
-                  className="inline-flex items-center px-8 py-3 rounded-lg bg-linear-to-r from-green-400 to-purple-600 text-white font-medium hover:opacity-90 transition-opacity shadow-lg"
+                  className="flex items-center gap-2 font-black uppercase tracking-widest text-sm group-hover:text-white"
                 >
-                  Book a Session
+                  Book a Session <ArrowRight size={16} />
                 </button>
               </div>
-            </div>
 
-            {/* Get in Touch Section */}
-            <div className="text-center">
-              <h2 className="text-3xl font-bold mb-4">Get in Touch</h2>
-              <p className="text-xl text-muted-foreground mb-8">
-                For general inquiries, partnerships, or support, reach us via:
-              </p>
-              
-              <div className="bg-card/50 backdrop-blur-sm rounded-xl p-8 border border-border max-w-2xl mx-auto">
-                <div className="space-y-4">
-                  <div className="flex items-center justify-center space-x-2">
-                    <span className="font-medium">Email:</span>
-                    <a href="mailto:info@taskkash.xyz" className="text-green-400 hover:text-green-300 transition-colors">
-                      info@taskkash.xyz
-                    </a>
-                  </div>
-                  <div className="flex items-center justify-center space-x-2">
-                    <span className="font-medium">X:</span>
-                    <a href="https://x.com/TaskKash" target="_blank" rel="noopener noreferrer" className="text-green-400 hover:text-green-300 transition-colors">
-                      @TaskKash
-                    </a>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* For Users Section */}
-            <div className="text-center">
-              <h2 className="text-3xl font-bold mb-4">For Users 👥</h2>
-              <p className="text-xl text-muted-foreground mb-8">
-                Have questions, feedback, or need support? We're always happy to hear from you.
-              </p>
-              
-              <div className="bg-card/50 backdrop-blur-sm rounded-xl p-8 border border-border max-w-2xl mx-auto">
-                <p className="text-lg mb-6">👉 Email us or reach out on X</p>
-                <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                  <a
-                    href="mailto:support@taskkash.xyz"
-                    className="px-6 py-3 rounded-lg border border-green-400 text-green-400 font-medium hover:bg-green-400 hover:text-background transition-colors"
-                  >
-                    Email Us
-                  </a>
-                  <a
-                    href="https://x.com/TaskKash"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="px-6 py-3 rounded-lg border border-green-400 text-green-400 font-medium hover:bg-green-400 hover:text-background transition-colors"
-                  >
-                    Message on X
-                  </a>
-                </div>
-              </div>
-            </div>
-
-            {/* Contact Form Section */}
-            <div className="text-center">
-              <h2 className="text-3xl font-bold mb-4">Send us a Message</h2>
-              <p className="text-xl text-muted-foreground mb-8">
-                Prefer to fill out a form? We'll get back to you as soon as possible.
-              </p>
-              
-              <div className="bg-card/50 backdrop-blur-sm rounded-xl p-8 border border-border max-w-2xl mx-auto">
-                {isSubmitted ? (
-                  <div className="text-center py-8">
-                    <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                      <svg className="w-8 h-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                      </svg>
+              {/* Support Links */}
+              <div className="p-8 rounded-3xl bg-slate-100 dark:bg-slate-900 border-2 border-transparent">
+                <h3 className={`${montserrat.className} text-xl font-black uppercase mb-6 tracking-tight`}>Direct Channels</h3>
+                <div className="space-y-6">
+                  <a href="mailto:info@taskkash.xyz" className="flex items-center gap-4 group">
+                    <Mail className="text-emerald-500" size={20} />
+                    <div>
+                      <div className="text-[10px] font-black uppercase tracking-widest text-slate-400">Email Us</div>
+                      <div className="font-bold group-hover:text-emerald-500 transition-colors tracking-tight">info@taskkash.xyz</div>
                     </div>
-                    <h3 className="text-xl font-semibold mb-2">Message Sent Successfully!</h3>
-                    <p className="text-muted-foreground mb-6">
-                      Thank you for reaching out. We've received your message and will get back to you soon.
+                  </a>
+                  <a href="https://x.com/TaskKash" target="_blank" className="flex items-center gap-4 group">
+                    <Twitter className="text-emerald-500" size={20} />
+                    <div>
+                      <div className="text-[10px] font-black uppercase tracking-widest text-slate-400">Twitter / X</div>
+                      <div className="font-bold group-hover:text-emerald-500 transition-colors tracking-tight">@TaskKash</div>
+                    </div>
+                  </a>
+                </div>
+              </div>
+            </div>
+
+            {/* Right Column: Contact Form */}
+            <div className="lg:col-span-7">
+              <div className="relative p-8 md:p-12 rounded-3xl border-2 border-slate-900 dark:border-white">
+                {isSubmitted ? (
+                  <div className="text-center py-12 animate-in fade-in zoom-in duration-300">
+                    <div className="w-20 h-20 bg-emerald-500 text-white rounded-full flex items-center justify-center mx-auto mb-6 shadow-xl shadow-emerald-500/20">
+                      <CheckCircle2 size={40} />
+                    </div>
+                    <h3 className={`${montserrat.className} text-3xl font-black uppercase mb-4`}>Message Sent!</h3>
+                    <p className="text-slate-500 dark:text-slate-400 font-medium mb-8">
+                      We've received your inquiry. A team member will reach out within 24 hours.
                     </p>
                     <button
                       onClick={resetForm}
-                      className="px-6 py-3 rounded-lg border border-green-400 text-green-400 font-medium hover:bg-green-400 hover:text-background transition-colors"
+                      className="px-8 py-4 bg-slate-900 dark:bg-white text-white dark:text-slate-900 font-black uppercase tracking-widest text-sm hover:opacity-90 transition-opacity"
                     >
-                      Send Another Message
+                      Send Another
                     </button>
                   </div>
                 ) : (
                   <form onSubmit={handleSubmit} className="space-y-6">
-                    <div className="grid sm:grid-cols-2 gap-4">
-                      <div>
-                        <label className="block text-sm font-medium mb-2 text-left">Name *</label>
+                    <div className="grid md:grid-cols-2 gap-6">
+                      <div className="space-y-2">
+                        <label className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">Your Name</label>
                         <input
                           type="text"
                           name="name"
                           value={formData.name}
                           onChange={handleInputChange}
                           required
-                          disabled={isSubmitting}
-                          className="w-full px-4 py-3 rounded-lg border border-border bg-background focus:outline-none focus:ring-2 focus:ring-green-400 transition-colors disabled:opacity-50"
-                          placeholder="Your name"
+                          placeholder="John Doe"
+                          className="w-full bg-transparent border-b-2 border-slate-200 dark:border-slate-800 focus:border-emerald-500 outline-none py-3 font-bold transition-colors"
                         />
                       </div>
-                      <div>
-                        <label className="block text-sm font-medium mb-2 text-left">Email *</label>
+                      <div className="space-y-2">
+                        <label className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">Email Address</label>
                         <input
                           type="email"
                           name="email"
                           value={formData.email}
                           onChange={handleInputChange}
                           required
-                          disabled={isSubmitting}
-                          className="w-full px-4 py-3 rounded-lg border border-border bg-background focus:outline-none focus:ring-2 focus:ring-green-400 transition-colors disabled:opacity-50"
-                          placeholder="your@email.com"
+                          placeholder="john@solana.com"
+                          className="w-full bg-transparent border-b-2 border-slate-200 dark:border-slate-800 focus:border-emerald-500 outline-none py-3 font-bold transition-colors"
                         />
                       </div>
                     </div>
-                    
-                    <div>
-                      <label className="block text-sm font-medium mb-2 text-left">Subject</label>
+
+                    <div className="space-y-2">
+                      <label className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">Subject</label>
                       <select 
                         name="subject"
                         value={formData.subject}
                         onChange={handleInputChange}
-                        disabled={isSubmitting}
-                        className="w-full px-4 py-3 rounded-lg border border-border bg-background focus:outline-none focus:ring-2 focus:ring-green-400 transition-colors disabled:opacity-50"
+                        className="w-full bg-transparent border-b-2 border-slate-200 dark:border-slate-800 focus:border-emerald-500 outline-none py-3 font-bold transition-colors appearance-none cursor-pointer"
                       >
-                        <option value="">Select a topic</option>
-                        <option value="general">General Inquiry</option>
-                        <option value="support">Technical Support</option>
-                        <option value="partnership">Partnership</option>
-                        <option value="brand">Brand Collaboration</option>
-                        <option value="feedback">Feedback</option>
-                        <option value="other">Other</option>
+                        <option value="" className="dark:bg-slate-900">Select Purpose</option>
+                        <option value="brand" className="dark:bg-slate-900">Brand Collaboration</option>
+                        <option value="partnership" className="dark:bg-slate-900">Partnership</option>
+                        <option value="support" className="dark:bg-slate-900">Technical Support</option>
+                        <option value="other" className="dark:bg-slate-900">Other</option>
                       </select>
                     </div>
-                    
-                    <div>
-                      <label className="block text-sm font-medium mb-2 text-left">Message *</label>
+
+                    <div className="space-y-2">
+                      <label className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">Your Message</label>
                       <textarea
                         name="message"
                         value={formData.message}
                         onChange={handleInputChange}
                         required
-                        disabled={isSubmitting}
-                        rows={5}
-                        className="w-full px-4 py-3 rounded-lg border border-border bg-background focus:outline-none focus:ring-2 focus:ring-green-400 transition-colors resize-none disabled:opacity-50"
-                        placeholder="How can we help you? Please provide as much detail as possible..."
+                        rows={4}
+                        placeholder="Tell us about your project..."
+                        className="w-full bg-transparent border-b-2 border-slate-200 dark:border-slate-800 focus:border-emerald-500 outline-none py-3 font-bold transition-colors resize-none"
                       />
                     </div>
-                    
-                    <div className="flex items-center space-x-2 text-sm text-muted-foreground">
+
+                    <div className="flex items-center gap-3 pt-4">
                       <input
                         type="checkbox"
                         id="newsletter"
                         name="subscribedToUpdates"
                         checked={formData.subscribedToUpdates}
                         onChange={handleInputChange}
-                        disabled={isSubmitting}
-                        className="rounded border-border bg-background focus:ring-2 focus:ring-green-400 disabled:opacity-50"
+                        className="w-5 h-5 accent-emerald-500 rounded border-slate-300"
                       />
-                      <label htmlFor="newsletter">
-                        I'd like to receive updates about TaskKash features and announcements
+                      <label htmlFor="newsletter" className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-tight">
+                        Keep me updated on TaskKash ecosystem milestones
                       </label>
                     </div>
-                    
+
                     <button
                       type="submit"
                       disabled={isSubmitting}
-                      className="w-full px-8 py-3 rounded-lg bg-linear-to-r from-green-400 to-purple-600 text-white font-medium hover:opacity-90 transition-opacity shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
+                      className="w-full group relative flex items-center justify-center gap-3 px-8 py-5 bg-emerald-500 text-white font-black uppercase tracking-[0.2em] text-sm hover:bg-emerald-600 transition-all overflow-hidden disabled:opacity-50"
                     >
                       {isSubmitting ? (
-                        <div className="flex items-center justify-center">
-                          <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-2"></div>
-                          Sending...
-                        </div>
+                        <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
                       ) : (
-                        'Send Message'
+                        <>
+                          Send Message <Send size={18} className="group-hover:translate-x-1 transition-transform" />
+                        </>
                       )}
                     </button>
                   </form>
@@ -311,21 +259,11 @@ export default function ContactPage() {
         </div>
       </main>
 
-      {/* Booking Modal */}
       <BookingModal 
         isOpen={isBookingModalOpen} 
         onClose={() => setIsBookingModalOpen(false)} 
       />
       <TaskKashFooter />
-
-      <style jsx>{`
-        .gradient-text {
-          background: linear-gradient(90deg, #00ff9d, #8a2be2);
-          -webkit-background-clip: text;
-          background-clip: text;
-          color: transparent;
-        }
-      `}</style>
     </div>
   );
 }
