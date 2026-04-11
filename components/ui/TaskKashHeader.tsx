@@ -70,9 +70,13 @@ export default function TaskKashHeader() {
 
             {/* MIDDLE: NAV LINKS (Desktop) */}
             <nav className="hidden md:flex items-center gap-6 lg:gap-8 bg-slate-100/50 dark:bg-slate-800/40 px-6 py-3 rounded-full border border-slate-200/50 dark:border-slate-700/50 backdrop-blur-sm">
+              <Link href="/" className={`text-sm font-medium transition-colors ${
+                pathname === "/" 
+                  ? "text-emerald-600 font-semibold" 
+                  : "text-slate-700 dark:text-slate-300 hover:text-emerald-600"
+              }`}>Home</Link>
               <a href="/#how" className="text-sm font-medium text-slate-700 dark:text-slate-300 hover:text-emerald-600 transition-colors">How It Works</a>
               <a href="/#users" className="text-sm font-medium text-slate-700 dark:text-slate-300 hover:text-emerald-600 transition-colors">For Users</a>
-              <a href="/#brands" className="text-sm font-medium text-slate-700 dark:text-slate-300 hover:text-emerald-600 transition-colors">For Brands</a>
               <Link href="/about" className={`text-sm font-medium transition-colors ${
                 pathname === "/about" 
                   ? "text-emerald-600 font-semibold" 
@@ -145,6 +149,11 @@ export default function TaskKashHeader() {
         {/* Sidebar Links */}
         <div className="flex-1 overflow-y-auto p-8">
           <nav className="flex flex-col gap-6">
+            <Link href="/" onClick={handleNavClick} className={`text-sm font-bold border-b pb-2 ${
+              pathname === "/" 
+                ? "text-emerald-600 border-emerald-600" 
+                : "text-slate-900 dark:text-white border-slate-50 dark:border-slate-900"
+            }`}>Home</Link>
             <Link href="/about" onClick={handleNavClick} className={`text-sm font-bold border-b pb-2 ${
               pathname === "/about" 
                 ? "text-emerald-600 border-emerald-600" 
@@ -153,10 +162,10 @@ export default function TaskKashHeader() {
             <a href="/#how" onClick={handleNavClick} className="text-sm font-bold text-slate-900 dark:text-white border-b border-slate-50 dark:border-slate-900 pb-2">How It Works</a>
             <a href="/#users" onClick={handleNavClick} className="text-sm font-bold text-slate-900 dark:text-white border-b border-slate-50 dark:border-slate-900 pb-2">For Users</a>
             <a href="/#brands" onClick={handleNavClick} className="text-sm font-bold text-slate-900 dark:text-white border-b border-slate-50 dark:border-slate-900 pb-2">For Brands</a>
-            <Link href="/whitepaper" onClick={handleNavClick} className={`text-sm font-medium border-b pb-2 ${
+            <Link href="/whitepaper" onClick={handleNavClick} className={`text-sm font-bold border-b pb-2 ${
               pathname === "/whitepaper" 
-                ? "text-emerald-600 border-emerald-600 font-bold" 
-                : "text-slate-700 dark:text-slate-300 border-transparent hover:text-emerald-600"
+                ? "text-emerald-600 border-emerald-600" 
+                : "text-slate-900 dark:text-white border-slate-50 dark:border-slate-900"
             }`}>Whitepaper</Link>
             <Link href="/contact" onClick={handleNavClick} className={`text-sm font-bold border-b pb-2 ${
               pathname === "/contact" 
@@ -179,7 +188,7 @@ export default function TaskKashHeader() {
             <Link
               href="/auth/signup"
               onClick={handleNavClick}
-              className="w-full py-4 rounded-xl bg-linear-to-r from-emerald-500 to-purple-600 text-white text-center font-bold shadow-xl shadow-emerald-500/20"
+              className="w-full py-4 rounded-xl bg-linear-to-r from-emerald-500 to-purple-600 text-white text-center font-bold"
             >
               Get Started
             </Link>
