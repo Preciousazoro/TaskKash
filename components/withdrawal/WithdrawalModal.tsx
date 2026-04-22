@@ -69,8 +69,10 @@ export default function WithdrawalModal({
         body: JSON.stringify({
           amount: parseFloat(amount),
           withdrawalType,
-          cryptoNetwork,
-          walletAddress,
+          cryptoDetails: {
+            network: cryptoNetwork,
+            walletAddress,
+          },
         }),
       });
 
