@@ -41,13 +41,36 @@ export default function WithdrawalModal({ isOpen, onClose, taskPoints, onSuccess
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     
-    // Show "Withdrawal coming soon!" message immediately
-    if (onError) {
-      onError("Withdrawal coming soon!");
-    }
+    setIsProcessing(true);
     
-    // Close modal immediately
-    handleClose();
+    try {
+      const response = await fetch('/api/withdrawal', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          amount: parseFloat(amount),
+          withdrawalType,
+          cryptoNetwork,
+          walletAddress,
+        }),
+      });
+      
+      const data = await response.json();
+      
+      if (response.ok) {
+        onSuccess();
+        handleClose();
+      } else {
+        onError(data.error || 'Failed to process withdrawal');
+      }
+    } catch (error) {
+      console.error('Withdrawal error:', error);
+      onError('Failed to process withdrawal');
+    } finally {
+      setIsProcessing(false);
+    }
   };
 
   const isFormValid = () => {
