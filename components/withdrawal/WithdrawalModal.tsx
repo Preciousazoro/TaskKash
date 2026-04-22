@@ -2,7 +2,14 @@
 
 import { useState } from "react";
 import type { FormEvent, JSX } from "react";
-import { X, Loader2, Building2, Wallet, AlertCircle, CheckCircle } from "lucide-react";
+import {
+  X,
+  Loader2,
+  Building2,
+  Wallet,
+  AlertCircle,
+  CheckCircle,
+} from "lucide-react";
 import { WithdrawalType, CryptoNetwork } from "@/models/Withdrawal";
 
 interface WithdrawalModalProps {
@@ -13,11 +20,21 @@ interface WithdrawalModalProps {
   onError?: (error: string) => void;
 }
 
-export default function WithdrawalModal({ isOpen, onClose, taskPoints, onSuccess, onError }: WithdrawalModalProps) {
+export default function WithdrawalModal({
+  isOpen,
+  onClose,
+  taskPoints,
+  onSuccess,
+  onError,
+}: WithdrawalModalProps) {
   const [isProcessing, setIsProcessing] = useState(false);
-  const [withdrawalType, setWithdrawalType] = useState<WithdrawalType>(WithdrawalType.USDT_CRYPTO);
-  const [cryptoNetwork, setCryptoNetwork] = useState<CryptoNetwork>(CryptoNetwork.SOL);
-  
+  const [withdrawalType, setWithdrawalType] = useState<WithdrawalType>(
+    WithdrawalType.USDT_CRYPTO,
+  );
+  const [cryptoNetwork, setCryptoNetwork] = useState<CryptoNetwork>(
+    CryptoNetwork.SOL,
+  );
+
   // Form states
   const [amount, setAmount] = useState("");
   const [walletAddress, setWalletAddress] = useState("");
@@ -40,14 +57,14 @@ export default function WithdrawalModal({ isOpen, onClose, taskPoints, onSuccess
 
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    
+
     setIsProcessing(true);
-    
+
     try {
-      const response = await fetch('/api/withdrawal', {
-        method: 'POST',
+      const response = await fetch("/api/withdrawal", {
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
         body: JSON.stringify({
           amount: parseFloat(amount),
@@ -56,26 +73,27 @@ export default function WithdrawalModal({ isOpen, onClose, taskPoints, onSuccess
           walletAddress,
         }),
       });
-      
+
       const data = await response.json();
-      
+
       if (response.ok) {
         onSuccess();
         handleClose();
       } else {
-        onError(data.error || 'Failed to process withdrawal');
+        onError?.(data.error || "Failed to process withdrawal");
       }
     } catch (error) {
-      console.error('Withdrawal error:', error);
-      onError('Failed to process withdrawal');
+      console.error("Withdrawal error:", error);
+      onError?.("Failed to process withdrawal");
     } finally {
       setIsProcessing(false);
     }
   };
 
   const isFormValid = () => {
-    const amountValid = parseFloat(amount) >= 500 && parseFloat(amount) <= taskPoints;
-    
+    const amountValid =
+      parseFloat(amount) >= 500 && parseFloat(amount) <= taskPoints;
+
     return amountValid && walletAddress && walletAddress.length >= 10;
   };
 
@@ -87,8 +105,8 @@ export default function WithdrawalModal({ isOpen, onClose, taskPoints, onSuccess
         {/* Header */}
         <div className="flex justify-between items-center mb-8">
           <h3 className="text-2xl font-bold">Withdraw TP</h3>
-          <button 
-            onClick={handleClose} 
+          <button
+            onClick={handleClose}
             className="p-2 hover:bg-muted rounded-full transition-colors disabled:opacity-50"
             disabled={isProcessing}
           >
@@ -96,12 +114,13 @@ export default function WithdrawalModal({ isOpen, onClose, taskPoints, onSuccess
           </button>
         </div>
 
-
         {/* Form */}
         <form onSubmit={handleSubmit} className="space-y-6">
           {/* Amount Field */}
           <div className="space-y-2">
-            <label className="text-xs font-bold uppercase text-muted-foreground">Amount (TP)</label>
+            <label className="text-xs font-bold uppercase text-muted-foreground">
+              Amount (TP)
+            </label>
             <input
               required
               type="number"
@@ -136,77 +155,91 @@ export default function WithdrawalModal({ isOpen, onClose, taskPoints, onSuccess
             )}
           </div>
 
-
           {/* USDC Fields */}
           <>
             <div className="space-y-2">
-                <label className="text-xs font-bold uppercase text-muted-foreground">Network</label>
-                <div className="grid grid-cols-1 gap-3">
-                  <button
-                    type="button"
-                    onClick={() => setCryptoNetwork(CryptoNetwork.SOL)}
-                    className={`p-3 rounded-xl border-2 transition-all ${
-                      cryptoNetwork === CryptoNetwork.SOL
-                        ? "border-primary bg-primary/10 text-primary"
-                        : "border-border bg-muted/50 hover:bg-muted"
-                    }`}
-                    disabled={isProcessing}
-                  >
-                    <div className="font-semibold">SOL</div>
-                    <div className="text-xs text-muted-foreground">Solana Network</div>
-                  </button>
-                </div>
-              </div>
-
-              <div className="space-y-2">
-                <label className="text-xs font-bold uppercase text-muted-foreground">Wallet Address</label>
-                <input
-                  required
-                  type="text"
-                  placeholder={`Enter ${cryptoNetwork} wallet address`}
-                  value={walletAddress}
-                  onChange={(e) => setWalletAddress(e.target.value)}
-                  className="w-full bg-muted/50 border border-border rounded-xl px-4 py-3 outline-none focus:ring-2 ring-primary/20"
+              <label className="text-xs font-bold uppercase text-muted-foreground">
+                Network
+              </label>
+              <div className="grid grid-cols-1 gap-3">
+                <button
+                  type="button"
+                  onClick={() => setCryptoNetwork(CryptoNetwork.SOL)}
+                  className={`p-3 rounded-xl border-2 transition-all ${
+                    cryptoNetwork === CryptoNetwork.SOL
+                      ? "border-primary bg-primary/10 text-primary"
+                      : "border-border bg-muted/50 hover:bg-muted"
+                  }`}
                   disabled={isProcessing}
-                />
-                {walletAddress && walletAddress.length < 10 && (
-                  <div className="flex items-center gap-2 text-xs text-red-500">
-                    <AlertCircle className="w-3 h-3" />
-                    Please enter a valid wallet address
+                >
+                  <div className="font-semibold">SOL</div>
+                  <div className="text-xs text-muted-foreground">
+                    Solana Network
                   </div>
-                )}
+                </button>
               </div>
+            </div>
 
-              <div className="bg-muted/30 border border-border rounded-xl p-4">
-                <div className="flex items-start gap-3">
-                  <AlertCircle className="w-5 h-5 text-yellow-500 mt-0.5" />
-                  <div className="text-sm">
-                    <div className="font-medium text-yellow-500">Network Warning</div>
-                    <div className="text-muted-foreground mt-1">
-                      Make sure your wallet supports {cryptoNetwork} network. Sending to wrong network may result in loss of funds.
-                    </div>
+            <div className="space-y-2">
+              <label className="text-xs font-bold uppercase text-muted-foreground">
+                Wallet Address
+              </label>
+              <input
+                required
+                type="text"
+                placeholder={`Enter ${cryptoNetwork} wallet address`}
+                value={walletAddress}
+                onChange={(e) => setWalletAddress(e.target.value)}
+                className="w-full bg-muted/50 border border-border rounded-xl px-4 py-3 outline-none focus:ring-2 ring-primary/20"
+                disabled={isProcessing}
+              />
+              {walletAddress && walletAddress.length < 10 && (
+                <div className="flex items-center gap-2 text-xs text-red-500">
+                  <AlertCircle className="w-3 h-3" />
+                  Please enter a valid wallet address
+                </div>
+              )}
+            </div>
+
+            <div className="bg-muted/30 border border-border rounded-xl p-4">
+              <div className="flex items-start gap-3">
+                <AlertCircle className="w-5 h-5 text-yellow-500 mt-0.5" />
+                <div className="text-sm">
+                  <div className="font-medium text-yellow-500">
+                    Network Warning
+                  </div>
+                  <div className="text-muted-foreground mt-1">
+                    Make sure your wallet supports {cryptoNetwork} network.
+                    Sending to wrong network may result in loss of funds.
                   </div>
                 </div>
               </div>
+            </div>
 
-              <div className="bg-muted/30 border border-border rounded-xl p-4">
-                <div className="flex items-start gap-3">
-                  <CheckCircle className="w-5 h-5 text-green-500 mt-0.5" />
-                  <div className="text-sm">
-                    <div className="font-medium text-green-500">Conversion Preview</div>
-                    <div className="text-muted-foreground mt-1">
-                      {amount && (
-                        <>
-                          {parseFloat(amount).toLocaleString()} TP = ${convertedAmount.toFixed(2)} USD = {convertedAmount.toFixed(2)} USDT
-                          <br />
-                          <span className="text-xs">1 TP = ${TP_TO_USD_RATE} USD</span>
-                        </>
-                      )}
-                    </div>
+            <div className="bg-muted/30 border border-border rounded-xl p-4">
+              <div className="flex items-start gap-3">
+                <CheckCircle className="w-5 h-5 text-green-500 mt-0.5" />
+                <div className="text-sm">
+                  <div className="font-medium text-green-500">
+                    Conversion Preview
+                  </div>
+                  <div className="text-muted-foreground mt-1">
+                    {amount && (
+                      <>
+                        {parseFloat(amount).toLocaleString()} TP = $
+                        {convertedAmount.toFixed(2)} USD ={" "}
+                        {convertedAmount.toFixed(2)} USDT
+                        <br />
+                        <span className="text-xs">
+                          1 TP = ${TP_TO_USD_RATE} USD
+                        </span>
+                      </>
+                    )}
                   </div>
                 </div>
               </div>
-            </>
+            </div>
+          </>
 
           {/* Processing Time Info */}
           <div className="bg-muted/30 border border-border rounded-xl p-4">
@@ -214,9 +247,7 @@ export default function WithdrawalModal({ isOpen, onClose, taskPoints, onSuccess
               <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
               <div className="text-sm">
                 <div className="font-medium">Estimated Processing Time</div>
-                <div className="text-muted-foreground">
-                  24 Hours
-                </div>
+                <div className="text-muted-foreground">24 Hours</div>
               </div>
             </div>
           </div>
