@@ -2,7 +2,7 @@
 
 import { useState, useRef } from "react";
 import { motion } from "framer-motion";
-import { Trophy, Clock, ExternalLink, Eye, Play, Loader2 } from "lucide-react";
+import { Trophy, Clock, ExternalLink, Loader2 } from "lucide-react";
 import { StatusBadge } from "./StatusBadge";
 import { Button } from "@/components/ui/button";
 import { TaskDocument } from "@/types/shared-task";
@@ -16,78 +16,42 @@ interface TaskCardProps {
   onStartTask: (task: TaskDocument) => void;
 }
 
-// Helper function to truncate HTML content and strip tags
-const truncateText = (html: string, maxLength: number = 120): string => {
-  // Remove HTML tags
+const truncateText = (html: string, maxLength: number = 80): string => {
   const plainText = html.replace(/<[^>]*>/g, '').replace(/&nbsp;/g, ' ').trim();
-  
-  if (plainText.length <= maxLength) {
-    return plainText;
-  }
-  
+  if (plainText.length <= maxLength) return plainText;
   return plainText.slice(0, maxLength) + '...';
 };
 
-export function TaskCard({
-  task,
-  onClick,
-  onStartTask,
-}: TaskCardProps) {
+export function TaskCard({ task, onClick, onStartTask }: TaskCardProps) {
   const [isStarting, setIsStarting] = useState(false);
   const router = useRouter();
   const isClicking = useRef(false);
-  const isPending = task.userTaskStatus === 'pending';
+
+  const isPending  = task.userTaskStatus === 'pending';
   const isApproved = task.userTaskStatus === 'approved';
   const isRejected = task.userTaskStatus === 'rejected';
   const isAvailable = task.userTaskStatus === 'available';
   const isStarted = TaskStateManager.isTaskStarted(task._id) && !isPending && !isApproved && !isRejected;
-  const categoryStyles = {
-    social: "from-pink-500/40 to-purple-500/40",
-    content: "from-blue-500/40 to-cyan-500/40",
-    commerce: "from-emerald-500/40 to-green-500/40",
-  };
 
   const handleStartTask = async (e: React.MouseEvent) => {
     e.stopPropagation();
-    
     if (isStarting || isClicking.current) return;
-    
-    // Check if task is already started
     if (TaskStateManager.isTaskStarted(task._id)) {
       toast.info("Task already started!");
       return;
     }
-    
     isClicking.current = true;
     setIsStarting(true);
-    
     try {
-      // Call API to start task
       const response = await fetch('/api/tasks/start', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ taskId: task._id }),
       });
-      
-      if (!response.ok) {
-        throw new Error('Failed to start task');
-      }
-      
-      // Mark task as started in local state
+      if (!response.ok) throw new Error('Failed to start task');
       TaskStateManager.updateTaskState(task._id, 'started');
-      
-      // Show success toast
-      toast.success("Task started! Complete it and submit your proof.", {
-        autoClose: 3000,
-      });
-      
-      // Call parent handler if provided
-      if (onStartTask) {
-        onStartTask(task);
-      }
-      
+      toast.success("Task started! Complete it and submit your proof.", { autoClose: 3000 });
+      if (onStartTask) onStartTask(task);
     } catch (error) {
       console.error('Error starting task:', error);
       toast.error("Failed to start task. Please try again.");
@@ -99,28 +63,17 @@ export function TaskCard({
 
   const handleViewTask = (e: React.MouseEvent) => {
     e.stopPropagation();
-    
     if (isClicking.current) return;
-    
     isClicking.current = true;
     onClick(task);
-    
-    // Reset the clicking flag after a short delay
-    setTimeout(() => {
-      isClicking.current = false;
-    }, 300);
+    setTimeout(() => { isClicking.current = false; }, 300);
   };
 
   const handleCardClick = () => {
     if (isClicking.current || isPending || isApproved) return;
-    
     isClicking.current = true;
     onClick(task);
-    
-    // Reset the clicking flag after a short delay
-    setTimeout(() => {
-      isClicking.current = false;
-    }, 300);
+    setTimeout(() => { isClicking.current = false; }, 300);
   };
 
   return (
@@ -128,126 +81,110 @@ export function TaskCard({
       whileHover={{ y: -2 }}
       whileTap={{ scale: 0.98 }}
       onClick={handleCardClick}
-      className={`relative rounded-2xl border border-border/60 bg-card/70 backdrop-blur-xl shadow-sm hover:shadow-xl transition-all overflow-hidden flex flex-col h-[280px] ${
+      className={`relative rounded-2xl border border-border bg-card shadow-sm hover:shadow-lg hover:border-primary transition-all overflow-hidden flex flex-col h-[230px] ${
         isPending || isApproved ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'
       }`}
     >
-      {/* Accent gradient strip */}
-      <div
-        className={`absolute left-0 top-0 h-full w-1 bg-linear-to-b ${
-          categoryStyles[task.category]
-        }`}
-      />
+      {/* Left border accent — white in dark mode, dark in light mode */}
+      {/* <div className="absolute left-0 top-0 h-full w-1 bg-foreground rounded-l-2xl" /> */}
 
-      <div className="relative p-6 space-y-4 flex flex-col h-full">
-        {/* Header - Fixed */}
-        <div className="flex items-start justify-between gap-4 shrink-0">
-          <div className="space-y-1 flex-1">
-            <span className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+      <div className="relative pl-5 pr-5 pt-5 pb-5 flex flex-col h-full gap-3">
+
+        {/* Header */}
+        <div className="flex items-start justify-between gap-3 shrink-0">
+          <div className="flex-1 space-y-0.5">
+            <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">
               {task.category}
             </span>
-            <h3 className="text-lg font-bold leading-snug line-clamp-2">
+            <h3 className="text-base font-black uppercase tracking-tighter leading-snug line-clamp-2">
               {task.title}
             </h3>
           </div>
-
           <StatusBadge status={task.userTaskStatus || 'available'} />
         </div>
 
-        {/* Preview Content - Truncated */}
-        <div className="flex-1 space-y-3">
-          {/* Short Description Preview */}
-          <div className="text-sm text-muted-foreground leading-relaxed line-clamp-3">
-            {truncateText(task.description, 150)}
-          </div>
+        {/* Description — truncated */}
+        <p className="text-[12px] text-muted-foreground leading-relaxed line-clamp-2 flex-1">
+          {truncateText(task.description, 100)}
+        </p>
 
-          {/* Quick Info */}
-          <div className="flex items-center justify-between gap-2 text-xs text-muted-foreground">
-            {/* URL Indicator */}
-            {(task.taskLink || task.alternateUrl) && (
-              <div className="flex items-center gap-1">
-                <ExternalLink className="w-3 h-3" />
-                <span>Task URL</span>
-              </div>
-            )}
-            
-            {/* Deadline */}
-            {task.deadline && (
-              <div className="flex items-center gap-1">
-                <Clock className="w-3 h-3" />
-                <span>Due: {new Date(task.deadline).toLocaleDateString()}</span>
-              </div>
-            )}
-          </div>
+        {/* Meta row */}
+        <div className="flex justify-between items-center gap-3 text-[10px] font-black uppercase tracking-widest text-muted-foreground">
+          {(task.taskLink || task.alternateUrl) && (
+            <span className="flex items-center gap-1">
+              <ExternalLink className="w-3 h-3" />
+              Task URL
+            </span>
+          )}
+          {task.deadline && (
+            <span className="flex items-center gap-1">
+              <Clock className="w-3 h-3" />
+              Due: {new Date(task.deadline).toLocaleDateString()}
+            </span>
+          )}
         </div>
 
-        {/* Footer - Fixed with Actions */}
-        <div className="flex items-center justify-between gap-4 pt-2 shrink-0">
-          {/* Reward */}
-          <div className="inline-flex items-center gap-2 rounded-full bg-primary/10 px-3 py-1.5 text-sm font-bold text-primary">
-            <Trophy className="h-3 w-3" />
-            {task.rewardPoints} TP
+        {/* Footer */}
+        <div className="flex items-center justify-between gap-3 pt-2 border-t border-border shrink-0">
+
+          {/* Reward badge */}
+          <div className="inline-flex items-center gap-1.5 rounded-full bg-yellow-500/10 px-3 py-1.5">
+            <Trophy className="h-3.5 w-3.5 text-yellow-500" />
+            <span className="text-xs font-black uppercase tracking-widest text-yellow-500">
+              {task.rewardPoints} TP
+            </span>
           </div>
 
-          {/* Actions */}
+          {/* Action buttons */}
           <div className="flex gap-2">
-            {/* View Button - Always visible for available tasks */}
+
             {isAvailable && (
-              <Button
-                size="sm"
-                variant="outline"
+              <button
                 onClick={handleViewTask}
-                className="font-semibold h-8 px-3"
+                className="h-8 px-3 rounded-lg border border-border text-[10px] font-black uppercase tracking-widest text-muted-foreground hover:text-foreground hover:border-primary transition-all"
               >
                 View
-              </Button>
+              </button>
             )}
 
-            {/* Start Button - Always visible for available tasks */}
             {isAvailable && (
-              <Button
-                size="sm"
+              <button
                 onClick={handleStartTask}
                 disabled={isStarting}
-                className="font-semibold h-8 px-3 bg-linear-to-r from-green-500 to-purple-600 hover:from-green-600 hover:to-purple-700"
+                className="h-8 px-3 rounded-lg bg-green-600 hover:bg-green-500 text-white text-[10px] font-black uppercase tracking-widest transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1.5"
               >
                 {isStarting ? (
                   <>
-                    <Loader2 className="w-3 h-3 mr-1 animate-spin" />
+                    <Loader2 className="w-3 h-3 animate-spin" />
                     Starting...
                   </>
                 ) : (
-                  <>
-                    Start Task
-                  </>
+                  'Start Task'
                 )}
-              </Button>
+              </button>
             )}
 
-            {/* Resubmit Button - Only for rejected tasks that are started */}
             {isRejected && (
-              <Button
-                size="sm"
-                variant="outline"
+              <button
                 onClick={handleViewTask}
-                className="font-semibold h-8 px-3"
+                className="h-8 px-3 rounded-lg border border-border text-[10px] font-black uppercase tracking-widest text-muted-foreground hover:text-foreground hover:border-primary transition-all"
               >
                 View
-              </Button>
+              </button>
             )}
 
-            {/* Status indicators for pending/approved tasks */}
             {isPending && (
-              <div className="flex items-center text-xs text-muted-foreground font-medium px-2">
+              <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground px-2">
                 Pending
-              </div>
+              </span>
             )}
 
             {isApproved && (
-              <div className="flex items-center text-xs text-green-600 font-medium px-2">
+              <span className="text-[10px] font-black uppercase tracking-widest text-green-500 px-2">
                 Completed
-              </div>
+              </span>
             )}
+
           </div>
         </div>
       </div>

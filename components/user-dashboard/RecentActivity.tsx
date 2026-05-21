@@ -8,8 +8,9 @@ import {
   XCircle,
   Info,
   Loader2,
+  Activity,
+  RefreshCw,
 } from 'lucide-react';
-import { Pagination } from '../ui/Pagination';
 
 interface ActivityItem {
   _id: string;
@@ -46,17 +47,11 @@ interface ActivitiesResponse {
 }
 
 export function RecentActivity() {
-  const [page, setPage] = useState(1);
-  const limit = 5;
+  const limit = 10;
   const [activities, setActivities] = useState<ActivityItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [pagination, setPagination] = useState({
-    total: 0,
-    totalPages: 0,
-    hasNext: false,
-    hasPrev: false
-  });
+  const [currentTime, setCurrentTime] = useState(new Date());
 
   // Fetch activities from API
   useEffect(() => {
@@ -65,7 +60,7 @@ export function RecentActivity() {
         setLoading(true);
         setError(null);
         
-        const response = await fetch(`/api/activities?page=${page}&limit=${limit}`);
+        const response = await fetch(`/api/activities?page=1&limit=${limit}`);
         
         if (!response.ok) {
           if (response.status === 401) {
@@ -80,12 +75,6 @@ export function RecentActivity() {
         
         const data: ActivitiesResponse = await response.json();
         setActivities(data.activities);
-        setPagination({
-          total: data.pagination.total,
-          totalPages: data.pagination.totalPages,
-          hasNext: data.pagination.hasNext,
-          hasPrev: data.pagination.hasPrev
-        });
       } catch (err) {
         console.error('Error fetching activities:', err);
         setError('Failed to load activities');
@@ -95,7 +84,21 @@ export function RecentActivity() {
     };
 
     fetchActivities();
-  }, [page, limit]);
+  }, [limit]);
+
+  // Update current time every minute
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setCurrentTime(new Date());
+    }, 60000);
+    return () => clearInterval(timer);
+  }, []);
+
+  const formattedTime = currentTime.toLocaleTimeString('en-US', {
+    hour: '2-digit',
+    minute: '2-digit',
+    hour12: true
+  });
 
   const getStatusIcon = (status: string) => {
     switch (status.toLowerCase()) {
@@ -111,185 +114,230 @@ export function RecentActivity() {
     }
   };
 
+  const getStatusBadge = (status: string) => {
+    switch (status.toLowerCase()) {
+      case 'approved':
+      case 'completed':
+        return 'bg-green-500/10 text-green-500 border-green-500/20';
+      case 'pending':
+        return 'bg-amber-500/10 text-amber-500 border-amber-500/20';
+      case 'rejected':
+        return 'bg-red-500/10 text-red-500 border-red-500/20';
+      default:
+        return 'bg-muted text-muted-foreground border-border';
+    }
+  };
+
   // Loading state
   if (loading) {
     return (
-      <div className="space-y-4 rounded-lg border bg-background p-6 text-foreground">
-        <h2 className="text-lg font-medium">Your Recent Activity</h2>
-        <div className="flex items-center justify-center py-8">
-          <Loader2 className="w-6 h-6 animate-spin text-muted-foreground" />
-          <span className="ml-2 text-muted-foreground">Loading activities...</span>
+      <section className="pt-10 border-t border-border relative">
+        <div className="flex justify-between mb-8 gap-4">
+          <div>
+            <h2 className="text-2xl font-black uppercase tracking-tighter flex items-center gap-2">
+              <Activity className="w-6 h-6 text-primary" />
+              Recent Activity
+            </h2>
+            <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">
+              Your Latest Task Activities
+            </p>
+          </div>
+          <div className="flex items-center gap-2 text-[10px] font-bold text-muted-foreground uppercase">
+            <RefreshCw className="w-3 h-3 animate-spin text-primary" />
+            <span className="hidden sm:inline">Loading...</span>
+          </div>
         </div>
-      </div>
+
+        <div className="bg-card border border-border rounded-3xl overflow-hidden shadow-xl">
+          <div className="overflow-x-auto">
+            <div className="min-w-[600px] w-full">
+              <div className="flex justify-between items-center bg-muted/50 border-b border-border px-6 py-4">
+                <div className="flex-1 text-[9px] font-black uppercase tracking-widest text-muted-foreground">
+                  Task
+                </div>
+                <div className="flex-1 text-right text-[9px] font-black uppercase tracking-widest text-muted-foreground">
+                  Status
+                </div>
+                <div className="flex-1 text-right text-[9px] font-black uppercase tracking-widest text-muted-foreground">
+                  Reward
+                </div>
+                <div className="flex-1 text-center text-[9px] font-black uppercase tracking-widest text-muted-foreground">
+                  Time
+                </div>
+              </div>
+
+              <div className="divide-y divide-border/50">
+                {Array.from({ length: 5 }).map((_, i) => (
+                  <div
+                    key={i}
+                    className="flex justify-between items-center px-6 py-4 animate-pulse"
+                  >
+                    <div className="flex-1 h-4 bg-muted rounded w-32"></div>
+                    <div className="flex-1 h-4 bg-muted rounded w-16 ml-auto"></div>
+                    <div className="flex-1 h-4 bg-muted rounded w-12 ml-auto"></div>
+                    <div className="flex-1 h-4 bg-muted rounded w-16 mx-auto"></div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
     );
   }
 
   // Error state
   if (error) {
     return (
-      <div className="space-y-4 rounded-lg border bg-background p-6 text-foreground">
-        <h2 className="text-lg font-medium">Your Recent Activity</h2>
-        <div className="text-center py-8 text-muted-foreground">
-          {error}
+      <section className="pt-10 border-t border-border relative">
+        <div className="flex justify-between mb-8 gap-4">
+          <div>
+            <h2 className="text-2xl font-black uppercase tracking-tighter flex items-center gap-2">
+              <Activity className="w-6 h-6 text-primary" />
+              Recent Activity
+            </h2>
+            <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">
+              Your Latest Task Activities
+            </p>
+          </div>
         </div>
-      </div>
+
+        <div className="bg-card border border-border rounded-3xl overflow-hidden shadow-xl p-8 text-center">
+          <p className="text-muted-foreground">{error}</p>
+        </div>
+      </section>
     );
   }
 
   // Empty state
   if (activities.length === 0) {
     return (
-      <div className="space-y-4 rounded-lg border bg-background p-6 text-foreground">
-        <h2 className="text-lg font-medium">Your Recent Activity</h2>
-        <div className="text-center py-8 text-muted-foreground">
-          No recent activity found. Start completing tasks to see your activity here!
+      <section className="pt-10 border-t border-border relative">
+        <div className="flex justify-between mb-8 gap-4">
+          <div>
+            <h2 className="text-2xl font-black uppercase tracking-tighter flex items-center gap-2">
+              <Activity className="w-6 h-6 text-primary" />
+              Recent Activity
+            </h2>
+            <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">
+              Your Latest Task Activities
+            </p>
+          </div>
         </div>
-      </div>
+
+        <div className="bg-card border border-border rounded-3xl overflow-hidden shadow-xl p-8 text-center">
+          <p className="text-muted-foreground">
+            No recent activity found. Start completing tasks to see your activity here!
+          </p>
+        </div>
+      </section>
     );
   }
 
   return (
-    <div className="space-y-4 rounded-lg border bg-background p-6 text-foreground">
-      <h2 className="text-lg font-medium">
-        Your Recent Activity
-      </h2>
+    <section className="pt-5 border-t border-border relative">
+      {/* Header Section */}
+      <div className="flex justify-between mb-8 gap-4">
+        <div>
+          <h2 className="text-2xl font-black uppercase tracking-tighter flex items-center gap-2">
+            <Activity className="w-6 h-6 text-primary" />
+            Recent Activity
+          </h2>
+          <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">
+            Your Latest Task Activities
+          </p>
+        </div>
+        <div className="flex items-center gap-2 text-[10px] font-bold text-muted-foreground uppercase">
+          <RefreshCw className="w-3 h-3 text-primary" />
+          <span className="hidden sm:inline">Last Update:</span>{" "}
+          {formattedTime}
+        </div>
+      </div>
 
-      <div className="space-y-4">
-        {/* Desktop Table View */}
-        <div className="hidden sm:block overflow-x-auto">
-          <table className="min-w-full divide-y divide-border">
-            <thead className="bg-muted/50">
-              <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-muted-foreground">
-                  Task
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-muted-foreground">
-                  Status
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-muted-foreground">
-                  Reward
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-muted-foreground">
-                  Date
-                </th>
-              </tr>
-            </thead>
+      {/* Activity Data Container */}
+      <div className="bg-card border border-border rounded-3xl overflow-hidden shadow-xl">
+        <div className="overflow-x-auto">
+          <div className="min-w-[600px] w-full">
+            {/* Header Row */}
+            <div className="flex justify-between items-center bg-muted/50 border-b border-border px-6 py-4">
+              <div className="flex-1 text-[9px] font-black uppercase tracking-widest text-muted-foreground">
+                Task
+              </div>
+              <div className="flex-1 text-right text-[9px] font-black uppercase tracking-widest text-muted-foreground">
+                Status
+              </div>
+              <div className="flex-1 text-right text-[9px] font-black uppercase tracking-widest text-muted-foreground">
+                Reward
+              </div>
+              <div className="flex-1 text-center text-[9px] font-black uppercase tracking-widest text-muted-foreground">
+                Time
+              </div>
+            </div>
 
-            <tbody className="divide-y divide-border">
+            {/* Data Rows */}
+            <div className="divide-y divide-border/50">
               {activities.map((activity) => (
-                <tr
+                <div
                   key={activity._id}
-                  className="transition-colors hover:bg-muted/60"
+                  className="flex justify-between items-center px-6 py-4 hover:bg-muted/30 transition-colors flex-nowrap"
                 >
-                  <td className="px-6 py-4 text-sm font-medium">
-                    {activity.taskDetails?.title || activity.title || activity.metadata?.taskTitle || 'Activity'}
-                  </td>
+                  {/* Task */}
+                  <div className="flex-1 flex items-center gap-3 min-w-0">
+                    <div className="flex-shrink-0">
+                      <div className="w-9 h-9 bg-primary/10 rounded-xl flex items-center justify-center border border-primary/20">
+                        <Activity className="w-4 h-4 text-primary" />
+                      </div>
+                    </div>
+                    <div className="truncate">
+                      <div className="font-black text-sm uppercase tracking-tighter leading-none">
+                        {activity.taskDetails?.title || activity.title || activity.metadata?.taskTitle || 'Activity'}
+                      </div>
+                      <div className="text-[10px] text-muted-foreground font-medium truncate">
+                        {activity.type}
+                      </div>
+                    </div>
+                  </div>
 
-                  <td className="px-6 py-4">
+                  {/* Status */}
+                  <div className="flex-1 flex justify-end">
                     <div className="flex items-center gap-2">
                       {getStatusIcon(activity.status)}
                       <span
-                        className={`rounded-full px-2 py-0.5 text-xs font-semibold ${
-                          activity.status === 'approved' ||
-                          activity.status === 'completed'
-                            ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-300'
-                            : activity.status === 'pending'
-                            ? 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-300'
-                            : 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-300'
-                        }`}
+                        className={`px-2 py-0.5 rounded-md text-[8px] font-black uppercase tracking-tighter border ${getStatusBadge(activity.status)}`}
                       >
                         {activity.status}
                       </span>
                     </div>
-                  </td>
+                  </div>
 
-                  <td className="px-6 py-4 text-sm">
-                    {activity.taskDetails?.rewardPoints || activity.rewardPoints ? (
-                      <span className="font-medium text-green-600 dark:text-green-400">
-                        {activity.taskDetails?.rewardPoints || activity.rewardPoints} pts
-                      </span>
-                    ) : (
-                      <span className="text-muted-foreground">-</span>
-                    )}
-                  </td>
+                  {/* Reward */}
+                  <div className="flex-1 text-right">
+                    <div className="font-bold text-sm tracking-tight">
+                      {activity.taskDetails?.rewardPoints || activity.rewardPoints ? (
+                        <span className="text-green-500">
+                          +{activity.taskDetails?.rewardPoints || activity.rewardPoints} TP
+                        </span>
+                      ) : (
+                        <span className="text-muted-foreground">-</span>
+                      )}
+                    </div>
+                  </div>
 
-                  <td className="px-6 py-4 text-sm text-muted-foreground">
-                    {formatDistanceToNow(
-                      new Date(activity.updatedAt || activity.createdAt),
-                      { addSuffix: true }
-                    )}
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-
-        {/* Mobile Card View */}
-        <div className="sm:hidden space-y-3">
-          {activities.map((activity) => (
-            <div
-              key={activity._id}
-              className="bg-muted/30 rounded-lg p-4 border border-border/50 space-y-3"
-            >
-              {/* Task Title */}
-              <div className="font-medium text-sm pr-2">
-                {activity.taskDetails?.title || activity.title || activity.metadata?.taskTitle || 'Activity'}
-              </div>
-
-              {/* Status and Reward Row */}
-              <div className="flex items-center justify-between gap-2">
-                <div className="flex items-center gap-2 flex-shrink-0">
-                  {getStatusIcon(activity.status)}
-                  <span
-                    className={`rounded-full px-2 py-0.5 text-xs font-semibold ${
-                      activity.status === 'approved' ||
-                      activity.status === 'completed'
-                        ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-300'
-                        : activity.status === 'pending'
-                        ? 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-300'
-                        : 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-300'
-                    }`}
-                  >
-                    {activity.status}
-                  </span>
+                  {/* Time */}
+                  <div className="flex-1 text-center">
+                    <div className="text-[10px] text-muted-foreground font-medium">
+                      {formatDistanceToNow(
+                        new Date(activity.updatedAt || activity.createdAt),
+                        { addSuffix: true }
+                      )}
+                    </div>
+                  </div>
                 </div>
-                
-                {activity.taskDetails?.rewardPoints || activity.rewardPoints ? (
-                  <span className="font-medium text-green-600 dark:text-green-400 text-sm flex-shrink-0">
-                    {activity.taskDetails?.rewardPoints || activity.rewardPoints} pts
-                  </span>
-                ) : null}
-              </div>
-
-              {/* Date */}
-              <div className="text-xs text-muted-foreground">
-                {formatDistanceToNow(
-                  new Date(activity.updatedAt || activity.createdAt),
-                  { addSuffix: true }
-                )}
-              </div>
+              ))}
             </div>
-          ))}
+          </div>
         </div>
       </div>
-
-      {pagination.totalPages > 1 && (
-        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between pt-4">
-          <p className="text-sm text-muted-foreground">
-            Showing {(page - 1) * limit + 1}–
-            {Math.min(page * limit, pagination.total)} of {pagination.total}
-          </p>
-
-          <Pagination
-            currentPage={page}
-            totalItems={pagination.total}
-            itemsPerPage={limit}
-            onPageChange={setPage}
-            showItemsPerPage={false}
-          />
-        </div>
-      )}
-    </div>
+    </section>
   );
 }

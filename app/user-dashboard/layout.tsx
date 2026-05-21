@@ -2,6 +2,7 @@ import { redirect } from 'next/navigation';
 import { auth } from '@/lib/auth';
 import { InactivityLogoutProvider } from '@/components/providers/InactivityLogoutProvider';
 import { OptimizedSessionProvider } from '@/components/providers/OptimizedSessionProvider';
+import UserNav from '@/components/user-dashboard/UserNav';
 
 // Force dynamic rendering for user dashboard routes since they depend on authentication
 export const dynamic = 'force-dynamic';
@@ -24,6 +25,7 @@ export default async function UserDashboardLayout({
       <InactivityLogoutProvider>
         <div className="min-h-screen bg-background">
           {children}
+          <UserNav />
         </div>
       </InactivityLogoutProvider>
     </OptimizedSessionProvider>

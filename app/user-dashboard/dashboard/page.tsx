@@ -1,7 +1,8 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
-import { Link as LinkIcon, ExternalLink, Trophy, CheckCircle2, Flame, Loader2, ChevronLeft, ChevronRight } from "lucide-react";
+import { Link as LinkIcon, ExternalLink, Trophy, CheckCircle2, ListTodo, Loader2, ChevronLeft, ChevronRight, Wallet, Upload, ShieldCheck } from "lucide-react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { TaskDocument, TaskCard, transformTaskToCard } from "@/types/shared-task";
 import { Task } from "@/lib/taskState";
@@ -10,6 +11,7 @@ import { TaskPreviewModal } from "@/components/tasks/TaskPreviewModal";
 import { RecentActivity } from "@/components/user-dashboard/RecentActivity";
 import { ContentOnlySkeleton } from "@/components/ui/LoadingSkeleton";
 import { Button } from "@/components/ui/button";
+import { getGreeting } from "@/lib/utils";
 
 // Directly import the Sidebar and Header here
 import UserSidebar from "@/components/user-dashboard/UserSidebar";
@@ -20,11 +22,14 @@ export default function DashboardPage() {
   const [tasksLoading, setTasksLoading] = useState(true);
   const [taskPoints, setTaskPoints] = useState<number>(0);
   const [tasksCompleted, setTasksCompleted] = useState<number>(0);
+  const [totalWithdrawn, setTotalWithdrawn] = useState<number>(0);
+  const [activeTasksCount, setActiveTasksCount] = useState<number>(0);
   const [tasks, setTasks] = useState<TaskDocument[]>([]);
   const [selectedTask, setSelectedTask] = useState<TaskDocument | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [activeTab, setActiveTab] = useState<'All' | 'Pending' | 'Approved' | 'Rejected'>('All');
   const [currentPage, setCurrentPage] = useState(1);
+  const [userName, setUserName] = useState<string>("");
   const pageSize = 9;
   const router = useRouter();
   const isNavigating = useRef(false);
@@ -33,6 +38,13 @@ export default function DashboardPage() {
   useEffect(() => {
     const fetchUserData = async () => {
       try {
+        // Fetch user profile for name
+        const profileResponse = await fetch('/api/user/profile');
+        if (profileResponse.ok) {
+          const profileData = await profileResponse.json();
+          setUserName(profileData.name || "");
+        }
+
         // Try the new balance API first
         let response = await fetch('/api/user/balance');
         let data;
@@ -92,6 +104,26 @@ export default function DashboardPage() {
     };
 
     fetchTasks();
+  }, []);
+
+  // Fetch user stats (withdrawals and active tasks)
+  useEffect(() => {
+    const fetchUserStats = async () => {
+      try {
+        const response = await fetch('/api/user/stats');
+        if (response.ok) {
+          const data = await response.json();
+          setTotalWithdrawn(data.totalWithdrawn || 0);
+          setActiveTasksCount(data.activeTasksCount || 0);
+        }
+      } catch (error) {
+        console.error('Error fetching user stats:', error);
+        setTotalWithdrawn(0);
+        setActiveTasksCount(0);
+      }
+    };
+
+    fetchUserStats();
   }, []);
 
 
@@ -206,137 +238,230 @@ export default function DashboardPage() {
         <UserHeader />
 
         {/* 3. Page Content */}
-        <main className="flex-1 overflow-y-auto p-6 md:p-10">
+        <main className="flex-1 overflow-y-auto pb-32 p-4 md:p-8">
           <div className="max-w-7xl mx-auto space-y-8 animate-in fade-in duration-500">
             
-            {/* Welcome Section */}
-            <div>
-              <h1 className="text-3xl font-bold tracking-tight mb-2">
-                Welcome back! 👋
-              </h1>
-              <p className="text-muted-foreground text-lg">
-                You've earned <span className="text-foreground font-semibold">{taskPoints.toLocaleString()} TP</span> total.
-              </p>
-            </div>
-
-            {/* Stats Summary */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div className="bg-card p-6 rounded-2xl border border-border shadow-sm">
-                <div className="flex items-center justify-between mb-2">
-                  <p className="text-sm font-medium text-muted-foreground">Total Earned</p>
-                  <Trophy className="w-4 h-4 text-yellow-500" />
+            {/* Welcome & Investment Snapshot */}
+            <section className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
+              <div>
+                <h1 className="text-2xl md:text-2xl font-black uppercase tracking-tighter  leading-none">
+                  {isLoading ? (
+                    <div className="h-10 w-64 bg-muted rounded animate-pulse"></div>
+                  ) : (
+                    getGreeting(userName || "User")
+                  )}
+                </h1>
+                <div className="flex items-center gap-4 mt-3">
+                  <span className="flex items-center gap-1 text-[10px] font-bold text-muted-foreground uppercase tracking-widest">
+                    <ShieldCheck className="w-3 h-3 text-primary" /> Task
+                    Kash: Your account is currently protected
+                  </span>
                 </div>
-                <p className="text-3xl font-bold">{taskPoints.toLocaleString()} TP</p>
-                <p className="text-xs text-muted-foreground mt-1">{taskPoints > 0 ? 'Keep completing tasks to earn more TP' : 'Start completing tasks to earn TP'}</p>
               </div>
+              <Link
+                href="#"
+                className="hidden md:block bg-primary text-primary-foreground px-4 py-3 rounded-lg text-xs font-black uppercase tracking-widest hover:scale-105 transition-all shadow-xl w-full md:w-auto text-center"
+              >
+                View Achievements
+              </Link>
+            </section>
 
-              <div className="bg-card p-6 rounded-2xl border border-border shadow-sm">
-                <div className="flex items-center justify-between mb-2">
-                  <p className="text-sm font-medium text-muted-foreground">Tasks Done</p>
-                  <CheckCircle2 className="w-4 h-4 text-green-500" />
-                </div>
-                <p className="text-3xl font-bold">{tasksCompleted}</p>
-              </div>
-            </div>
-
-            {/* Tasks Section */}
-            <div className="flex items-center justify-between">
-              <h2 className="text-xl font-bold tracking-tight">Tasks</h2>
-              {filteredAndSortedTasks.length > 0 && (
-                <span className="text-sm text-muted-foreground">
-                  {filteredAndSortedTasks.length} tasks found
-                </span>
-              )}
-            </div>
-
-            {/* Filter Tabs */}
-            <div className="flex gap-2 p-1 bg-muted/50 rounded-lg overflow-x-auto w-full sm:w-fit">
-              {tabs.map((tab) => (
-                <button
-                  key={tab}
-                  onClick={() => handleTabChange(tab)}
-                  className={`px-4 py-2 rounded-md text-sm font-medium transition-all whitespace-nowrap ${
-                    activeTab === tab
-                      ? 'bg-background text-foreground shadow-sm'
-                      : 'text-muted-foreground hover:text-foreground hover:bg-background/50'
-                  }`}
-                >
-                  {tab}
-                </button>
-              ))}
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {paginatedTasks.length > 0 ? (
-                paginatedTasks.map((task) => (
-                  <TaskCardComponent 
-                    key={task._id} 
-                    task={task} 
-                    onClick={handleTaskClick}
-                    onStartTask={handleStartTask}
-                  />
-                ))
-              ) : (
-                <div className="col-span-full text-center py-12">
-                  <div className="max-w-md mx-auto">
-                    <div className="w-20 h-20 bg-muted rounded-full flex items-center justify-center mx-auto mb-4">
-                      <CheckCircle2 className="w-10 h-10 text-muted-foreground" />
-                    </div>
-                    <h3 className="text-lg font-semibold mb-2">
-                      {activeTab === 'All' ? 'No tasks available yet' : `No ${activeTab.toLowerCase()} tasks`}
-                    </h3>
-                    <p className="text-muted-foreground">
-                      {activeTab === 'All' 
-                        ? 'Check back later! New tasks are added regularly by administrators.'
-                        : `You don't have any ${activeTab.toLowerCase()} tasks.`}
-                    </p>
+            {/* Quick Stats Summary */}
+            <section className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+              <Link
+                href="#"
+                className="bg-card border border-border px-5 py-3 rounded-2xl group hover:border-primary transition-all"
+              >
+                <div className="flex justify-between items-start mb-3">
+                  <div className="p-2 bg-yellow-500/10 rounded-lg group-hover:bg-yellow-500/20 transition-colors">
+                    <Trophy className="w-5 h-5 text-yellow-500" />
                   </div>
+                  <ChevronRight className="w-4 h-4 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity" />
                 </div>
-              )}
-            </div>
+                {isLoading ? (
+                  <div className="h-8 w-16 bg-muted rounded animate-pulse mb-1"></div>
+                ) : (
+                  <p className="text-xl sm:text-2xl md:text-2xl font-black tracking-tighter mb-1">
+                    {taskPoints.toLocaleString()} TP
+                  </p>
+                )}
+                <p className="text-[10px] font-black uppercase text-muted-foreground tracking-widest">
+                  Total Earned
+                </p>
+              </Link>
 
-            {/* Pagination */}
-            {totalPages > 1 && (
-              <div className="flex items-center justify-center gap-2 mt-8">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
-                  disabled={currentPage === 1}
-                  className="flex items-center gap-2"
-                >
-                  <ChevronLeft className="w-4 h-4" />
-                  Prev
-                </Button>
-                
-                <div className="flex items-center gap-1">
-                  {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
-                    <button
-                      key={page}
-                      onClick={() => setCurrentPage(page)}
-                      className={`w-8 h-8 rounded-md text-sm font-medium transition-all ${
-                        currentPage === page
-                          ? 'bg-primary text-primary-foreground'
-                          : 'text-muted-foreground hover:text-foreground hover:bg-muted'
-                      }`}
-                    >
-                      {page}
-                    </button>
-                  ))}
+              <Link
+                href="#"
+                className="bg-card border border-border px-5 py-3 rounded-2xl group hover:border-primary transition-all"
+              >
+                <div className="flex justify-between items-start mb-3">
+                  <div className="p-2 bg-green-500/10 rounded-lg group-hover:bg-green-500/20 transition-colors">
+                    <CheckCircle2 className="w-5 h-5 text-green-500" />
+                  </div>
+                  <ChevronRight className="w-4 h-4 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity" />
                 </div>
-                
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
-                  disabled={currentPage === totalPages}
-                  className="flex items-center gap-2"
-                >
-                  Next
-                  <ChevronRight className="w-4 h-4" />
-                </Button>
-              </div>
-            )}
+                {isLoading ? (
+                  <div className="h-8 w-16 bg-muted rounded animate-pulse mb-1"></div>
+                ) : (
+                  <p className="text-xl sm:text-2xl md:text-2xl font-black tracking-tighter mb-1">
+                    {tasksCompleted}
+                  </p>
+                )}
+                <p className="text-[10px] font-black uppercase text-muted-foreground tracking-widest">
+                  Tasks Done
+                </p>
+              </Link>
+
+              <Link
+                href="/user-dashboard/withdrawals"
+                className="bg-card border border-border px-5 py-3 rounded-2xl group hover:border-primary transition-all"
+              >
+                <div className="flex justify-between items-start mb-3">
+                  <div className="p-2 bg-blue-500/10 rounded-lg group-hover:bg-blue-500/20 transition-colors">
+                    <Wallet className="w-5 h-5 text-blue-500" />
+                  </div>
+                  <ChevronRight className="w-4 h-4 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity" />
+                </div>
+                {isLoading ? (
+                  <div className="h-8 w-16 bg-muted rounded animate-pulse mb-1"></div>
+                ) : (
+                  <p className="text-xl sm:text-2xl md:text-2xl font-black tracking-tighter mb-1">
+                    {totalWithdrawn.toLocaleString()} TP
+                  </p>
+                )}
+                <p className="text-[10px] font-black uppercase text-muted-foreground tracking-widest">
+                  Withdrawals
+                </p>
+              </Link>
+
+              <Link
+                href="/user-dashboard/tasks"
+                className="bg-card border border-border px-5 py-3 rounded-2xl group hover:border-primary transition-all"
+              >
+                <div className="flex justify-between items-start mb-3">
+                  <div className="p-2 bg-purple-500/10 rounded-lg group-hover:bg-purple-500/20 transition-colors">
+                    <Upload className="w-5 h-5 text-purple-500" />
+                  </div>
+                  <ChevronRight className="w-4 h-4 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity" />
+                </div>
+                {isLoading ? (
+                  <div className="h-8 w-16 bg-muted rounded animate-pulse mb-1"></div>
+                ) : (
+                  <p className="text-xl sm:text-2xl md:text-2xl font-black tracking-tighter mb-1">
+                    {activeTasksCount}
+                  </p>
+                )}
+                <p className="text-[10px] font-black uppercase text-muted-foreground tracking-widest">
+                  Active Tasks
+                </p>
+              </Link>
+            </section>
+
+
+
+
+<section className="space-y-6 py-5">
+
+  {/* Tasks Section Header */}
+  <div className="flex items-center justify-between">
+    <h2 className="text-xl font-black uppercase tracking-tighter leading-none">
+      Pending Tasks
+    </h2>
+    {filteredAndSortedTasks.length > 0 && (
+      <span className="text-[10px] font-black uppercase text-muted-foreground tracking-widest">
+        {filteredAndSortedTasks.length} tasks found
+      </span>
+    )}
+  </div>
+
+  {/* Filter Tabs */}
+  <div className="flex gap-2 p-1 bg-muted/50 rounded-lg overflow-x-auto w-full sm:w-fit">
+    {tabs.map((tab) => (
+      <button
+        key={tab}
+        onClick={() => handleTabChange(tab)}
+        className={`px-4 py-2 rounded-md text-[11px] font-black uppercase tracking-widest transition-all whitespace-nowrap ${
+          activeTab === tab
+            ? 'bg-background text-foreground shadow-sm'
+            : 'text-muted-foreground hover:text-foreground hover:bg-background/50'
+        }`}
+      >
+        {tab}
+      </button>
+    ))}
+  </div>
+
+  {/* Task Cards Grid */}
+  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+    {paginatedTasks.length > 0 ? (
+      paginatedTasks.map((task) => (
+        <TaskCardComponent
+          key={task._id}
+          task={task}
+          onClick={handleTaskClick}
+          onStartTask={handleStartTask}
+        />
+      ))
+    ) : (
+      <div className="col-span-full text-center py-16">
+        <div className="max-w-md mx-auto">
+          <div className="w-20 h-20 bg-muted rounded-xl flex items-center justify-center mx-auto mb-4">
+            <ListTodo className="w-10 h-10 text-muted-foreground" />
+          </div>
+          <h3 className="text-base font-black uppercase tracking-tighter mb-2">
+            {activeTab === 'All' ? 'No tasks available yet' : `No ${activeTab.toLowerCase()} tasks`}
+          </h3>
+          <p className="text-sm text-muted-foreground">
+            {activeTab === 'All'
+              ? 'Check back later! New tasks are added regularly by administrators.'
+              : `You don't have any ${activeTab.toLowerCase()} tasks.`}
+          </p>
+        </div>
+      </div>
+    )}
+  </div>
+
+  {/* Pagination */}
+  {totalPages > 1 && (
+    <div className="flex items-center justify-center gap-3 mt-8">
+      <button
+        onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+        disabled={currentPage === 1}
+        className="flex items-center gap-1 px-3 py-3 rounded-lg border border-border text-[10px] font-black uppercase tracking-widest text-muted-foreground hover:text-foreground hover:border-primary transition-all disabled:opacity-30 disabled:cursor-not-allowed"
+      >
+        <ChevronLeft className="w-3.5 h-3.5" />
+        Prev
+      </button>
+
+      <div className="flex items-center gap-2">
+        {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+          <button
+            key={page}
+            onClick={() => setCurrentPage(page)}
+            className={`w-9 h-9  rounded-lg text-[11px] font-black uppercase tracking-widest transition-all ${
+              currentPage === page
+                ? 'bg-primary text-primary-foreground shadow-md scale-105'
+                : 'text-muted-foreground hover:text-foreground hover:bg-muted border border-border'
+            }`}
+          >
+            {page}
+          </button>
+        ))}
+      </div>
+
+      <button
+        onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
+        disabled={currentPage === totalPages}
+        className="flex items-center gap-1 px-3 py-3 rounded-lg border border-border text-[10px] font-black uppercase tracking-widest text-muted-foreground hover:text-foreground hover:border-primary transition-all disabled:opacity-30 disabled:cursor-not-allowed"
+      >
+        Next
+        <ChevronRight className="w-3.5 h-3.5" />
+      </button>
+    </div>
+  )}
+
+</section>
+
 
             {/* 4. Recent Activity Section */}
             <RecentActivity />

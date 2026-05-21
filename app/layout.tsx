@@ -1,42 +1,21 @@
 import type { Metadata } from "next";
-import localFont from "next/font/local";
 import "./globals.css";
 import { ThemeProvider } from "@/components/providers/ThemeProvider";
 import { SessionProvider } from "next-auth/react";
-import { ToastContainer } from 'react-toastify';
+import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+import { Geist, Geist_Mono } from "next/font/google";
 
+const geist = Geist({
+  subsets: ["latin"],
+  variable: "--font-geist-sans",
+  weight: "variable",
+});
 
-const inter = localFont({
-  src: [
-    {
-      path: "./fonts/inter-regular.woff2",
-      weight: "400",
-      style: "normal",
-    },
-    {
-      path: "./fonts/inter-500.woff2",
-      weight: "500",
-      style: "normal",
-    },
-    {
-      path: "./fonts/inter-600.woff2",
-      weight: "600",
-      style: "normal",
-    },
-    {
-      path: "./fonts/inter-700.woff2",
-      weight: "700",
-      style: "normal",
-    },
-    {
-      path: "./fonts/inter-800.woff2",
-      weight: "800",
-      style: "normal",
-    },
-  ],
-  variable: "--font-inter",
-  display: "swap",
+const geistMono = Geist_Mono({
+  subsets: ["latin"],
+  variable: "--font-geist-mono",
+  weight: "variable",
 });
 
 export const metadata: Metadata = {
@@ -65,11 +44,15 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en" suppressHydrationWarning>
-      <body className={`${inter.variable} font-sans`}>
-        <SessionProvider 
-          refetchInterval={15 * 60} // Refetch every 15 minutes instead of 5
-          refetchOnWindowFocus={false} // Disable refetch on window focus
+    <html
+      lang="en"
+      suppressHydrationWarning
+      className={`${geist.variable} ${geistMono.variable}`}
+    >
+      <body className="min-h-screen font-sans antialiased">
+        <SessionProvider
+          refetchInterval={15 * 60}
+          refetchOnWindowFocus={false}
         >
           <ThemeProvider
             attribute="class"
@@ -78,6 +61,7 @@ export default function RootLayout({
             disableTransitionOnChange
           >
             {children}
+
             <ToastContainer
               position="top-right"
               autoClose={4000}
