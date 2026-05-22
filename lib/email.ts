@@ -1219,3 +1219,327 @@ export async function sendBroadcastEmail(users: { email: string; name?: string }
   
   return results;
 }
+
+// Gift deduction email template (for sender)
+export function createGiftDeductionEmail(senderName: string, receiverName: string, amount: number): { html: string; text: string } {
+  const html = `
+    <!DOCTYPE html>
+    <html>
+    <head>
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <title>Gift Sent - TaskKash</title>
+      <style>
+        body {
+          font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+          line-height: 1.6;
+          color: #333;
+          max-width: 600px;
+          margin: 0 auto;
+          padding: 20px;
+          background-color: #f4f4f4;
+        }
+        .container {
+          background-color: #ffffff;
+          border-radius: 10px;
+          padding: 30px;
+          box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .header {
+          text-align: center;
+          margin-bottom: 30px;
+        }
+        .logo {
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          gap: 12px;
+          margin-bottom: 20px;
+        }
+        .logo img {
+          width: 40px;
+          height: 40px;
+          border-radius: 8px;
+          object-fit: contain;
+          background: #f8f9fa;
+          padding: 4px;
+          border: 1px solid #e9ecef;
+        }
+        .logo-text {
+          font-size: 24px;
+          font-weight: bold;
+          background: linear-gradient(45deg, #00ff9d, #8a2be2);
+          -webkit-background-clip: text;
+          -webkit-text-fill-color: transparent;
+          background-clip: text;
+        }
+        .title {
+          color: #333;
+          font-size: 24px;
+          margin-bottom: 10px;
+        }
+        .content {
+          margin-bottom: 30px;
+        }
+        .amount-box {
+          background: linear-gradient(45deg, #00ff9d, #8a2be2);
+          color: white;
+          padding: 20px;
+          border-radius: 10px;
+          text-align: center;
+          margin: 20px 0;
+        }
+        .amount {
+          font-size: 36px;
+          font-weight: bold;
+        }
+        .footer {
+          text-align: center;
+          color: #666;
+          font-size: 14px;
+          margin-top: 30px;
+          padding-top: 20px;
+          border-top: 1px solid #eee;
+        }
+      </style>
+    </head>
+    <body>
+      <div class="container">
+        <div class="header">
+          <div class="logo">
+            <img src="https://taskkash.xyz/taskkash-logo.png" alt="TaskKash Logo" onerror="this.src='http://localhost:3000/taskkash-logo.png'" />
+            <span class="logo-text">TaskKash</span>
+          </div>
+          <h1 class="title">Gift Sent Successfully! 🎉</h1>
+        </div>
+        
+        <div class="content">
+          <p>Hello ${senderName},</p>
+          
+          <p>Your gift has been successfully sent to <strong>${receiverName}</strong>.</p>
+          
+          <div class="amount-box">
+            <p style="font-size: 14px; margin-bottom: 5px;">Amount Sent</p>
+            <p class="amount">$${amount.toFixed(2)}</p>
+          </div>
+          
+          <p><strong>Transaction Details:</strong></p>
+          <ul style="list-style: none; padding: 0;">
+            <li>• Recipient: ${receiverName}</li>
+            <li>• Amount Deducted: $${amount.toFixed(2)}</li>
+          </ul>
+        </div>
+        
+        <div class="footer">
+          <p>Best regards,<br>The TaskKash Team</p>
+          <p style="font-size: 12px; color: #999;">
+            This is an automated message. Please do not reply to this email.
+          </p>
+        </div>
+      </div>
+    </body>
+    </html>
+  `;
+
+  const text = `
+    Gift Sent Successfully - TaskKash
+    
+    Hello ${senderName},
+    
+    Your gift has been successfully sent to ${receiverName}.
+    
+    Amount Sent: $${amount.toFixed(2)}
+    
+    Transaction Details:
+    - Recipient: ${receiverName}
+    - Amount Deducted: $${amount.toFixed(2)}
+    
+    Best regards,
+    The TaskKash Team
+  `;
+
+  return { html, text };
+}
+
+// Send gift deduction email - SYSTEM EMAIL (no replyTo)
+export async function sendGiftDeductionEmail(email: string, senderName: string, receiverName: string, amount: number): Promise<boolean> {
+  const { html, text } = createGiftDeductionEmail(senderName, receiverName, amount);
+  
+  console.log('=== GIFT DEDUCTION EMAIL FLOW ===');
+  console.log('Type: SYSTEM_EMAIL (no replyTo allowed)');
+  console.log('Sender: TaskKash Support <support@taskkash.xyz>');
+  console.log('=====================================');
+  
+  return await sendEmail({
+    to: email,
+    subject: 'Gift Sent Successfully - TaskKash',
+    html,
+    text,
+    from: 'NOREPLY' // Maps to SYSTEM_EMAIL flow rule
+  });
+}
+
+// Gift credit email template (for receiver)
+export function createGiftCreditEmail(receiverName: string, senderName: string, amount: number): { html: string; text: string } {
+  const html = `
+    <!DOCTYPE html>
+    <html>
+    <head>
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <title>You Received a Gift! - TaskKash</title>
+      <style>
+        body {
+          font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+          line-height: 1.6;
+          color: #333;
+          max-width: 600px;
+          margin: 0 auto;
+          padding: 20px;
+          background-color: #f4f4f4;
+        }
+        .container {
+          background-color: #ffffff;
+          border-radius: 10px;
+          padding: 30px;
+          box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .header {
+          text-align: center;
+          margin-bottom: 30px;
+        }
+        .logo {
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          gap: 12px;
+          margin-bottom: 20px;
+        }
+        .logo img {
+          width: 40px;
+          height: 40px;
+          border-radius: 8px;
+          object-fit: contain;
+          background: #f8f9fa;
+          padding: 4px;
+          border: 1px solid #e9ecef;
+        }
+        .logo-text {
+          font-size: 24px;
+          font-weight: bold;
+          background: linear-gradient(45deg, #00ff9d, #8a2be2);
+          -webkit-background-clip: text;
+          -webkit-text-fill-color: transparent;
+          background-clip: text;
+        }
+        .title {
+          color: #333;
+          font-size: 24px;
+          margin-bottom: 10px;
+        }
+        .content {
+          margin-bottom: 30px;
+        }
+        .amount-box {
+          background: linear-gradient(45deg, #00ff9d, #8a2be2);
+          color: white;
+          padding: 20px;
+          border-radius: 10px;
+          text-align: center;
+          margin: 20px 0;
+        }
+        .amount {
+          font-size: 36px;
+          font-weight: bold;
+        }
+        .footer {
+          text-align: center;
+          color: #666;
+          font-size: 14px;
+          margin-top: 30px;
+          padding-top: 20px;
+          border-top: 1px solid #eee;
+        }
+      </style>
+    </head>
+    <body>
+      <div class="container">
+        <div class="header">
+          <div class="logo">
+            <img src="https://taskkash.xyz/taskkash-logo.png" alt="TaskKash Logo" onerror="this.src='http://localhost:3000/taskkash-logo.png'" />
+            <span class="logo-text">TaskKash</span>
+          </div>
+          <h1 class="title">You Received a Gift! 🎁</h1>
+        </div>
+        
+        <div class="content">
+          <p>Hello ${receiverName},</p>
+          
+          <p>Great news! You've received a gift from <strong>${senderName}</strong>.</p>
+          
+          <div class="amount-box">
+            <p style="font-size: 14px; margin-bottom: 5px;">Amount Received</p>
+            <p class="amount">$${amount.toFixed(2)}</p>
+          </div>
+          
+          <p><strong>Transaction Details:</strong></p>
+          <ul style="list-style: none; padding: 0;">
+            <li>• From: ${senderName}</li>
+            <li>• Amount: $${amount.toFixed(2)}</li>
+            <li>• Status: Completed</li>
+          </ul>
+          
+          <p style="margin-top: 20px;">This amount has been added to your TaskKash balance. You can use it for withdrawals or other activities on the platform.</p>
+        </div>
+        
+        <div class="footer">
+          <p>Best regards,<br>The TaskKash Team</p>
+          <p style="font-size: 12px; color: #999;">
+            This is an automated message. Please do not reply to this email.
+          </p>
+        </div>
+      </div>
+    </body>
+    </html>
+  `;
+
+  const text = `
+    You Received a Gift - TaskKash
+    
+    Hello ${receiverName},
+    
+    Great news! You've received a gift from ${senderName}.
+    
+    Amount Received: $${amount.toFixed(2)}
+    
+    Transaction Details:
+    - From: ${senderName}
+    - Amount: $${amount.toFixed(2)}
+    - Status: Completed
+    
+    This amount has been added to your TaskKash balance. You can use it for withdrawals or other activities on the platform.
+    
+    Best regards,
+    The TaskKash Team
+  `;
+
+  return { html, text };
+}
+
+// Send gift credit email - SYSTEM EMAIL (no replyTo)
+export async function sendGiftCreditEmail(email: string, receiverName: string, senderName: string, amount: number): Promise<boolean> {
+  const { html, text } = createGiftCreditEmail(receiverName, senderName, amount);
+  
+  console.log('=== GIFT CREDIT EMAIL FLOW ===');
+  console.log('Type: SYSTEM_EMAIL (no replyTo allowed)');
+  console.log('Sender: TaskKash Support <support@taskkash.xyz>');
+  console.log('===================================');
+  
+  return await sendEmail({
+    to: email,
+    subject: 'You Received a Gift! - TaskKash',
+    html,
+    text,
+    from: 'NOREPLY' // Maps to SYSTEM_EMAIL flow rule
+  });
+}

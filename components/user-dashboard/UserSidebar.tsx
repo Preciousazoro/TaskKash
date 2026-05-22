@@ -288,7 +288,7 @@ function SidebarNavItems({
     {
       name: "Gift Member",
       icon: Smile,
-      href: `${basePath}/gift-member`,
+      href: `${basePath}/gift-user`,
       color: "text-green-500",
     },
     {

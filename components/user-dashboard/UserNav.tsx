@@ -7,6 +7,7 @@ import {
   Users,
   Settings,
   History,
+  Smile,
   Wallet,
   Trophy,
   Gift,
@@ -33,14 +34,14 @@ export default function UserNav() {
       href: `${basePath}/transactions`,
     },
     {
+      name: "Gift User",
+      icon: Smile,
+      href: `${basePath}/gift-user`,
+    },
+    {
       name: "Ranks",
       icon: Trophy,
       href: `${basePath}/leaderboard`,
-    },
-    {
-      name: "Profile",
-      icon: Users,
-      href: `${basePath}/profile`,
     },
     {
       name: "Settings",
