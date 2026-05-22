@@ -360,12 +360,12 @@ function SidebarNavItems({
           href: "#",
           color: "text-green-500",
         },
-        {
-          name: "Active Support 24/7",
-          icon: HeadphonesIcon,
-          href: "#",
-          color: "text-green-500",
-        },
+        // {
+        //   name: "Active Support 24/7",
+        //   icon: HeadphonesIcon,
+        //   href: "#",
+        //   color: "text-green-500",
+        // },
         ...(isAdmin
           ? [
               {
