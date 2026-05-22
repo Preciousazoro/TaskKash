@@ -310,12 +310,6 @@ function SidebarNavItems({
       color: "text-green-500",
     },
     {
-      name: "Task Analytics",
-      icon: PieChart,
-      href: `${basePath}/analytics`,
-      color: "text-green-500",
-    },
-    {
       name: "Community",
       icon: Users,
       color: "text-green-500",
@@ -326,7 +320,6 @@ function SidebarNavItems({
           href: `${basePath}/rewards`,
           color: "text-green-500",
         },
-        { name: "Referrals", icon: Users, href: `#` },
         {
           name: "Leaderboard",
           icon: Trophy,

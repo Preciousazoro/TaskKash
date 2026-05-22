@@ -7,6 +7,7 @@ import {
   Users,
   Settings,
   History,
+  Wallet,
   Trophy,
   Gift,
 } from "lucide-react";
@@ -22,14 +23,14 @@ export default function UserNav() {
       href: `${basePath}/dashboard`,
     },
     {
+      name: "Payout",
+      icon: Wallet,
+      href: `${basePath}/withdraw`,
+    },
+    {
       name: "History",
       icon: History,
       href: `${basePath}/transactions`,
-    },
-    {
-      name: "Rewards",
-      icon: Gift,
-      href: `${basePath}/rewards`,
     },
     {
       name: "Ranks",

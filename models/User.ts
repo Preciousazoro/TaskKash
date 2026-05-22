@@ -48,6 +48,8 @@ export interface IUser extends Document {
   lastStreakDate?: Date;
   passwordResetToken?: string | null;
   passwordResetExpires?: Date | null;
+  withdrawalOTP?: string | null;
+  otpExpiration?: Date | null;
   emailVerified: boolean;
   phone?: string | null;
   country?: string | null;
@@ -177,6 +179,16 @@ const UserSchema = new Schema<IUser>({
     select: false
   },
   passwordResetExpires: {
+    type: Date,
+    default: null,
+    select: false
+  },
+  withdrawalOTP: {
+    type: String,
+    default: null,
+    select: false
+  },
+  otpExpiration: {
     type: Date,
     default: null,
     select: false
