@@ -25,7 +25,7 @@ export async function GET(request: NextRequest) {
     await connectDB();
     
     const user = await User.findById(session.user.id)
-      .select('name email role username avatarUrl avatarPublicId taskPoints dailyStreak socialLinks')
+      .select('name email role username avatarUrl avatarPublicId taskPoints dailyStreak socialLinks phone country')
       .lean()
       .maxTimeMS(3000) as any; // Add timeout
     
@@ -48,6 +48,8 @@ export async function GET(request: NextRequest) {
         instagram: null,
         linkedin: null,
       },
+      phone: user.phone || null,
+      country: user.country || null,
     };
 
     // Cache the result
@@ -69,7 +71,7 @@ export async function PUT(request: NextRequest) {
     }
 
     const body = await request.json();
-    const { name, username, avatarUrl, avatarPublicId, socialLinks } = body;
+    const { name, username, avatarUrl, avatarPublicId, socialLinks, phone, country } = body;
 
     await connectDB();
     
@@ -133,6 +135,9 @@ export async function PUT(request: NextRequest) {
     }
     
     if (socialLinks) user.socialLinks = socialLinks;
+    
+    if (phone !== undefined) user.phone = phone;
+    if (country !== undefined) user.country = country;
 
     await user.save();
 
@@ -154,6 +159,8 @@ export async function PUT(request: NextRequest) {
         instagram: null,
         linkedin: null,
       },
+      phone: user.phone || null,
+      country: user.country || null,
     };
 
     return NextResponse.json(updatedProfile);

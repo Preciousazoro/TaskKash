@@ -8,11 +8,13 @@ import {
   User,
   X,
   Upload,
-  Twitter,
-  Instagram,
-  Linkedin,
   Loader2,
   ExternalLink,
+  Plus,
+  Trash2,
+  Edit2,
+  Bell,
+  ChevronDown,
 } from "lucide-react";
 import { toast } from 'react-toastify';
 
@@ -22,10 +24,19 @@ import UserHeader from "@/components/user-dashboard/UserHeader";
 import { ContentOnlySkeleton } from "@/components/ui/LoadingSkeleton";
 import { useApi, useApiCall } from "@/hooks/useApi";
 
+// UI Components
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+
 type SocialMedia = {
   twitter?: string | null;
   instagram?: string | null;
   linkedin?: string | null;
+  facebook?: string | null;
 };
 
 type UserProfile = {
@@ -62,12 +73,20 @@ export default function ProfilePage() {
       twitter: null,
       instagram: null,
       linkedin: null,
+      facebook: null,
     },
   });
 
   const [editableUser, setEditableUser] = useState<UserProfile>(user);
   const [avatarPreview, setAvatarPreview] = useState<string | null>(null);
   const [usernameWarning, setUsernameWarning] = useState<string | null>(null);
+
+  const SOCIAL_PLATFORMS = [
+    { key: 'twitter' as const, name: 'X (Twitter)', icon: '/x.jpg', symbol: 'X' },
+    { key: 'instagram' as const, name: 'Instagram', icon: '/instagram.jpg', symbol: 'IG' },
+    { key: 'linkedin' as const, name: 'LinkedIn', icon: '/linked in.jpg', symbol: 'LI' },
+    { key: 'facebook' as const, name: 'Facebook', icon: '/facebook.jpg', symbol: 'FB' },
+  ];
 
   // Generate username helper function
   const generateUsername = (name: string): string => {
@@ -95,6 +114,7 @@ export default function ProfilePage() {
           twitter: null,
           instagram: null,
           linkedin: null,
+          facebook: null,
         },
       };
       
@@ -214,6 +234,7 @@ export default function ProfilePage() {
             twitter: null,
             instagram: null,
             linkedin: null,
+            facebook: null,
           },
       };
       
@@ -270,7 +291,7 @@ export default function ProfilePage() {
   }
 
   return (
-    <div className="flex min-h-screen bg-background text-foreground transition-colors duration-300">
+    <div className="flex min-h-screen bg-background text-foreground font-sans transition-colors duration-300">
       {/* 1. SIDEBAR */}
       <UserSidebar />
 
@@ -279,269 +300,280 @@ export default function ProfilePage() {
         <UserHeader />
 
         {/* 3. SCROLLABLE CONTENT */}
-        <main className="flex-1 overflow-y-auto p-6 md:p-10">
+        <main className="flex-1 overflow-y-auto p-4 md:p-10 space-y-8 pb-32">
           <div className="max-w-5xl mx-auto animate-in fade-in duration-500">
             <div className="grid lg:grid-cols-[300px_1fr] gap-8">
               
               {/* PROFILE CARD (LEFT) */}
-              <aside className="space-y-6">
-                <div className="bg-card border border-border rounded-3xl p-8 text-center shadow-sm">
-                  <div className="relative w-32 h-32 mx-auto rounded-full overflow-hidden border-4 border-background shadow-lg">
-                    {avatarPreview ? (
-                      <Image
-                        src={avatarPreview}
-                        alt="avatar"
-                        fill
-                        className="object-cover"
-                      />
-                    ) : (
-                      <div className="w-full h-full flex items-center justify-center bg-linear-to-br from-purple-500 to-blue-600">
-                        <User className="text-white w-14 h-14" />
-                      </div>
-                    )}
-                  </div>
+<aside className="space-y-5">
+  <div className="bg-card border border-border rounded-2xl p-5 text-center shadow-sm">
+    
+    {/* Avatar Wrapper Container */}
+    <div className="relative w-50 h-50 mx-auto group">
+      
+      {/* Image Container Block */}
+      <div className="w-full h-full rounded-3xl overflow-hidden border-2 border-green-500 shadow-lg relative">
+        {avatarPreview ? (
+          <Image
+            src={avatarPreview}
+            alt="avatar"
+            fill
+            className="object-cover"
+          />
+        ) : (
+          <div className="w-full h-full flex items-center justify-center bg-linear-to-br from-purple-500 to-blue-600">
+            <User className="text-white w-14 h-14" />
+          </div>
+        )}
+      </div>
 
-                  {isEditing && (
-                    <label className="inline-flex -mt-4 relative z-10 cursor-pointer bg-primary p-2 rounded-full shadow-md hover:scale-110 transition-transform">
-                      {isUploading ? (
-                        <Loader2 className="w-4 h-4 text-white animate-spin" />
-                      ) : (
-                        <Upload className="w-4 h-4 text-white" />
-                      )}
-                      <input
-                        type="file"
-                        accept="image/*"
-                        hidden
-                        onChange={handleFileUpload}
-                        disabled={isUploading}
-                      />
-                    </label>
-                  )}
+      {/* Upload Trigger Button - Positioned exactly at the bottom-right relative to the image */}
+      {isEditing && (
+        <label className="absolute bottom-2 right-2 z-20 cursor-pointer bg-green-500 p-2 rounded-lg shadow-md hover:scale-110 transition-transform border border-background">
+          {isUploading ? (
+            <Loader2 className="w-4 h-4 text-white animate-spin" />
+          ) : (
+            <Upload className="w-4 h-4 text-white" />
+          )}
+          <input
+            type="file"
+            accept="image/*"
+            hidden
+            onChange={handleFileUpload}
+            disabled={isUploading}
+          />
+        </label>
+      )}
+    </div>
 
-                  <h3 className="mt-4 text-xl font-bold">{user.name}</h3>
-                  <p className="text-sm text-muted-foreground capitalize font-medium">
-                    {user.role}
-                  </p>
+    <h3 className="mt-4 text-xl font-bold">{user.name}</h3>
+    <p className="text-sm text-muted-foreground capitalize font-medium">
+      Role: {user.role}
+    </p>
 
-                  <div className="mt-8 p-4 bg-muted/50 rounded-2xl border border-border">
-                    <p className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
-                      Task Points
-                    </p>
-                    <p className="font-black text-2xl text-primary">{user.points} TP</p>
-                  </div>
+    <div className="mt-5 p-4 bg-muted/50 rounded-xl border border-border">
+      <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">
+        Task Points
+      </p>
+      <p className="font-black text-2xl text-green-500">{user.points} TP</p>
+    </div>
 
-                  <div className="flex justify-center gap-4 mt-8">
-                    {[
-                      { icon: Twitter, platform: 'twitter' as keyof SocialMedia },
-                      { icon: Instagram, platform: 'instagram' as keyof SocialMedia },
-                      { icon: Linkedin, platform: 'linkedin' as keyof SocialMedia },
-                    ].map(({ icon: Icon, platform }) => {
-                      const url = user.socialMedia?.[platform] || null;
-                      return (
-                        <button
-                          key={platform}
-                          onClick={() => handleSocialLinkClick(url)}
-                          className={`p-2 rounded-lg transition-colors ${
-                            url
-                              ? 'bg-primary/20 hover:bg-primary/30 text-primary'
-                              : 'bg-muted hover:text-primary'
-                          }`}
-                          title={url ? `Open ${platform}` : `No ${platform} link`}
-                        >
-                          <Icon className="w-5 h-5" />
-                        </button>
-                      );
-                    })}
-                  </div>
-                </div>
-              </aside>
+    <div className="flex justify-center gap-4 mt-5">
+      {SOCIAL_PLATFORMS.map((platform) => {
+        const url = user.socialMedia?.[platform.key] || null;
+        return (
+          <button
+            key={platform.key}
+            onClick={() => handleSocialLinkClick(url)}
+            className={`rounded-lg transition-colors ${
+              url
+                ? 'border-3 border-green-500/100 hover:border-green-500/50 text-green-500'
+                : 'bg-muted hover:text-green-500'
+            }`}
+            title={url ? `Open ${platform.name}` : `No ${platform.name} link`}
+          >
+            <img src={platform.icon} alt={platform.name} className="w-10 h-10 rounded-lg" />
+          </button>
+        );
+      })}
+    </div>
+  </div>
+</aside>
 
               {/* PROFILE FORM (RIGHT) */}
-              <div className="bg-card border border-border rounded-3xl p-8 shadow-sm">
-                <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-10">
-                  <div>
-                    <h1 className="text-2xl font-bold tracking-tight">Profile Settings</h1>
-                    <p className="text-sm text-muted-foreground">
-                      Manage your public profile and account details
-                    </p>
-                  </div>
+<div className="bg-card border border-border rounded-3xl p-6 lg:p-7 shadow-sm">
+  {/* Header Section */}
+  <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-10">
+    <div className="space-y-1">
+      <h1 className="text-2xl font-black uppercase tracking-tighter">Profile Settings</h1>
+      <p className="text-xs font-medium uppercase tracking-widest text-muted-foreground">
+        Manage your public profile and account details
+      </p>
+    </div>
 
-                  {!isEditing ? (
-                    <button
-                      onClick={() => setIsEditing(true)}
-                      className="flex items-center gap-2 px-6 py-2.5 bg-linear-to-r from-green-500 to-purple-600 text-white font-bold rounded-xl shadow-lg shadow-primary/20 active:scale-[0.98] transition-all"
-                    >
-                      <Pencil className="w-4 h-4" /> Edit Profile
-                    </button>
-                  ) : (
-                    <div className="flex gap-3">
-                      <button
-                        onClick={handleCancel}
-                        className="px-5 py-2.5 border border-border rounded-xl font-bold flex items-center gap-2 hover:bg-muted transition-colors"
-                      >
-                        <X className="w-4 h-4" /> Cancel
-                      </button>
-                      <button
-                        onClick={handleSave}
-                        disabled={isSaving}
-                        className="px-5 py-2.5 bg-linear-to-r from-green-500 to-purple-600 text-white font-bold rounded-xl shadow-lg shadow-primary/20 active:scale-[0.98] transition-all flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed disabled:scale-100"
-                      >
-                        {isSaving ? (
-                          <>
-                            <Loader2 className="w-4 h-4 animate-spin" /> Saving...
-                          </>
-                        ) : (
-                          <>
-                            <Save className="w-4 h-4" /> Save Changes
-                          </>
-                        )}
-                      </button>
+    {!isEditing ? (
+      <button
+        onClick={() => setIsEditing(true)}
+        className="flex items-center gap-2 px-4 py-2 bg-green-500 text-white font-bold rounded-lg shadow-lg active:scale-[0.98] transition-all cursor-pointer hover:bg-green-500/90"
+      >
+        Edit Profile
+      </button>
+    ) : (
+      <div className="flex gap-3">
+        <button
+          onClick={handleCancel}
+          className="px-4 py-2 border border-border rounded-lg font-bold flex items-center gap-2 hover:bg-muted transition-colors cursor-pointer"
+        >
+          Cancel
+        </button>
+        <button
+          onClick={handleSave}
+          disabled={isSaving}
+          className="flex items-center gap-2 px-4 py-2 bg-green-500 text-white font-bold rounded-lg shadow-lg active:scale-[0.98] transition-all cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+        >
+          {isSaving ? (
+            <>
+              <Loader2 className="w-4 h-4 animate-spin" /> Saving...
+            </>
+          ) : (
+            <>
+              Update
+            </>
+          )}
+        </button>
+      </div>
+    )}
+  </div>
+
+  {/* Form Core Fields */}
+  <div className="grid md:grid-cols-2 gap-x-8 gap-y-5">
+    
+    {/* Full Name Section */}
+    <div className="space-y-2">
+      <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1">
+        Full Name
+      </label>
+      {isEditing ? (
+        <input
+          value={editableUser.name}
+          onChange={(e) =>
+            setEditableUser({ ...editableUser, name: e.target.value })
+          }
+          className="w-full p-3 bg-muted/50 border border-border rounded-lg focus:ring-2 ring-green-500/20 outline-none transition-all text-sm font-medium"
+        />
+      ) : (
+        <p className="p-3 bg-muted/30 rounded-lg border border-border font-medium text-sm text-foreground">
+          {user.name}
+        </p>
+      )}
+    </div>
+
+    {/* Username Section */}
+    <div className="space-y-2">
+      <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1">
+        Username
+      </label>
+      {isEditing ? (
+        <div className="space-y-2">
+          <div className="flex gap-2">
+            <input
+              value={editableUser.username}
+              onChange={(e) =>
+                setEditableUser({ ...editableUser, username: e.target.value })
+              }
+              placeholder="Enter username (optional)"
+              className="flex-1 p-3 bg-muted/50 border border-border rounded-lg focus:ring-2 ring-green-500/20 outline-none transition-all text-sm font-medium"
+            />
+            {!editableUser.username && (
+              <button
+                type="button"
+                onClick={() => setEditableUser({ ...editableUser, username: generateUsername(editableUser.name) })}
+                className="px-3 py-2 bg-green-500 text-white rounded-lg font-bold hover:bg-green-500/90 transition-colors text-sm whitespace-nowrap cursor-pointer"
+              >
+                Generate
+              </button>
+            )}
+          </div>
+          {usernameWarning && (
+            <p className="text-xs text-amber-600 dark:text-amber-400 flex items-center gap-1 font-medium">
+              <span>⚠️</span>
+              {usernameWarning}
+            </p>
+          )}
+        </div>
+      ) : (
+        <div className="space-y-1">
+          <p className="p-3 bg-muted/30 rounded-lg border border-border font-medium text-sm text-foreground">
+            @{user.username || 'Not set'}
+          </p>
+          {!user.username && (
+            <p className="text-[11px] text-amber-600 dark:text-amber-400 mt-1 font-medium flex items-center gap-1 ml-1">
+              <span>⚠️</span> Username not set - required for public profile
+            </p>
+          )}
+        </div>
+      )}
+    </div>
+
+    {/* Email Address */}
+    <div className="space-y-2">
+      <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1">
+        Email Address
+      </label>
+      <p className="p-3 bg-muted/10 rounded-lg border border-dashed border-border text-muted-foreground text-sm font-medium">
+        {user.email}
+      </p>
+    </div>
+
+    {/* User ID */}
+    <div className="space-y-2">
+      <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1">
+        User ID
+      </label>
+      <p className="p-3 py-4 bg-muted/10 rounded-lg border border-dashed border-border font-mono text-xs text-muted-foreground">
+        {user.id}
+      </p>
+    </div>
+
+    {/* Social Media Links Section */}
+    <div className="md:col-span-2 space-y-6 pt-6 border-t border-border">
+      <h3 className="text-sm font-black uppercase tracking-widest flex items-center gap-2 text-foreground">
+        <Bell className="w-4 h-4 text-green-500" /> Social Media Links
+      </h3>
+
+      {isEditing ? (
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {SOCIAL_PLATFORMS.map((platform) => (
+            <div key={platform.key} className="space-y-2">
+              <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1 flex items-center gap-2">
+                <img src={platform.icon} alt={platform.name} className="w-5 h-5 rounded-md" /> {platform.name}
+              </label>
+              <input
+                value={editableUser.socialMedia?.[platform.key] || ''}
+                onChange={(e) => handleSocialLinkChange(platform.key, e.target.value)}
+                placeholder={`https://${platform.name.toLowerCase()}.com/username`}
+                className="w-full p-3 bg-muted/50 border border-border rounded-lg focus:ring-2 ring-green-500/20 outline-none transition-all text-sm"
+              />
+            </div>
+          ))}
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {SOCIAL_PLATFORMS.map((platform) => {
+            const url = user.socialMedia?.[platform.key] || null;
+            return (
+              <div key={platform.key} className="flex items-center justify-between bg-muted/30 border border-border rounded-xl p-4 transition-all hover:bg-muted/40">
+                <div className="flex items-center gap-3 min-w-0">
+                  <div className="w-9 h-9 rounded-lg bg-background border flex items-center justify-center shrink-0">
+                    <img src={platform.icon} alt={platform.name} className="w-9 h-9 rounded-lg" />
+                  </div>
+                  <div className="min-w-0">
+                    <div className="font-bold text-sm flex items-center gap-1.5 text-foreground">
+                      {platform.name}
+                      <span className="text-[10px] text-muted-foreground font-mono font-normal">({platform.symbol})</span>
                     </div>
-                  )}
-                </div>
-
-                <div className="grid md:grid-cols-2 gap-x-8 gap-y-10">
-                  <div className="space-y-2">
-                    <label className="text-xs font-bold uppercase text-muted-foreground ml-1">
-                      Full Name
-                    </label>
-                    {isEditing ? (
-                      <input
-                        value={editableUser.name}
-                        onChange={(e) =>
-                          setEditableUser({ ...editableUser, name: e.target.value })
-                        }
-                        className="w-full p-3 bg-muted/50 border border-border rounded-xl focus:ring-2 ring-primary/20 outline-none transition-all"
-                      />
-                    ) : (
-                      <p className="p-3 bg-muted/20 rounded-xl border border-transparent font-medium">{user.name}</p>
-                    )}
-                  </div>
-
-                  <div className="space-y-2">
-                    <label className="text-xs font-bold uppercase text-muted-foreground ml-1">
-                      Username
-                    </label>
-                    {isEditing ? (
-                      <div className="space-y-2">
-                        <div className="flex gap-2">
-                          <input
-                            value={editableUser.username}
-                            onChange={(e) =>
-                              setEditableUser({ ...editableUser, username: e.target.value })
-                            }
-                            placeholder="Enter username (optional)"
-                            className="flex-1 p-3 bg-muted/50 border border-border rounded-xl focus:ring-2 ring-primary/20 outline-none transition-all"
-                          />
-                          {!editableUser.username && (
-                            <button
-                              type="button"
-                              onClick={() => setEditableUser({ ...editableUser, username: generateUsername(editableUser.name) })}
-                              className="px-3 py-2 bg-primary text-primary-foreground rounded-xl hover:bg-primary/90 transition-colors text-sm"
-                            >
-                              Generate
-                            </button>
-                          )}
-                        </div>
-                        {usernameWarning && (
-                          <p className="text-xs text-amber-600 dark:text-amber-400 flex items-center gap-1">
-                            <span>⚠️</span>
-                            {usernameWarning}
-                          </p>
-                        )}
-                      </div>
-                    ) : (
-                      <div>
-                        <p className="p-3 bg-muted/20 rounded-xl border border-transparent font-medium">
-                          @{user.username || 'Not set'}
-                        </p>
-                        {!user.username && (
-                          <p className="text-xs text-amber-600 dark:text-amber-400 mt-1">
-                            ⚠️ Username not set - required for public profile
-                          </p>
-                        )}
-                      </div>
-                    )}
-                  </div>
-
-                  <div className="space-y-2">
-                    <label className="text-xs font-bold uppercase text-muted-foreground ml-1">
-                      Email Address
-                    </label>
-                    <p className="p-3 bg-muted/10 rounded-xl border border-dashed border-border text-muted-foreground">{user.email}</p>
-                  </div>
-
-                  <div className="space-y-2">
-                    <label className="text-xs font-bold uppercase text-muted-foreground ml-1">
-                      User ID
-                    </label>
-                    <p className="p-3 bg-muted/10 rounded-xl border border-dashed border-border font-mono text-xs text-muted-foreground">
-                      {user.id}
-                    </p>
-                  </div>
-
-                  {/* Social Media Links Section */}
-                  <div className="md:col-span-2 space-y-6 pt-6 border-t border-border">
-                    <h3 className="text-lg font-semibold">Social Media Links</h3>
-                    
-                    <div className="grid md:grid-cols-3 gap-6">
-                      <div className="space-y-2">
-                        <label className="text-xs font-bold uppercase text-muted-foreground ml-1 flex items-center gap-2">
-                          <Twitter className="w-4 h-4" /> Twitter
-                        </label>
-                        {isEditing ? (
-                          <input
-                            value={editableUser.socialMedia?.twitter || ''}
-                            onChange={(e) => handleSocialLinkChange('twitter', e.target.value)}
-                            placeholder="https://twitter.com/username"
-                            className="w-full p-3 bg-muted/50 border border-border rounded-xl focus:ring-2 ring-primary/20 outline-none transition-all"
-                          />
-                        ) : (
-                          <p className="p-3 bg-muted/20 rounded-xl border border-transparent font-medium text-sm">
-                            {user.socialMedia?.twitter || 'No link added'}
-                          </p>
-                        )}
-                      </div>
-
-                      <div className="space-y-2">
-                        <label className="text-xs font-bold uppercase text-muted-foreground ml-1 flex items-center gap-2">
-                          <Instagram className="w-4 h-4" /> Instagram
-                        </label>
-                        {isEditing ? (
-                          <input
-                            value={editableUser.socialMedia?.instagram || ''}
-                            onChange={(e) => handleSocialLinkChange('instagram', e.target.value)}
-                            placeholder="https://instagram.com/username"
-                            className="w-full p-3 bg-muted/50 border border-border rounded-xl focus:ring-2 ring-primary/20 outline-none transition-all"
-                          />
-                        ) : (
-                          <p className="p-3 bg-muted/20 rounded-xl border border-transparent font-medium text-sm">
-                            {user.socialMedia?.instagram || 'No link added'}
-                          </p>
-                        )}
-                      </div>
-
-                      <div className="space-y-2">
-                        <label className="text-xs font-bold uppercase text-muted-foreground ml-1 flex items-center gap-2">
-                          <Linkedin className="w-4 h-4" /> LinkedIn
-                        </label>
-                        {isEditing ? (
-                          <input
-                            value={editableUser.socialMedia?.linkedin || ''}
-                            onChange={(e) => handleSocialLinkChange('linkedin', e.target.value)}
-                            placeholder="https://linkedin.com/in/username"
-                            className="w-full p-3 bg-muted/50 border border-border rounded-xl focus:ring-2 ring-primary/20 outline-none transition-all"
-                          />
-                        ) : (
-                          <p className="p-3 bg-muted/20 rounded-xl border border-transparent font-medium text-sm">
-                            {user.socialMedia?.linkedin || 'No link added'}
-                          </p>
-                        )}
-                      </div>
-                    </div>
+                   <div className="font-mono text-[11px] text-muted-foreground truncate max-w-[180px]">
+  {url || "No link added"}
+</div>
                   </div>
                 </div>
+                {url && (
+                  <button
+                    onClick={() => handleSocialLinkClick(url)}
+                    className="p-2 text-muted-foreground cursor-pointer hover:text-green-500 transition-colors shrink-0"
+                    title={`Open ${platform.name}`}
+                  >
+                    <ExternalLink className="w-4 h-4" />
+                  </button>
+                )}
               </div>
+            );
+          })}
+        </div>
+      )}
+    </div>
+  </div>
+</div>
 
             </div>
           </div>

@@ -27,6 +27,8 @@ export interface IUser extends Document {
   passwordResetToken?: string | null;
   passwordResetExpires?: Date | null;
   emailVerified: boolean;
+  phone?: string | null;
+  country?: string | null;
   createdAt: Date;
   updatedAt: Date;
   comparePassword(candidatePassword: string): Promise<boolean>;
@@ -156,6 +158,16 @@ const UserSchema = new Schema<IUser>({
   emailVerified: {
     type: Boolean,
     default: false
+  },
+  phone: {
+    type: String,
+    default: null,
+    trim: true
+  },
+  country: {
+    type: String,
+    default: null,
+    trim: true
   }
 }, {
   timestamps: true
