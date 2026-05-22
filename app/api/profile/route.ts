@@ -8,6 +8,11 @@ import { deleteFromCloudinary } from '@/lib/cloudinary';
 const profileCache = new Map<string, { data: any; timestamp: number }>();
 const CACHE_TTL = 5 * 60 * 1000; // 5 minutes
 
+// Export function to clear cache for a specific user
+export function clearProfileCache(userId: string) {
+  profileCache.delete(userId);
+}
+
 export async function GET(request: NextRequest) {
   try {
     const session = await auth();
@@ -25,7 +30,7 @@ export async function GET(request: NextRequest) {
     await connectDB();
     
     const user = await User.findById(session.user.id)
-      .select('name email role username avatarUrl avatarPublicId taskPoints dailyStreak socialLinks phone country')
+      .select('name email role username avatarUrl avatarPublicId taskPoints dailyStreak socialLinks phone country cryptoPayoutAddresses')
       .lean()
       .maxTimeMS(3000) as any; // Add timeout
     
@@ -50,6 +55,7 @@ export async function GET(request: NextRequest) {
       },
       phone: user.phone || null,
       country: user.country || null,
+      cryptoPayoutAddresses: user.cryptoPayoutAddresses || [],
     };
 
     // Cache the result
@@ -161,6 +167,7 @@ export async function PUT(request: NextRequest) {
       },
       phone: user.phone || null,
       country: user.country || null,
+      cryptoPayoutAddresses: user.cryptoPayoutAddresses || [],
     };
 
     return NextResponse.json(updatedProfile);

@@ -7,6 +7,27 @@ export interface SocialMedia {
   linkedin?: string | null;
 }
 
+export interface CryptoAddress {
+  id: string;
+  crypto: {
+    name: string;
+    symbol: string;
+    icon: string;
+  };
+  address: string;
+}
+
+// Define subdocument schema for crypto addresses
+const CryptoAddressSchema = new Schema<CryptoAddress>({
+  id: { type: String, required: true },
+  crypto: {
+    name: { type: String, required: true },
+    symbol: { type: String, required: true },
+    icon: { type: String, required: true }
+  },
+  address: { type: String, required: true }
+}, { _id: false });
+
 export interface IUser extends Document {
   _id: Types.ObjectId;
   name: string;
@@ -22,6 +43,7 @@ export interface IUser extends Document {
   role: 'user' | 'admin';
   status: 'active' | 'suspended';
   socialLinks?: SocialMedia;
+  cryptoPayoutAddresses?: CryptoAddress[];
   dailyStreak: number;
   lastStreakDate?: Date;
   passwordResetToken?: string | null;
@@ -134,6 +156,10 @@ const UserSchema = new Schema<IUser>({
         message: 'Please provide a valid LinkedIn URL'
       }
     }
+  },
+  cryptoPayoutAddresses: {
+    type: [CryptoAddressSchema],
+    default: []
   },
   dailyStreak: {
     type: Number,

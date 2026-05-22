@@ -32,3 +32,38 @@ export function AuthSkeleton() {
     </div>
   );
 }
+
+// ADD THIS
+export function AdminContentOnlySkeleton() {
+  return (
+    <div className="min-h-screen bg-background p-4 lg:p-6">
+      <div className="space-y-6">
+        {/* Header */}
+        <div className="space-y-2">
+          <div className="h-8 w-56 bg-muted/30 rounded animate-pulse" />
+          <div className="h-4 w-40 bg-muted/30 rounded animate-pulse" />
+        </div>
+
+        {/* Content cards */}
+        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+          {Array.from({ length: 6 }).map((_, i) => (
+            <div
+              key={i}
+              className="h-32 rounded-2xl border border-border bg-card animate-pulse"
+            />
+          ))}
+        </div>
+
+        {/* Table/List skeleton */}
+        <div className="rounded-2xl border border-border bg-card p-6 space-y-4">
+          {Array.from({ length: 5 }).map((_, i) => (
+            <div
+              key={i}
+              className="h-12 w-full bg-muted/30 rounded-xl animate-pulse"
+            />
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}

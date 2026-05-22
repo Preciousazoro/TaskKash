@@ -25,6 +25,7 @@ import {
   Plus,
   Trash2,
   Edit2,
+  Wallet,
 } from "lucide-react";
 
 // Navigation
@@ -110,6 +111,23 @@ export default function SettingsPage() {
     { key: 'facebook' as const, name: 'Facebook', icon: '/facebook.jpg', symbol: 'FB' },
   ];
 
+  const SUPPORTED_CRYPTOS = [
+    { name: "Solana", symbol: "SOL", icon: "https://i.postimg.cc/FzHG6vnh/solana-128.png" },
+    { name: "Bitcoin", symbol: "BTC", icon: "https://i.postimg.cc/pLhcx2Vd/bitcoin-128.png" },
+    { name: "Ethereum", symbol: "ETH", icon: "https://i.postimg.cc/gJNH85kG/ethereum-128.png" },
+    { name: "Tether", symbol: "USDT", icon: "https://i.postimg.cc/nLKkcr6W/tether-128.png" },
+    { name: "USD Coin", symbol: "USDC", icon: "https://i.postimg.cc/NGCx0WzT/usdc-128.png" },
+  ];
+
+  // Crypto Payout Settings
+  const [payoutAddresses, setPayoutAddresses] = useState<any[]>([]);
+  const [selectedCrypto, setSelectedCrypto] = useState(SUPPORTED_CRYPTOS[0]);
+  const [walletAddress, setWalletAddress] = useState("");
+  const [showAddForm, setShowAddForm] = useState(true);
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [isLoadingCryptoAddresses, setIsLoadingCryptoAddresses] = useState(true);
+  const [isSavingPayout, setIsSavingPayout] = useState(false);
+
   // Load user profile data
   useEffect(() => {
     const fetchUserProfile = async () => {
@@ -134,6 +152,9 @@ export default function SettingsPage() {
             linkedin: "",
             facebook: "",
           });
+          setPayoutAddresses(data.cryptoPayoutAddresses || []);
+          setShowAddForm(data.cryptoPayoutAddresses?.length === 0);
+          setIsLoadingCryptoAddresses(false);
           setMemberSince(new Date().toLocaleString('en-US', { 
             month: 'short', 
             day: 'numeric',
@@ -440,6 +461,96 @@ export default function SettingsPage() {
     return SOCIAL_PLATFORMS.filter(platform => socialLinks[platform.key]);
   };
 
+  // Crypto Payout Settings functions
+  const truncateAddress = (address: string) => {
+    if (!address) return '';
+    return `${address.slice(0, 6)}...${address.slice(-4)}`;
+  };
+
+  const handleAddNew = () => {
+    setEditingId(null);
+    setWalletAddress("");
+    setShowAddForm(true);
+  };
+
+  const handleEdit = (item: any) => {
+    setEditingId(item.id);
+    setSelectedCrypto(item.crypto);
+    setWalletAddress(item.address);
+    setShowAddForm(true);
+  };
+
+  const handleDelete = async (id: string) => {
+    try {
+      console.log('Deleting address with id:', id);
+      const response = await fetch(`/api/crypto-payout-addresses?id=${id}`, {
+        method: 'DELETE',
+      });
+
+      console.log('Delete response status:', response.status);
+      const data = await response.json();
+      console.log('Delete response data:', data);
+
+      if (data) {
+        setPayoutAddresses(data.payoutAddresses);
+        toast.success('Crypto address deleted successfully');
+      } else {
+        toast.error(data.error || 'Failed to delete crypto address');
+      }
+    } catch (error) {
+      console.error('Error deleting crypto address:', error);
+      toast.error('Failed to delete crypto address');
+    }
+  };
+
+  const handleSavePayoutAddress = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!walletAddress.trim()) {
+      toast.error('Please enter a wallet address');
+      return;
+    }
+
+    setIsSavingPayout(true);
+
+    try {
+      const endpoint = editingId ? '/api/crypto-payout-addresses' : '/api/crypto-payout-addresses';
+      const method = editingId ? 'PUT' : 'POST';
+
+      console.log('Saving crypto address:', { editingId, crypto: selectedCrypto, address: walletAddress });
+
+      const response = await fetch(endpoint, {
+        method,
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          id: editingId,
+          crypto: selectedCrypto,
+          address: walletAddress,
+        }),
+      });
+
+      console.log('Save response status:', response.status);
+      const data = await response.json();
+      console.log('Save response data:', data);
+
+      if (data) {
+        setPayoutAddresses(data.payoutAddresses);
+        toast.success(editingId ? 'Crypto address updated successfully' : 'Crypto address added successfully');
+        setShowAddForm(false);
+        setEditingId(null);
+        setWalletAddress("");
+      } else {
+        toast.error(data.error || 'Failed to save crypto address');
+      }
+    } catch (error) {
+      console.error('Error saving crypto address:', error);
+      toast.error('Failed to save crypto address');
+    } finally {
+      setIsSavingPayout(false);
+    }
+  };
+
   return (
     <div className="flex h-screen overflow-hidden bg-background text-foreground font-sans">
       <UserSidebar />
@@ -712,6 +823,181 @@ export default function SettingsPage() {
                       </div>
                     </div>
                   </form>
+                )}
+
+                {/* Crypto Payout Settings */}
+                {isLoadingCryptoAddresses ? (
+                  <div className="bg-card rounded-2xl shadow-lg border border-border p-6">
+                    <div className="flex items-center gap-2 mb-6">
+                      <div className="w-4 h-4 bg-muted rounded animate-pulse" />
+                      <div className="h-4 w-32 bg-muted rounded animate-pulse" />
+                    </div>
+                    <div className="space-y-3">
+                      {[1, 2].map((i) => (
+                        <div key={i} className="flex items-center justify-between bg-muted/30 border border-border rounded-xl p-4">
+                          <div className="flex items-center gap-4">
+                            <div className="w-10 h-10 bg-muted rounded-lg animate-pulse" />
+                            <div className="space-y-2">
+                              <div className="h-4 w-24 bg-muted rounded animate-pulse" />
+                              <div className="h-3 w-32 bg-muted rounded animate-pulse" />
+                            </div>
+                          </div>
+                          <div className="flex gap-2">
+                            <div className="w-8 h-8 bg-muted rounded animate-pulse" />
+                            <div className="w-8 h-8 bg-muted rounded animate-pulse" />
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                ) : (
+                  <div className="bg-card rounded-2xl shadow-lg border border-border p-6">
+                    <div className="flex items-center justify-between mb-6">
+                      <h3 className="text-sm font-black uppercase tracking-widest flex items-center gap-2">
+                        <Wallet className="w-4 h-4 text-green-500" /> Crypto Payout Settings
+                      </h3>
+                      {payoutAddresses.length > 0 && (
+                        <button
+                          onClick={handleAddNew}
+                          className="flex items-center cursor-pointer gap-2 text-sm font-bold text-green-500 hover:text-green-500/80 transition-colors"
+                        >
+                          <Plus className="w-4 h-4" /> Add New
+                        </button>
+                      )}
+                    </div>
+
+                    {/* Saved Addresses - Always Visible Icons */}
+                    {payoutAddresses.length > 0 && (
+                      <div className="space-y-3 mb-8">
+                        {payoutAddresses.map((item) => (
+                          <div key={item.id} className="flex items-center justify-between bg-muted/30 border border-border rounded-xl p-4">
+                            <div className="flex items-center gap-4">
+                              <div className="w-10 h-10 rounded-lg bg-background border flex items-center justify-center">
+                                <img src={item.crypto.icon} alt={item.crypto.name} className="w-6 h-6" />
+                              </div>
+                              <div>
+                                <div className="font-bold text-sm flex items-center gap-2">
+                                  {item.crypto.name}
+                                  <span className="text-xs text-muted-foreground font-mono">({item.crypto.symbol})</span>
+                                </div>
+                                <div className="font-mono text-xs text-muted-foreground">
+                                  {truncateAddress(item.address)}
+                                </div>
+                              </div>
+                            </div>
+
+                            <div className="flex items-center gap-3">
+                              <button
+                                onClick={() => handleEdit(item)}
+                                className="p-2 text-muted-foreground cursor-pointer hover:text-foreground transition-colors"
+                              >
+                                <Edit2 className="w-4 h-4" />
+                              </button>
+                              <button
+                                onClick={() => handleDelete(item.id)}
+                                className="p-2 text-muted-foreground cursor-pointer hover:text-destructive transition-colors"
+                              >
+                                <Trash2 className="w-4 h-4" />
+                              </button>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+
+                    {/* Add / Edit Form */}
+                    {showAddForm && (
+                      <form onSubmit={handleSavePayoutAddress} className="space-y-5 border-t border-border pt-6">
+                        <div className="space-y-1">
+                          <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Payout Currency</label>
+                          <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                              <button type="button" className="w-full flex cursor-pointer items-center justify-between gap-3 bg-muted/30 border border-border rounded-xl px-4 py-3 text-sm hover:bg-muted/50 transition-colors">
+                                <div className="flex items-center gap-3">
+                                  <div className="w-8 h-8 rounded-full bg-background border flex items-center justify-center">
+                                    <img src={selectedCrypto.icon} alt={selectedCrypto.name} className="w-11" />
+                                  </div>
+                                  <span className="font-bold">{selectedCrypto.name}</span>
+                                  <span className="text-xs text-muted-foreground font-bold uppercase tracking-wide">{selectedCrypto.symbol}</span>
+                                </div>
+                                <ChevronDown className="w-4 h-4 text-muted-foreground" />
+                              </button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent className="w-full min-w-[240px]">
+                              {SUPPORTED_CRYPTOS.map((coin) => (
+                                <DropdownMenuItem key={coin.symbol} onClick={() => setSelectedCrypto(coin)} className="flex items-center gap-3 cursor-pointer">
+                                  <img src={coin.icon} alt={coin.name} className="w-6 h-6" />
+                                  <span className="font-bold">{coin.name}</span>
+                                  <span className="ml-auto text-xs text-muted-foreground">({coin.symbol})</span>
+                                </DropdownMenuItem>
+                              ))}
+                            </DropdownMenuContent>
+                          </DropdownMenu>
+                        </div>
+
+                        <div className="space-y-1">
+                          <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">
+                            {selectedCrypto.symbol} Wallet Address
+                          </label>
+                          <div className="relative">
+                            <Wallet className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                            <input
+                              type="text"
+                              value={walletAddress}
+                              onChange={(e) => setWalletAddress(e.target.value)}
+                              placeholder={`Enter ${selectedCrypto.symbol} wallet address`}
+                              className="w-full bg-muted/30 border border-border rounded-xl pl-10 pr-4 py-3 text-sm focus:ring-2 ring-primary/20 outline-none font-mono"
+                            />
+                          </div>
+                           <p className="text-[10px] text-muted-foreground mt-1">
+                      Make sure to double-check your address. Payouts sent to wrong addresses cannot be recovered.
+                    </p>
+                        </div>
+
+                        <div className="flex gap-3 pt-2">
+                          <button
+                            type="submit"
+                            disabled={isSavingPayout}
+                            className="flex-1 bg-green-500 cursor-pointer text-white py-3 rounded-xl font-bold text-sm hover:bg-green-500/90 disabled:opacity-50 flex items-center justify-center gap-2"
+                          >
+                            {isSavingPayout ? (
+                              <>
+                                <Loader2 className="w-4 h-4 cursor-pointer animate-spin" /> Saving...
+                              </>
+                            ) : editingId ? (
+                              "Update Address"
+                            ) : (
+                              "Add Wallet Address"
+                            )}
+                          </button>
+
+                          {editingId && (
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setShowAddForm(false);
+                                setEditingId(null);
+                                setWalletAddress("");
+                              }}
+                              className="flex-1 border border-border cursor-pointer py-3 rounded-xl font-bold text-sm hover:bg-muted"
+                            >
+                              Cancel
+                            </button>
+                          )}
+                        </div>
+                      </form>
+                    )}
+
+                    {!showAddForm && payoutAddresses.length === 0 && (
+                      <button
+                        onClick={handleAddNew}
+                        className="w-full py-6 border border-dashed border-border rounded-2xl text-muted-foreground hover:text-foreground hover:border-green-500 transition-colors flex flex-col items-center gap-2"
+                      >
+                        <Plus className="w-8 h-8" />
+                        <span className="font-bold">Add your first payout address</span>
+                      </button>
+                    )}
+                  </div>
                 )}
 
                 {/* Notifications */}
