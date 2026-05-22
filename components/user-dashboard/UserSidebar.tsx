@@ -88,7 +88,7 @@ export default function UserSidebar() {
   return (
     <>
       {/* Desktop Sidebar */}
-      <aside className="hidden md:flex w-75 border-r h-screen sticky top-0 bg-background flex-col shadow-xl">
+      <aside className="hidden md:flex w-70 border-r h-screen sticky top-0 bg-background flex-col shadow-xl">
         {/* Header */}
         <div className="flex-shrink-0 flex items-center justify-between h-15 px-6 border-b border-border">
           <div className="flex flex-col">
@@ -293,12 +293,6 @@ function SidebarNavItems({
       href: "#",
       color: "text-green-500",
     },
-    // {
-    //   name: "Rewards",
-    //   icon: PartyPopper,
-    //   href: `${basePath}/rewards`,
-    //   color: "text-green-500",
-    // },
     {
       name: "Community",
       icon: Users,
@@ -310,12 +304,7 @@ function SidebarNavItems({
           href: `${basePath}/rewards`,
           color: "text-green-500",
         },
-        {
-          name: "Achievements",
-          icon: Gem,
-          href: `${basePath}/achievements`,
-          color: "text-green-500",
-        },
+        { name: "Referrals", icon: Users, href: `#` },
         {
           name: "Leaderboard",
           icon: Trophy,
@@ -325,10 +314,15 @@ function SidebarNavItems({
         {
           name: "Testimonials",
           icon: Crown,
-          href: "#",
+          href: `${basePath}/testimonials`,
           color: "text-green-500",
         },
-        { name: "Referrals", icon: Users, href: `#` },
+        {
+          name: "Achievements",
+          icon: Gem,
+          href: `${basePath}/achievements`,
+          color: "text-green-500",
+        },
       ],
     },
     {
@@ -336,12 +330,6 @@ function SidebarNavItems({
       icon: Settings,
       color: "text-green-500",
       children: [
-        // {
-        //   name: "Notifications",
-        //   icon: Bell,
-        //   href: "#",
-        //   color: "text-green-500",
-        // },
         {
           name: "User Profile",
           icon: Users,
@@ -360,12 +348,6 @@ function SidebarNavItems({
           href: "#",
           color: "text-green-500",
         },
-        // {
-        //   name: "Active Support 24/7",
-        //   icon: HeadphonesIcon,
-        //   href: "#",
-        //   color: "text-green-500",
-        // },
         ...(isAdmin
           ? [
               {
