@@ -14,13 +14,14 @@ export async function GET(req: NextRequest) {
     const searchParams = req.nextUrl.searchParams;
     const query = searchParams.get('q');
 
-    if (!query || query.trim().length < 2) {
+    if (!query || query.trim().length < 1) {
       return NextResponse.json({ success: true, users: [] });
     }
 
     await mongoose.connect(process.env.MONGODB_URI!);
 
     // Search users by email or username, excluding current user
+    // Match anywhere in the string (not just start)
     const users = await User.find({
       $and: [
         { _id: { $ne: session.user.id } },
@@ -36,6 +37,9 @@ export async function GET(req: NextRequest) {
     })
     .select('_id name email username avatarUrl')
     .limit(10);
+
+    console.log('Search query:', query);
+    console.log('Found users:', users.length);
 
     const formattedUsers = users.map(user => ({
       id: user._id.toString(),
