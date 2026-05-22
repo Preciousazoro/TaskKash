@@ -21,7 +21,7 @@ import { toast } from "react-toastify";
 // Navigation Imports
 import UserSidebar from "@/components/user-dashboard/UserSidebar";
 import UserHeader from "@/components/user-dashboard/UserHeader";
-import { ContentOnlySkeleton } from "@/components/ui/LoadingSkeleton";
+import TaskVerificationSkeleton from "@/components/LoadingSkeleton/TaskVerificationSkeleton";
 
 export default function TaskVerificationPage() {
   const { taskId } = useParams<{ taskId: string }>();
@@ -214,15 +214,7 @@ export default function TaskVerificationPage() {
   };
 
   if (isLoading) {
-    return (
-      <div className="flex min-h-screen bg-background text-foreground transition-colors duration-300">
-        <UserSidebar />
-        <div className="flex-1 flex flex-col h-screen overflow-hidden">
-          <UserHeader />
-          <ContentOnlySkeleton />
-        </div>
-      </div>
-    );
+    return <TaskVerificationSkeleton />;
   }
 
   return (

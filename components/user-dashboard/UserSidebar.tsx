@@ -293,21 +293,21 @@ function SidebarNavItems({
       href: "#",
       color: "text-green-500",
     },
-    {
-      name: "Rewards",
-      icon: Gift,
-      href: `${basePath}/rewards`,
-      color: "text-green-500",
-    },
+    // {
+    //   name: "Rewards",
+    //   icon: PartyPopper,
+    //   href: `${basePath}/rewards`,
+    //   color: "text-green-500",
+    // },
     {
       name: "Community",
       icon: Users,
       color: "text-green-500",
       children: [
         {
-          name: "Daily Streak",
+          name: "Rewards",
           icon: PartyPopper,
-          href: `#`,
+          href: `${basePath}/rewards`,
           color: "text-green-500",
         },
         {
@@ -336,12 +336,12 @@ function SidebarNavItems({
       icon: Settings,
       color: "text-green-500",
       children: [
-        {
-          name: "Notifications",
-          icon: Bell,
-          href: "#",
-          color: "text-green-500",
-        },
+        // {
+        //   name: "Notifications",
+        //   icon: Bell,
+        //   href: "#",
+        //   color: "text-green-500",
+        // },
         {
           name: "User Profile",
           icon: Users,

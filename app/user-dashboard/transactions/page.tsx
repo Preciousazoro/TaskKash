@@ -29,8 +29,8 @@ import UserSidebar from "@/components/user-dashboard/UserSidebar";
 import UserHeader from "@/components/user-dashboard/UserHeader";
 import TransactionCard, { Transaction, TransactionType } from "@/components/transactions/TransactionCard";
 import WithdrawalCard, { Withdrawal } from "@/components/withdrawal/WithdrawalCard";
-import { ContentOnlySkeleton } from "@/components/ui/LoadingSkeleton";
 import WithdrawalModal from "@/components/withdrawal/WithdrawalModal";
+import TransactionsSkeleton from "@/components/LoadingSkeleton/TransactionsSkeleton";
 import UserNav from "@/components/user-dashboard/UserNav";
 
 // ─── Types ─────────────────────────────────────────────────────────────
@@ -402,17 +402,7 @@ export default function TransactionsPage() {
   );
 
   if (isLoading) {
-    return (
-      <div className="flex h-screen overflow-hidden bg-background font-sans">
-        <UserSidebar />
-
-        <div className="flex-1 flex flex-col overflow-hidden text-foreground">
-          <UserHeader />
-
-          <ContentOnlySkeleton />
-        </div>
-      </div>
-    );
+    return <TransactionsSkeleton />;
   }
 
   return (

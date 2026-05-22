@@ -21,8 +21,8 @@ import { toast } from 'react-toastify';
 // Import your navigation components
 import UserSidebar from "@/components/user-dashboard/UserSidebar";
 import UserHeader from "@/components/user-dashboard/UserHeader";
-import { ContentOnlySkeleton } from "@/components/ui/LoadingSkeleton";
 import { useApi, useApiCall } from "@/hooks/useApi";
+import ProfileSkeleton from "@/components/LoadingSkeleton/ProfileSkeleton";
 
 // UI Components
 import {
@@ -274,20 +274,7 @@ export default function ProfilePage() {
   };
 
   if (isLoading) {
-    return (
-      <div className="flex min-h-screen bg-background text-foreground transition-colors duration-300">
-        {/* Sidebar */}
-        <UserSidebar />
-
-        <div className="flex-1 flex flex-col h-screen overflow-hidden">
-          {/* Header */}
-          <UserHeader />
-
-          {/* Content Skeleton */}
-          <ContentOnlySkeleton />
-        </div>
-      </div>
-    );
+    return <ProfileSkeleton />;
   }
 
   return (
