@@ -1,7 +1,7 @@
 {
   "name": "TaskKash",
   "short_name": "TaskKash",
-  "description": "Earn rewards by completing tasks",
+  "description": "Complete simple tasks, level up your profile with XP, and convert your earnings directly into cash rewards.",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#000000",
@@ -19,6 +19,14 @@
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "any maskable"
+    }
+  ],
+  "screenshots": [
+    {
+      "src": "/3-markup.png",
+      "sizes": "1920x1080",
+      "type": "image/png",
+      "form_factor": "wide"
     }
   ]
 }

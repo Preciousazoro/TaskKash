@@ -42,7 +42,7 @@ export default function InstallAppSection() {
   };
 
   return (
-    <section className="mx-auto max-w-[1400px] px-4 lg:px-8 py-10 w-full">
+    <section className="mx-auto max-w-[1400px] px-4 lg:px-8 pb-30 w-full">
       <div className="relative overflow-hidden rounded-[1.5rem] bg-primary px-6 py-10 md:px-12 md:py-10">
         
         {/* Background Image / Mockup */}

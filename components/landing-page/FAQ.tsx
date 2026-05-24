@@ -65,7 +65,7 @@ function FAQItem({
     <div
       className={`group transition-all duration-300 rounded-[1rem] border ${
         isOpen
-          ? "bg-card border-emerald-500/50 shadow-xl shadow-emerald-500/5"
+          ? "bg-card border-emerald-500/50"
           : "bg-secondary/30 border-border hover:border-emerald-500/30 dark:hover:border-emerald-400/30"
       }`}
     >
@@ -74,7 +74,7 @@ function FAQItem({
         className="w-full flex items-center cursor-pointer justify-between p-6 text-left"
       >
         <span
-          className={`text-sm md:text-base font-bold uppercase tracking-tight ${
+          className={`text-sm md:text-sm font-bold uppercase tracking-tight ${
             isOpen ? "text-emerald-600 dark:text-emerald-400" : "text-foreground"
           }`}
         >

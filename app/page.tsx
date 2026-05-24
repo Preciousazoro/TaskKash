@@ -22,7 +22,7 @@ export default function HomePage() {
       <Payout />
       <Participation />
       <Engagement />
-      <NumbersThatSpeaks />
+      {/* <NumbersThatSpeaks /> */}
       <FAQ />
       <LaunchCampaign />
       <TaskKashFooter />

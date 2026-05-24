@@ -75,7 +75,7 @@ function FeatureItem({
         >
           {title}
         </h3>
-        <p className="text-muted-foreground text-sm leading-relaxed max-w-[280px] font-light">
+        <p className="text-muted-foreground text-sm leading-relaxed max-w-[280px] font-semibold">
           {desc}
         </p>
       </div>
