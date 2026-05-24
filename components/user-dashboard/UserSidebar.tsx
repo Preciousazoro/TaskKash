@@ -17,7 +17,7 @@ import {
   Wallet,
   LayoutDashboard,
   History,
-  Gift,
+  Gift, 
   X,
   LogOut,
   ChevronDown,

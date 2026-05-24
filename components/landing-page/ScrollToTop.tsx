@@ -34,11 +34,10 @@ export default function ScrollToTop() {
       onClick={scrollToTop}
       className="
         fixed bottom-8 right-6 z-[60]      
-        bg-linear-to-r from-emerald-500 to-purple-600 
+        bg-emerald-500
         text-white
         w-12 h-12 rounded-xl
         flex items-center justify-center
-        shadow-[0_0_20px_rgba(16,185,129,0.3)]
         hover:scale-110 hover:-translate-y-1 active:scale-95
         transition-all duration-300 cursor-pointer
         group

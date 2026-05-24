@@ -3,10 +3,13 @@
 import React, { useState, useEffect, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import Link from "next/link";
-import { Lock, Eye, EyeOff, CheckCircle2, Loader2, AlertCircle, ArrowLeft } from "lucide-react";
+import { Eye, EyeOff, Loader2, AlertCircle, CheckCircle2, ArrowLeft } from "lucide-react";
 import { toast } from 'react-toastify';
+import TaskKashFooter from "@/components/landing-page/TaskKashFooter";
 
 function ResetPasswordContent() {
   const [password, setPassword] = useState("");
@@ -27,7 +30,6 @@ function ResetPasswordContent() {
       return;
     }
 
-    // Validate token
     const validateToken = async () => {
       try {
         const response = await fetch(`/api/auth/validate-reset-token?token=${token}`);
@@ -98,207 +100,227 @@ function ResetPasswordContent() {
     }
   };
 
-  // Loading state while validating token
+  // 1. LOADING STATE
   if (isTokenValid === null) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-background text-foreground px-4">
-        <div className="text-center">
-          <Loader2 className="w-8 h-8 animate-spin mx-auto mb-4" />
-          <p className="text-muted-foreground">Validating reset link...</p>
-        </div>
+      <div className="min-h-screen flex flex-col bg-background text-foreground">
+        <main className="flex-grow flex items-center justify-center px-3 py-10 p-6 md:p-10 transition-colors duration-300 mb-15">
+          <div className="w-full max-w-sm md:max-w-[450px] overflow-hidden">
+            <Card className="overflow-hidden bg-card border border-border rounded-3xl shadow-lg">
+              <CardContent className="p-6 md:p-8 flex flex-col items-center text-center justify-center min-h-[300px]">
+                <Loader2 className="w-8 h-8 animate-spin text-muted-foreground mb-4" />
+                <p className="text-muted-foreground">Validating reset link...</p>
+              </CardContent>
+            </Card>
+          </div>
+        </main>
+        <TaskKashFooter />
       </div>
     );
   }
 
-  // Invalid token state
+  // 2. INVALID TOKEN STATE
   if (isTokenValid === false) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-background text-foreground px-4">
-        <div className="absolute inset-0 bg-linear-to-tr from-[#00ff9d0a] via-transparent to-[#8a2be20a] pointer-events-none"></div>
-        
-        <div className="relative w-full max-w-md space-y-6">
-          <div className="text-center">
-            <div className="flex items-center justify-center w-16 h-16 bg-red-500/10 rounded-full mx-auto mb-4">
-              <AlertCircle className="w-8 h-8 text-red-500" />
-            </div>
-            <h1 className="text-2xl font-semibold mb-2">Invalid Reset Link</h1>
-            <p className="text-muted-foreground text-sm mb-6">
-              This password reset link is invalid or has expired.<br />
-              Please request a new one.
-            </p>
-          </div>
+      <div className="min-h-screen flex flex-col bg-background text-foreground">
+        <main className="flex-grow flex items-center justify-center px-3 py-10 p-6 md:p-10 transition-colors duration-300 mb-15">
+          <div className="w-full max-w-sm md:max-w-[450px] overflow-hidden">
+            <Card className="overflow-hidden bg-card border border-border rounded-3xl shadow-lg">
+              <CardContent className="p-6 md:p-8 flex flex-col gap-6">
+                <div className="flex flex-col items-center text-center">
+                  <div className="flex items-center justify-center w-14 h-14 bg-red-500/10 rounded-full mb-4">
+                    <AlertCircle className="w-7 h-7 text-red-500" />
+                  </div>
+                  <h1 className="text-2xl font-bold">Invalid Reset Link</h1>
+                  <p className="text-balance text-muted-foreground text-sm mt-1">
+                    This password reset link is invalid or has expired. Please request a new one.
+                  </p>
+                </div>
 
-          <div className="space-y-3">
-            <Link href="/auth/forgot-password">
-              <Button className="w-full bg-linear-to-r from-[#00ff9d] to-[#8a2be2] text-white font-bold hover:opacity-90 transition-all shadow-lg shadow-primary/20 h-11">
-                Request New Reset Link
-              </Button>
-            </Link>
-            
-            <Link href="/auth/login">
-              <Button
-                variant="ghost"
-                className="w-full text-muted-foreground hover:text-primary transition-colors"
-              >
-                <ArrowLeft className="w-4 h-4 mr-2" />
-                Back to Login
-              </Button>
-            </Link>
+                <div className="flex flex-col gap-3">
+                  <Link href="/auth/forgot-password" passHref legacyBehavior>
+                    <Button asChild className="w-full p-5 bg-emerald-500 hover:bg-emerald-600 font-semibold text-white text-[15px] font-medium cursor-pointer">
+                      <a>Request New Reset Link</a>
+                    </Button>
+                  </Link>
+                  
+                  <Link href="/auth/login" passHref legacyBehavior>
+                    <Button asChild variant="outline" className="w-full h-11 cursor-pointer">
+                      <a>
+                        <ArrowLeft className="w-4 h-4 mr-2" />
+                        Back to Login
+                      </a>
+                    </Button>
+                  </Link>
+                </div>
+              </CardContent>
+            </Card>
           </div>
-        </div>
+        </main>
+        <TaskKashFooter />
       </div>
     );
   }
 
-  // Success state
+  // 3. SUCCESS STATE
   if (isSuccess) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-background text-foreground px-4">
-        <div className="absolute inset-0 bg-linear-to-tr from-[#00ff9d0a] via-transparent to-[#8a2be20a] pointer-events-none"></div>
-        
-        <div className="relative w-full max-w-md space-y-6">
-          <div className="text-center">
-            <div className="flex items-center justify-center w-16 h-16 bg-green-500/10 rounded-full mx-auto mb-4">
-              <CheckCircle2 className="w-8 h-8 text-green-500" />
-            </div>
-            <h1 className="text-2xl font-semibold mb-2">Password Reset Successful</h1>
-            <p className="text-muted-foreground text-sm mb-6">
-              Your password has been successfully reset.<br />
-              You can now log in with your new password.
-            </p>
-          </div>
+      <div className="min-h-screen flex flex-col bg-background text-foreground">
+        <main className="flex-grow flex items-center justify-center px-3 py-10 p-6 md:p-10 transition-colors duration-300 mb-15">
+          <div className="w-full max-w-sm md:max-w-[450px] overflow-hidden">
+            <Card className="overflow-hidden bg-card border border-border rounded-3xl shadow-lg">
+              <CardContent className="p-6 md:p-8 flex flex-col gap-6">
+                <div className="flex flex-col items-center text-center">
+                  <div className="flex items-center justify-center w-14 h-14 bg-green-500/10 rounded-full mb-4">
+                    <CheckCircle2 className="w-7 h-7 text-green-500" />
+                  </div>
+                  <h1 className="text-2xl font-bold">Success!</h1>
+                  <p className="text-balance text-muted-foreground text-sm mt-1">
+                    Your password has been successfully reset. You can now log in with your new credentials.
+                  </p>
+                </div>
 
-          <Link href="/auth/login">
-            <Button className="w-full bg-linear-to-r from-[#00ff9d] to-[#8a2be2] text-white font-bold hover:opacity-90 transition-all shadow-lg shadow-primary/20 h-11">
-              Continue to Login
-            </Button>
-          </Link>
-        </div>
+                <Link href="/auth/login" passHref legacyBehavior>
+                  <Button asChild className="w-full p-5 bg-emerald-500 hover:bg-emerald-600 text-white font-semibold text-[15px] font-medium cursor-pointer">
+                    <a>Continue to Login</a>
+                  </Button>
+                </Link>
+              </CardContent>
+            </Card>
+          </div>
+        </main>
+        <TaskKashFooter />
       </div>
     );
   }
 
-  // Reset password form
+  // 4. RESET PASSWORD FORM ENTRY STATE
   return (
-    <div className="min-h-screen flex items-center justify-center bg-background text-foreground px-4">
-      <div className="absolute inset-0 bg-linear-to-tr from-[#00ff9d0a] via-transparent to-[#8a2be20a] pointer-events-none"></div>
+    <div className="min-h-screen flex flex-col bg-background text-foreground">
       
-      <div className="relative w-full max-w-md space-y-6">
-        {/* Logo Section */}
-        <div className="text-center mb-6">
-          <div className="flex items-center justify-center gap-2 mb-4">
-            <img
-              src="/taskkash-logo.png"
-              alt="TaskKash Logo"
-              className="w-12 h-12 object-contain"
-            />
-            <span className="text-xl font-bold bg-linear-to-r from-[#00ff9d] to-[#8a2be2] bg-clip-text text-transparent">
-              Taskkash
-            </span>
+      <main className="flex-grow flex items-center justify-center px-3 py-10 p-6 md:p-10 transition-colors duration-300 mb-15">
+        <div className="w-full max-w-sm md:max-w-[450px] overflow-hidden">
+          <Card className="overflow-hidden bg-card border border-border rounded-3xl shadow-lg">
+            <CardContent className="p-0">
+              <form className="p-6 md:p-8" onSubmit={handleSubmit}>
+                <div className="flex flex-col gap-6">
+                  
+                  {/* Header / Logo Section */}
+                  <div className="flex flex-col items-center text-center">
+                    <h1 className="text-2xl font-bold">Reset Password</h1>
+                    <p className="text-balance text-muted-foreground text-sm">
+                      Enter your new account password below
+                    </p>
+                  </div>
+
+                  {/* New Password Input Field */}
+                  <div className="grid gap-2">
+                    <Label htmlFor="password">New Password</Label>
+                    <div className="relative">
+                      <Input
+                        id="password"
+                        name="password"
+                        type={showPassword ? "text" : "password"}
+                        placeholder="Enter new password"
+                        value={password}
+                        onChange={(e) => setPassword(e.target.value)}
+                        className="p-5 text-[15px] pr-12"
+                        disabled={isLoading}
+                        required
+                        minLength={6}
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setShowPassword((prev) => !prev)}
+                        className="absolute inset-y-0 cursor-pointer right-3 flex items-center text-muted-foreground hover:text-foreground focus:outline-none"
+                        tabIndex={-1}
+                      >
+                        {showPassword ? (
+                          <EyeOff className="h-5 w-5" />
+                        ) : (
+                          <Eye className="h-5 w-5" />
+                        )}
+                      </button>
+                    </div>
+                    {password && (
+                      <p className={`text-xs ${validatePassword(password) ? 'text-green-500' : 'text-red-500'}`}>
+                        {validatePassword(password) ? '✓ Password is valid' : 'Password must be at least 6 characters'}
+                      </p>
+                    )}
+                  </div>
+
+                  {/* Confirm Password Input Field */}
+                  <div className="grid gap-2">
+                    <Label htmlFor="confirmPassword">Confirm New Password</Label>
+                    <div className="relative">
+                      <Input
+                        id="confirmPassword"
+                        name="confirmPassword"
+                        type={showConfirmPassword ? "text" : "password"}
+                        placeholder="Confirm new password"
+                        value={confirmPassword}
+                        onChange={(e) => setConfirmPassword(e.target.value)}
+                        className="p-5 text-[15px] pr-12"
+                        disabled={isLoading}
+                        required
+                        minLength={6}
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setShowConfirmPassword((prev) => !prev)}
+                        className="absolute inset-y-0 cursor-pointer right-3 flex items-center text-muted-foreground hover:text-foreground focus:outline-none"
+                        tabIndex={-1}
+                      >
+                        {showConfirmPassword ? (
+                          <EyeOff className="h-5 w-5" />
+                        ) : (
+                          <Eye className="h-5 w-5" />
+                        )}
+                      </button>
+                    </div>
+                    {confirmPassword && (
+                      <p className={`text-xs ${password === confirmPassword ? 'text-green-500' : 'text-red-500'}`}>
+                        {password === confirmPassword ? '✓ Passwords match' : 'Passwords do not match'}
+                      </p>
+                    )}
+                  </div>
+
+                  {/* Submit Button */}
+                  <Button 
+                    type="submit" 
+                    disabled={isLoading || !validatePassword(password) || password !== confirmPassword}
+                    className="w-full p-5 bg-emerald-500 hover:bg-emerald-600 font-semibold text-white text-[15px] font-medium cursor-pointer"
+                  >
+                    {isLoading ? (
+                      <>
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        Resetting Password...
+                      </>
+                    ) : (
+                      'Reset Password'
+                    )}
+                  </Button>
+
+                  {/* Back to Login Link */}
+                  <div className="text-center text-sm mt-2">
+                    <Link href="/auth/login" className="inline-flex items-center underline underline-offset-4 text-muted-foreground hover:text-foreground font-medium transition">
+                      <ArrowLeft className="w-4 h-4 mr-1" /> Back to Login
+                    </Link>
+                  </div>
+                </div>
+              </form>
+            </CardContent>
+          </Card>
+
+          {/* Bottom Legal Copy */}
+          <div className="mt-6 text-balance text-center text-xs text-muted-foreground [&_a]:underline [&_a]:underline-offset-4 hover:[&_a]:text-primary">
+            By clicking continue, you agree to our{" "}
+            <Link href="#">Terms of Service</Link> and <Link href="#">Privacy Policy</Link>.
           </div>
-          <h1 className="text-2xl font-semibold mb-1">Reset Password</h1>
-          <p className="text-muted-foreground text-sm">
-            Enter your new password below
-          </p>
         </div>
-
-        {/* Reset Password Form */}
-        <form
-          onSubmit={handleSubmit}
-          className="bg-card border border-border rounded-2xl p-6 space-y-5 shadow-xl"
-        >
-          {/* New Password */}
-          <div>
-            <label className="block text-sm font-medium mb-2 text-muted-foreground">
-              New Password
-            </label>
-            <div className="relative">
-              <Lock className="absolute left-3 top-[10px] w-4 h-4 text-muted-foreground" />
-              <Input
-                type={showPassword ? "text" : "password"}
-                placeholder="Enter new password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                className="bg-background border-border text-foreground placeholder:text-muted-foreground rounded-lg focus-visible:ring-1 focus-visible:ring-primary transition-all pl-10 pr-10"
-                required
-                minLength={6}
-              />
-              <button
-                type="button"
-                onClick={() => setShowPassword(!showPassword)}
-                className="absolute right-3 top-[10px] text-muted-foreground hover:text-primary transition"
-                tabIndex={-1}
-              >
-                {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-              </button>
-            </div>
-            {password && (
-              <p className={`text-xs mt-1 ${validatePassword(password) ? 'text-green-500' : 'text-red-500'}`}>
-                {validatePassword(password) ? '✓ Password is valid' : 'Password must be at least 6 characters'}
-              </p>
-            )}
-          </div>
-
-          {/* Confirm Password */}
-          <div>
-            <label className="block text-sm font-medium mb-2 text-muted-foreground">
-              Confirm New Password
-            </label>
-            <div className="relative">
-              <Lock className="absolute left-3 top-[10px] w-4 h-4 text-muted-foreground" />
-              <Input
-                type={showConfirmPassword ? "text" : "password"}
-                placeholder="Confirm new password"
-                value={confirmPassword}
-                onChange={(e) => setConfirmPassword(e.target.value)}
-                className="bg-background border-border text-foreground placeholder:text-muted-foreground rounded-lg focus-visible:ring-1 focus-visible:ring-primary transition-all pl-10 pr-10"
-                required
-                minLength={6}
-              />
-              <button
-                type="button"
-                onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                className="absolute right-3 top-[10px] text-muted-foreground hover:text-primary transition"
-                tabIndex={-1}
-              >
-                {showConfirmPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-              </button>
-            </div>
-            {confirmPassword && (
-              <p className={`text-xs mt-1 ${password === confirmPassword ? 'text-green-500' : 'text-red-500'}`}>
-                {password === confirmPassword ? '✓ Passwords match' : 'Passwords do not match'}
-              </p>
-            )}
-          </div>
-
-          {/* Submit Button */}
-          <Button
-            type="submit"
-            disabled={isLoading || !validatePassword(password) || password !== confirmPassword}
-            className="w-full bg-linear-to-r from-[#00ff9d] to-[#8a2be2] text-white font-bold hover:opacity-90 transition-all shadow-lg shadow-primary/20 h-11"
-          >
-            {isLoading ? (
-              <>
-                <Loader2 className="w-5 h-5 animate-spin mr-2" />
-                Resetting Password...
-              </>
-            ) : (
-              "Reset Password"
-            )}
-          </Button>
-
-          {/* Back to Login */}
-          <div className="text-center">
-            <Link
-              href="/auth/login"
-              className="inline-flex items-center text-sm text-muted-foreground hover:text-primary transition"
-            >
-              <ArrowLeft className="w-4 h-4 mr-1" />
-              Back to Login
-            </Link>
-          </div>
-        </form>
-      </div>
+      </main>
+      
+      <TaskKashFooter />
     </div>
   );
 }
@@ -306,11 +328,18 @@ function ResetPasswordContent() {
 export default function ResetPasswordPage() {
   return (
     <Suspense fallback={
-      <div className="min-h-screen flex items-center justify-center bg-background text-foreground px-4">
-        <div className="text-center">
-          <Loader2 className="w-8 h-8 animate-spin mx-auto mb-4" />
-          <p className="text-muted-foreground">Loading...</p>
-        </div>
+      <div className="min-h-screen flex flex-col bg-background text-foreground">
+        <main className="flex-grow flex items-center justify-center px-3 py-10 p-6 md:p-10 mb-15">
+          <div className="w-full max-w-sm md:max-w-[450px]">
+            <Card className="bg-card border border-border rounded-3xl shadow-lg">
+              <CardContent className="p-6 flex flex-col items-center justify-center min-h-[300px]">
+                <Loader2 className="w-8 h-8 animate-spin text-muted-foreground mb-4" />
+                <p className="text-muted-foreground">Loading...</p>
+              </CardContent>
+            </Card>
+          </div>
+        </main>
+        <TaskKashFooter />
       </div>
     }>
       <ResetPasswordContent />

@@ -1,3 +1,4 @@
+// app/about/page.tsx
 "use client";
 
 import { 
@@ -35,8 +36,8 @@ const jetbrainsMono = JetBrains_Mono({
   weight: ["400", "500"],
 });
 
-import TaskKashHeader from "@/components/ui/TaskKashHeader";
-import TaskKashFooter from "@/components/ui/TaskKashFooter";
+import TaskKashHeader from "@/components/landing-page/TaskKashHeader";
+import TaskKashFooter from "@/components/landing-page/TaskKashFooter";
 
 const stats = [
   { label: "Active Users", value: "10K+", sub: "and growing", icon: <Users className="w-4 h-4" /> },
@@ -139,7 +140,7 @@ const values = [
 export default function AboutPage() {
   return (
     <main
-      className={`${spaceGrotesk.className} min-h-screen bg-white dark:bg-slate-950 text-slate-900 dark:text-slate-100 transition-colors duration-300 overflow-x-hidden`}
+      className={`${spaceGrotesk.className} min-h-screen bg-background text-foreground transition-colors duration-300 overflow-x-hidden`}
     >
       <TaskKashHeader />
 
@@ -171,7 +172,7 @@ export default function AboutPage() {
           </span>
         </h1>
 
-        <p className="mx-auto max-w-2xl text-lg md:text-xl text-slate-500 dark:text-slate-400 leading-relaxed mb-12 text-center px-6">
+        <p className="mx-auto max-w-2xl text-lg md:text-xl text-muted-foreground leading-relaxed mb-12 text-center px-6">
           TaskKash is a Web3 task-to-earn ecosystem built on Solana. We're
           bridging the gap between global brands and real users — where every
           click, follow, and proof of work converts directly into{" "}
@@ -180,22 +181,22 @@ export default function AboutPage() {
 
         {/* Stat bar */}
         <div className="w-full max-w-4xl px-6">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-px bg-slate-200 dark:bg-slate-800 rounded-3xl overflow-hidden border border-slate-200 dark:border-slate-800">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-px bg-emerald-500/10 dark:bg-purple-500/10 rounded-3xl overflow-hidden border border-emerald-500/10 dark:border-purple-500/10 shadow-xl shadow-emerald-500/[0.02]">
             {stats.map((s) => (
               <div
                 key={s.label}
-                className="bg-white dark:bg-slate-950 px-6 py-8 text-center flex flex-col items-center gap-1"
+                className="bg-card px-6 py-8 text-center flex flex-col items-center gap-1"
               >
-                <div className="text-slate-400 dark:text-slate-600 mb-2">{s.icon}</div>
+                <div className="text-emerald-500/60 dark:text-purple-500/60 mb-2">{s.icon}</div>
                 <div
                   className={`${montserrat.className} text-2xl md:text-3xl font-black bg-gradient-to-r from-emerald-500 to-purple-500 bg-clip-text text-transparent`}
                 >
                   {s.value}
                 </div>
-                <div className="text-xs font-bold uppercase tracking-wider text-slate-800 dark:text-slate-200">
+                <div className="text-xs font-bold uppercase tracking-wider text-foreground">
                   {s.label}
                 </div>
-                <div className="text-[10px] text-slate-400 dark:text-slate-500 uppercase tracking-tighter">
+                <div className="text-[10px] text-muted-foreground uppercase tracking-tighter">
                   {s.sub}
                 </div>
               </div>
@@ -217,7 +218,7 @@ export default function AboutPage() {
               A New Economy for <br />
               <span className="text-emerald-500">Digital Attention</span>
             </h2>
-            <p className="text-slate-600 dark:text-slate-400 text-lg leading-relaxed">
+            <p className="text-muted-foreground text-lg leading-relaxed">
               Every day, billions of people scroll, like, follow, and engage — and none of them get paid for it. TaskKash changes that. We're building the infrastructure where brands pay for real engagement, and users earn real crypto for real actions.
             </p>
             <div className="pt-4 flex items-center gap-4 text-sm font-bold uppercase tracking-widest text-emerald-500">
@@ -225,7 +226,8 @@ export default function AboutPage() {
             </div>
           </div>
 
-<div className="hidden md:block rounded-[2.5rem] p-1 shadow-2xl bg-gradient-to-br from-emerald-500/20 to-purple-500/20">            <div className="rounded-[2.4rem] bg-white dark:bg-slate-900 p-8 md:p-12 space-y-4">
+          <div className="hidden md:block rounded-[2.5rem] p-1 shadow-2xl bg-gradient-to-br from-emerald-500/20 to-purple-500/20">
+            <div className="rounded-[2.4rem] bg-card p-8 md:p-12 space-y-4">
               {[
                 { step: "01", label: "Brand posts a campaign", color: "text-emerald-500" },
                 { step: "02", label: "Users complete verified tasks", color: "text-purple-500" },
@@ -234,13 +236,13 @@ export default function AboutPage() {
               ].map((item) => (
                 <div
                   key={item.step}
-                  className="flex items-center gap-5 p-5 rounded-2xl bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-white/5 group hover:scale-[1.02] transition-transform"
+                  className="flex items-center gap-5 p-5 rounded-2xl bg-background border border-emerald-500/10 dark:border-purple-500/10 group hover:scale-[1.02] transition-transform"
                 >
                   <span className={`${jetbrainsMono.className} text-sm font-black ${item.color} w-8`}>
                     {item.step}
                   </span>
-                  <ChevronRight className="w-4 h-4 text-slate-300 dark:text-slate-600" />
-                  <span className="text-sm md:text-base font-bold text-slate-700 dark:text-slate-200 uppercase tracking-wide">
+                  <ChevronRight className="w-4 h-4 text-muted-foreground/30" />
+                  <span className="text-sm md:text-base font-bold text-foreground uppercase tracking-wide">
                     {item.label}
                   </span>
                 </div>
@@ -249,8 +251,7 @@ export default function AboutPage() {
           </div>
         </section>
 
-        {/* ── VISION & MISSION ──────────────────────────────────────
-             Restored from previous version — core brand identity copy        */}
+        {/* ── VISION & MISSION ────────────────────────────────────── */}
         <section className="space-y-10">
           <div className="text-center space-y-3">
             <div className={`${jetbrainsMono.className} text-xs tracking-[0.2em] uppercase text-emerald-500 dark:text-emerald-400 font-bold`}>
@@ -263,7 +264,7 @@ export default function AboutPage() {
 
           <div className="grid gap-6 md:grid-cols-2">
             {/* Vision */}
-            <div className="relative rounded-[3rem] border border-emerald-500/20 bg-emerald-500/5 p-10 space-y-5 overflow-hidden">
+            <div className="relative rounded-[3rem] border border-emerald-500/20 bg-emerald-500/[0.02] dark:bg-emerald-500/[0.01] p-10 space-y-5 overflow-hidden">
               <div
                 aria-hidden
                 className="absolute top-0 right-0 w-48 h-48 rounded-full -translate-y-1/2 translate-x-1/2 opacity-20 blur-3xl bg-emerald-400"
@@ -274,7 +275,7 @@ export default function AboutPage() {
               <h3 className={`${montserrat.className} text-2xl font-black uppercase`}>
                 A Collaborative Future
               </h3>
-              <p className="text-slate-600 dark:text-slate-400 leading-relaxed font-medium">
+              <p className="text-muted-foreground leading-relaxed font-medium">
                 At TaskKash, we envision a world where brands and users
                 collaborate seamlessly. A platform where engagement feels
                 natural, trust is built through transparency, and every
@@ -283,7 +284,7 @@ export default function AboutPage() {
             </div>
 
             {/* Mission */}
-            <div className="relative rounded-[3rem] border border-purple-500/20 bg-purple-500/5 p-10 space-y-5 overflow-hidden">
+            <div className="relative rounded-[3rem] border border-purple-500/20 bg-purple-500/[0.02] dark:bg-purple-500/[0.01] p-10 space-y-5 overflow-hidden">
               <div
                 aria-hidden
                 className="absolute top-0 right-0 w-48 h-48 rounded-full -translate-y-1/2 translate-x-1/2 opacity-20 blur-3xl bg-purple-400"
@@ -294,7 +295,7 @@ export default function AboutPage() {
               <h3 className={`${montserrat.className} text-2xl font-black uppercase`}>
                 Bridge the Gap
               </h3>
-              <p className="text-slate-600 dark:text-slate-400 leading-relaxed font-medium">
+              <p className="text-muted-foreground leading-relaxed font-medium">
                 To bridge the gap between brands and users by providing
                 innovative tools that foster trust, meaningful engagement, and
                 mutual growth — creating a space where every digital action has
@@ -319,16 +320,16 @@ export default function AboutPage() {
             {techPillars.map((pillar) => (
               <div
                 key={pillar.title}
-                className="group relative rounded-3xl p-8 border border-slate-200 dark:border-white/5 bg-white dark:bg-slate-900/50 hover:bg-emerald-500/5 transition-all space-y-4 overflow-hidden"
+                className="group relative rounded-3xl p-8 border border-emerald-500/10 dark:border-purple-500/10 bg-card hover:bg-emerald-500/[0.02] dark:hover:bg-purple-500/[0.01] transition-all space-y-4 overflow-hidden shadow-md shadow-emerald-500/[0.01]"
               >
                 <div className="absolute top-0 right-0 w-24 h-24 bg-emerald-500/5 rounded-full -translate-y-1/2 translate-x-1/2 blur-2xl group-hover:bg-emerald-500/10 transition-colors" />
-                <span className="inline-flex w-12 h-12 rounded-2xl items-center justify-center bg-slate-100 dark:bg-slate-800 text-emerald-500 group-hover:scale-110 transition-transform">
+                <span className="inline-flex w-12 h-12 rounded-2xl items-center justify-center bg-background border border-emerald-500/10 text-emerald-500 group-hover:scale-110 transition-transform">
                   {pillar.icon}
                 </span>
                 <h4 className={`${montserrat.className} font-black text-lg uppercase`}>
                   {pillar.title}
                 </h4>
-                <p className="text-sm text-slate-500 dark:text-slate-400 leading-relaxed font-medium">
+                <p className="text-sm text-muted-foreground leading-relaxed font-medium">
                   {pillar.desc}
                 </p>
               </div>
@@ -339,15 +340,15 @@ export default function AboutPage() {
         {/* ── WHY TASKKASH ─────────────────────────────────────────── */}
         <section className="grid gap-8 md:grid-cols-2">
           {/* Brands */}
-          <div className="rounded-[3rem] border border-emerald-500/20 bg-emerald-500/5 p-10 space-y-8">
+          <div className="rounded-[3rem] border border-emerald-500/20 bg-emerald-500/[0.02] dark:bg-emerald-500/[0.01] p-10 space-y-8">
             <div className="space-y-4">
-              <div className={`${jetbrainsMono.className} text-xs tracking-[0.2em] uppercase text-emerald-600 font-black flex items-center gap-2`}>
+              <div className={`${jetbrainsMono.className} text-xs tracking-[0.2em] uppercase text-emerald-600 dark:text-emerald-400 font-black flex items-center gap-2`}>
                 <BarChart3 size={14} /> For Brands
               </div>
               <h3 className={`${montserrat.className} text-2xl md:text-3xl font-black uppercase`}>
                 Stop Burning Budget
               </h3>
-              <p className="text-sm text-slate-600 dark:text-slate-400 font-medium">
+              <p className="text-sm text-muted-foreground font-medium">
                 TaskKash gives brands a smarter way to connect with the right
                 audience and drive measurable results — every engagement verified by a real human.
               </p>
@@ -360,12 +361,12 @@ export default function AboutPage() {
                 { icon: <Zap size={18} />, title: "Custom Campaign Builder", desc: "Design social, referral, or content tasks with flexible rewards." },
               ].map((item) => (
                 <li key={item.title} className="flex gap-4">
-                  <span className="shrink-0 w-10 h-10 rounded-xl bg-emerald-500/20 text-emerald-600 flex items-center justify-center">
+                  <span className="shrink-0 w-10 h-10 rounded-xl bg-emerald-500/10 text-emerald-500 flex items-center justify-center">
                     {item.icon}
                   </span>
                   <div>
-                    <div className="text-sm font-black uppercase tracking-tight text-slate-900 dark:text-slate-100">{item.title}</div>
-                    <div className="text-xs text-slate-600 dark:text-slate-400 font-medium">{item.desc}</div>
+                    <div className="text-sm font-black uppercase tracking-tight text-foreground">{item.title}</div>
+                    <div className="text-xs text-muted-foreground font-medium">{item.desc}</div>
                   </div>
                 </li>
               ))}
@@ -373,15 +374,15 @@ export default function AboutPage() {
           </div>
 
           {/* Users */}
-          <div className="rounded-[3rem] border border-purple-500/20 bg-purple-500/5 p-10 space-y-8">
+          <div className="rounded-[3rem] border border-purple-500/20 bg-purple-500/[0.02] dark:bg-purple-500/[0.01] p-10 space-y-8">
             <div className="space-y-4">
-              <div className={`${jetbrainsMono.className} text-xs tracking-[0.2em] uppercase text-purple-600 font-black flex items-center gap-2`}>
+              <div className={`${jetbrainsMono.className} text-xs tracking-[0.2em] uppercase text-purple-600 dark:text-purple-400 font-black flex items-center gap-2`}>
                 <Coins size={14} /> For Users
               </div>
               <h3 className={`${montserrat.className} text-2xl md:text-3xl font-black uppercase`}>
                 Monetize Attention
               </h3>
-              <p className="text-sm text-slate-600 dark:text-slate-400 font-medium">
+              <p className="text-sm text-muted-foreground font-medium">
                 TaskKash is more than a platform — it's a community where effort
                 is rewarded. Real SOL for real actions, every time.
               </p>
@@ -394,12 +395,12 @@ export default function AboutPage() {
                 { icon: <Globe size={18} />, title: "Exclusive Access", desc: "Unlock premium tasks, partner offers, and early brand drops." },
               ].map((item) => (
                 <li key={item.title} className="flex gap-4">
-                  <span className="shrink-0 w-10 h-10 rounded-xl bg-purple-500/20 text-purple-600 flex items-center justify-center">
+                  <span className="shrink-0 w-10 h-10 rounded-xl bg-purple-500/10 text-purple-500 flex items-center justify-center">
                     {item.icon}
                   </span>
                   <div>
-                    <div className="text-sm font-black uppercase tracking-tight text-slate-900 dark:text-slate-100">{item.title}</div>
-                    <div className="text-xs text-slate-600 dark:text-slate-400 font-medium">{item.desc}</div>
+                    <div className="text-sm font-black uppercase tracking-tight text-foreground">{item.title}</div>
+                    <div className="text-xs text-muted-foreground font-medium">{item.desc}</div>
                   </div>
                 </li>
               ))}
@@ -418,13 +419,13 @@ export default function AboutPage() {
             {values.map((v) => (
               <div
                 key={v.title}
-                className="text-center space-y-4 p-10 rounded-3xl border border-slate-200 dark:border-white/5 bg-slate-50/50 dark:bg-slate-900/30 group hover:border-emerald-500/30 transition-all"
+                className="text-center space-y-4 p-10 rounded-3xl border border-emerald-500/10 dark:border-purple-500/10 bg-card/60 group hover:border-emerald-500/30 transition-all"
               >
                 <div className="flex justify-center group-hover:scale-110 transition-transform">{v.icon}</div>
                 <h4 className={`${montserrat.className} font-black text-lg uppercase tracking-tight`}>
                   {v.title}
                 </h4>
-                <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed font-bold">
+                <p className="text-xs text-muted-foreground leading-relaxed font-bold">
                   {v.desc}
                 </p>
               </div>
@@ -438,7 +439,7 @@ export default function AboutPage() {
             <h2 className={`${montserrat.className} text-3xl md:text-5xl font-black uppercase`}>
               Mission Timeline
             </h2>
-            <p className="text-slate-500 font-bold uppercase text-xs tracking-widest">
+            <p className="text-muted-foreground font-bold uppercase text-xs tracking-widest">
               Transparency in Execution
             </p>
           </div>
@@ -455,13 +456,13 @@ export default function AboutPage() {
                       ? "border-emerald-500/30 bg-emerald-500/5 opacity-80"
                       : isActive
                       ? "border-purple-500 bg-purple-500/5 shadow-[0_0_30px_rgba(139,92,246,0.1)] scale-[1.02]"
-                      : "border-slate-200 dark:border-white/5 bg-white dark:bg-slate-900"
+                      : "border-emerald-500/10 dark:border-purple-500/10 bg-card"
                   }`}
                 >
                   <div className="flex items-center justify-between">
                     <span
                       className={`${jetbrainsMono.className} text-xs font-black tracking-widest uppercase ${
-                        isDone ? "text-emerald-500" : isActive ? "text-purple-500" : "text-slate-400"
+                        isDone ? "text-emerald-500" : isActive ? "text-purple-500" : "text-muted-foreground/40"
                       }`}
                     >
                       {item.phase}
@@ -469,19 +470,19 @@ export default function AboutPage() {
                     <span
                       className={`text-[10px] px-3 py-1 rounded-full font-black uppercase tracking-tighter ${
                         isDone
-                          ? "bg-emerald-500/20 text-emerald-600"
+                          ? "bg-emerald-500/20 text-emerald-600 dark:text-emerald-400"
                           : isActive
                           ? "bg-purple-500 text-white animate-pulse"
-                          : "bg-slate-100 dark:bg-slate-800 text-slate-500"
+                          : "bg-background border border-emerald-500/10 text-muted-foreground"
                       }`}
                     >
                       {item.tag}
                     </span>
                   </div>
-                  <h4 className={`${montserrat.className} font-black text-xl uppercase text-slate-900 dark:text-slate-100`}>
+                  <h4 className={`${montserrat.className} font-black text-xl uppercase text-foreground`}>
                     {item.title}
                   </h4>
-                  <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed font-medium">
+                  <p className="text-xs text-muted-foreground leading-relaxed font-medium">
                     {item.desc}
                   </p>
                 </div>
@@ -491,7 +492,7 @@ export default function AboutPage() {
         </section>
 
         {/* ── LONG-TERM VISION ───────────────────────────────────── */}
-        <section className="relative rounded-[3rem] border border-slate-200 dark:border-white/5 py-10 px-5 md:p-16 text-center space-y-6 overflow-hidden">
+        <section className="relative rounded-[3rem] border border-emerald-500/10 dark:border-purple-500/10 bg-card/40 py-10 px-5 md:p-16 text-center space-y-6 overflow-hidden">
           <div
             aria-hidden
             className="pointer-events-none absolute inset-0 -z-10"
@@ -509,7 +510,7 @@ export default function AboutPage() {
               Global Expansion
             </span>
           </h2>
-          <p className="mx-auto max-w-3xl text-slate-500 dark:text-slate-400 leading-relaxed font-medium">
+          <p className="mx-auto max-w-3xl text-muted-foreground leading-relaxed font-medium">
             We are committed to continuous improvement, community building, and
             global expansion — creating a platform where brands and users grow
             together. Our long-term goal is to evolve TaskKash into a
@@ -521,7 +522,7 @@ export default function AboutPage() {
             {["DAO Governance", "SPL Token", "Cross-chain Bridges", "API for Brands", "Mobile-first", "Open-source SDK"].map((tag) => (
               <span
                 key={tag}
-                className="text-xs px-4 py-2 rounded-full border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400 font-bold uppercase tracking-wide"
+                className="text-xs px-4 py-2 rounded-full border border-emerald-500/10 dark:border-purple-500/10 bg-background text-muted-foreground font-bold uppercase tracking-wide"
               >
                 {tag}
               </span>
