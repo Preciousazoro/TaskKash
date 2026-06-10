@@ -4,12 +4,12 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { Button } from "@/components/ui/button";
-import { Montserrat } from "next/font/google";
+// import { Montserrat } from "next/font/google";
 
-const montserrat = Montserrat({
-  subsets: ["latin"],
-  weight: ["700", "800", "900"],
-});
+// const montserrat = Montserrat({
+//   subsets: ["latin"],
+//   weight: ["700", "800", "900"],
+// });
 
 const AVATARS = [
   "https://github.com/shadcn.png",
@@ -93,7 +93,7 @@ export default function Hero() {
 
           <div className="space-y-5">
             <h1
-              className={`${montserrat.className} text-3xl md:text-5xl xl:text-5xl font-black leading-[1.1] uppercase`}
+              className={` text-3xl md:text-5xl xl:text-5xl font-black leading-[1.1] uppercase`}
             >
               Turn Everyday Actions into{" "}
               <span className="text-emerald-500">On-Chain Rewards.</span>
@@ -191,7 +191,7 @@ export default function Hero() {
         <div className="lg:col-span-2 space-y-10 py-10 lg:py-0 lg:pl-0 z-20 lg:text-left">
           <div>
             <h2
-              className={`${montserrat.className} text-4xl xl:text-4xl font-black`}
+              className={` text-4xl xl:text-4xl font-black`}
             >
               <Counter target={1100} /> +
             </h2>

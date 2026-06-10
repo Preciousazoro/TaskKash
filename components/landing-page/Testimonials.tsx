@@ -3,12 +3,12 @@
 import React from "react";
 import Link from "next/link";
 import { Star, ArrowUpRight, Wallet } from "lucide-react";
-import { Montserrat } from "next/font/google";
+// import { Montserrat } from "next/font/google";
 
-const montserrat = Montserrat({
-  subsets: ["latin"],
-  weight: ["700", "800", "900"],
-});
+// const montserrat = Montserrat({
+//   subsets: ["latin"],
+//   weight: ["700", "800", "900"],
+// });
 
 // Fallback profile image token
 const DEFAULT_AVATAR = "https://github.com/shadcn.png";
@@ -167,7 +167,7 @@ export default function Testimonials() {
             </span>
           </div>
 
-          <h2 className={`${montserrat.className} text-4xl lg:text-6xl font-black uppercase tracking-tighter leading-[1.0]`}>
+          <h2 className={`text-4xl lg:text-6xl font-black uppercase tracking-tighter leading-[1.0]`}>
             Real People. <br />
             <span className="text-emerald-500">Real Rewards.</span>
           </h2>
@@ -276,7 +276,7 @@ function TestimonialCard({
       <div className="flex items-center gap-3 pt-4 border-t border-border">
         <img src={image} alt={name} className="w-10 h-10 rounded-full object-cover border-2 border-emerald-500/20 shadow-sm" />
         <div>
-          <h4 className={`font-black text-xs uppercase tracking-tight ${montserrat.className}`}>{name}</h4>
+          <h4 className={`font-black text-xs uppercase tracking-tight`}>{name}</h4>
           <p className="text-[9px] uppercase tracking-widest text-emerald-500 font-extrabold">{role}</p>
         </div>
       </div>

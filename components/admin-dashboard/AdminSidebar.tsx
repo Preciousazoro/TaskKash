@@ -2,13 +2,14 @@
 
 import React, { useEffect, useState } from "react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Layout,
   CheckCircle,
   Users,
   FileText,
+  Wallet,
   Award,
   Settings,
   User as UserIcon,
@@ -19,18 +20,24 @@ import {
   ArrowDown,
   Send,
   History,
-  ChevronRight,
   ChevronDown,
+  LayoutDashboard,
+  Lock,
 } from "lucide-react";
 import { useAdminData } from "@/components/providers/AdminDataProvider";
 
+type NavItem =
+  | { name: string; icon: React.ElementType; href: string; color?: string }
+  | {
+      name: string;
+      icon: React.ElementType;
+      color?: string;
+      children: { name: string; icon: React.ElementType; href: string; color?: string }[];
+    };
 
 const AdminSidebar = () => {
   const pathname = usePathname();
   const [menuOpen, setMenuOpen] = useState(false);
-  const [tasksMenuOpen, setTasksMenuOpen] = useState(false);
-  
-  // Use centralized admin data
   const { admin, loading } = useAdminData();
 
   useEffect(() => {
@@ -39,200 +46,56 @@ const AdminSidebar = () => {
     return () => window.removeEventListener("open-sidebar", onOpen);
   }, []);
 
-  // Check if tasks menu should be open based on current path
-  useEffect(() => {
-    const isInTasksSection = pathname.startsWith('/admin-dashboard/manage-tasks');
-    setTasksMenuOpen(isInTasksSection);
-  }, [pathname]);
-
-  // Get initials for avatar fallback
-  const getInitials = (name: string) => {
-    return name
-      .split(' ')
-      .map(word => word[0])
-      .join('')
-      .toUpperCase()
-      .slice(0, 2);
-  };
-
-  const iconClass = "w-4 h-4";
-  const activeIconClass = "w-4 h-4 text-white";
-  const inactiveIconClass = "w-4 h-4 text-muted-foreground";
-
-  const menuItems = [
-    { icon: <Layout className={iconClass} />, label: "Dashboard", href: "/admin-dashboard/dashboard", color: "text-green-500" },
-    { 
-      icon: <CheckCircle className={iconClass} />, 
-      label: "Manage Tasks", 
-      href: "/admin-dashboard/manage-tasks", 
-      color: "text-green-500",
-      isSubmenu: true,
-      submenuItems: [
-        { icon: <CheckCircle className={iconClass} />, label: "Active Tasks", href: "/admin-dashboard/manage-tasks", color: "text-green-500" },
-        { icon: <History className={iconClass} />, label: "Task History", href: "/admin-dashboard/manage-tasks/history", color: "text-orange-500" },
-      ]
-    },
-    { icon: <Users className={iconClass} />, label: "Users", href: "/admin-dashboard/users", color: "text-green-500" },
-    { icon: <FileText className={iconClass} />, label: "Submissions", href: "/admin-dashboard/submissions", color: "text-green-500" },
-    { icon: <ArrowDown className={iconClass} />, label: "Withdrawals", href: "/admin-dashboard/withdrawals", color: "text-red-500" },
-    { icon: <MessageSquare className={iconClass} />, label: "Contact Messages", href: "/admin-dashboard/contact-messages", color: "text-green-500" },
-    { icon: <Calendar className={iconClass} />, label: "Bookings", href: "/admin-dashboard/bookings", color: "text-green-500" },
-    { icon: <Send className={iconClass} />, label: "Broadcast", href: "/admin-dashboard/broadcast", color: "text-purple-500" },
-    { icon: <Award className={iconClass} />, label: "Rewards", href: "/admin-dashboard/rewards", color: "text-green-500" },
-    { icon: <Settings className={iconClass} />, label: "Settings", href: "/admin-dashboard/settings", color: "text-green-500" },
-  ];
-
-  const bottomMenuItems = [
-    { icon: <UserIcon className={iconClass} />, label: "Switch To User", href: "/user-dashboard/dashboard", color: "text-cyan-500" },
-  ];
+  const getInitials = (name: string) =>
+    name.split(" ").map((w) => w[0]).join("").toUpperCase().slice(0, 2);
 
   return (
     <>
       {/* Desktop Sidebar */}
-      <div className="w-64 bg-background border-r border-border hidden md:flex flex-col sticky top-0 h-screen">
-        <div className="p-4 border-b border-border">
-          
-          <p className="text-sm font-bold text-center mt-4">Admin Dashboard</p>
+      <aside className="hidden md:flex w-70 border-r h-screen sticky top-0 bg-background flex-col shadow-xl">
+        {/* Header */}
+        <div className="flex-shrink-0 flex items-center justify-between h-15 px-6 border-b border-border">
+          <div className="flex flex-col">
+            <h1 className="text-xl font-black uppercase tracking-tighter text-foreground">
+              Admin<span className="text-green-500"> Dashboard</span>
+            </h1>
+            <p className="text-[8px] font-bold tracking-[0.2em] text-muted-foreground uppercase">
+              Manage your platform
+            </p>
+          </div>
         </div>
 
-        <nav className="flex-1 p-4 space-y-1 overflow-y-auto">
-          {menuItems.map((item, i) => {
-            if (item.isSubmenu) {
-              const isActive = pathname.startsWith(item.href);
-              const isSubmenuActive = item.submenuItems?.some(subItem => pathname === subItem.href);
-              
-              return (
-                <div key={i} className="space-y-1">
-                  <button
-                    onClick={() => setTasksMenuOpen(!tasksMenuOpen)}
-                    className={`w-full flex items-center justify-between p-3 rounded-lg transition ${
-                      isActive ? "bg-linear-to-r from-green-500 to-purple-500 text-white" : "text-muted-foreground hover:bg-muted"
-                    }`}
-                  >
-                    <div className="flex items-center space-x-3">
-                      <span className={isActive ? "text-white" : item.color}>
-                        {item.icon}
-                      </span>
-                      <span>{item.label}</span>
-                    </div>
-                    {tasksMenuOpen ? <ChevronDown className="w-4 h-4" /> : <ChevronRight className="w-4 h-4" />}
-                  </button>
-                  
-                  {tasksMenuOpen && (
-                    <div className="ml-4 space-y-1">
-                      {item.submenuItems?.map((subItem, subIndex) => {
-                        const isSubActive = pathname === subItem.href;
-                        return (
-                          <Link
-                            key={subIndex}
-                            href={subItem.href}
-                            className={`flex items-center space-x-3 p-3 rounded-lg transition ${
-                              isSubActive
-                                ? "bg-linear-to-r from-green-500 to-purple-500 text-white"
-                                : "text-muted-foreground hover:bg-muted"
-                            }`}
-                          >
-                            <span className={isSubActive ? "text-white" : subItem.color}>
-                              {subItem.icon}
-                            </span>
-                            <span>{subItem.label}</span>
-                          </Link>
-                        );
-                      })}
-                    </div>
-                  )}
-                </div>
-              );
-            } else {
-              const isActive = pathname.startsWith(item.href);
-              return (
-                <Link
-                  key={i}
-                  href={item.href}
-                  className={`flex items-center space-x-3 p-3 rounded-lg transition ${
-                    isActive
-                      ? "bg-linear-to-r from-green-500 to-purple-500 text-white"
-                      : "text-muted-foreground hover:bg-muted"
-                  }`}
-                >
-                  <span className={isActive ? "text-white" : item.color}>
-                    {item.icon}
-                  </span>
-                  <span>{item.label}</span>
-                </Link>
-              );
-            }
-          })}
+        {/* Nav */}
+        <nav className="flex-1 min-h-0 overflow-y-auto px-4 py-5 space-y-1 scrollbar-thin scrollbar-thumb-border scrollbar-track-transparent">
+          <SidebarNavItems
+            admin={admin}
+            loading={loading}
+            getInitials={getInitials}
+            pathname={pathname}
+            onLinkClick={() => {}}
+          />
         </nav>
 
-        {/* Footer */}
-        <div className="p-4 border-t border-border space-y-3">
-          {/* Bottom Menu Items */}
-          <nav className="space-y-1">
-            {bottomMenuItems.map((item, i) => {
-              const isActive = pathname.startsWith(item.href);
-              return (
-                <Link
-                  key={i}
-                  href={item.href}
-                  className={`flex items-center space-x-3 p-3 rounded-lg transition ${
-                    isActive
-                      ? "bg-linear-to-r from-green-500 to-purple-500 text-white"
-                      : "text-muted-foreground hover:bg-muted"
-                  }`}
-                >
-                  <span className={isActive ? "text-white" : item.color}>
-                    {item.icon}
-                  </span>
-                  <span>{item.label}</span>
-                </Link>
-              );
-            })}
-          </nav>
-          
-          {/* Admin Profile */}
-          <Link href="/admin-dashboard/profile" className="flex items-center space-x-3">
-            {admin?.avatarUrl ? (
-              <img
-                src={admin.avatarUrl}
-                alt={admin.name}
-                className="w-10 h-10 rounded-full object-cover"
-              />
-            ) : admin?.name ? (
-              <div className="w-10 h-10 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-sm font-medium">
-                {getInitials(admin.name)}
-              </div>
-            ) : (
-              <div className="w-10 h-10 rounded-full bg-muted flex items-center justify-center">
-                <UserIcon className="w-5 h-5 text-green-500" />
-              </div>
-            )}
-            <div className="flex-1 min-w-0">
-              <p className="font-medium truncate">
-                {loading ? 'Loading...' : (admin?.name || 'Admin')}
-              </p>
-              <p className="text-xs text-muted-foreground">
-                {admin?.role === 'admin' ? 'Administrator' : 'User'}
-              </p>
-            </div>
-          </Link>
-
+        {/* Logout */}
+        <div className="flex-shrink-0 border-t border-border px-4 py-2">
           <Link
             href="/auth/login"
-            className="flex items-center space-x-3 p-2 rounded-lg text-muted-foreground hover:text-red-600 hover:bg-muted"
+            className="flex items-center cursor-pointer w-full px-4 py-3 text-red-500 hover:bg-red-500/10 transition-all rounded-sm group"
           >
-            <LogOut className={`${iconClass} text-red-500`} />
-            <span>Logout</span>
+            <LogOut className="w-5 h-5 mr-3 group-hover:-translate-x-1 transition-transform" />
+            <span className="text-xs font-black uppercase tracking-widest">
+              Logout My Account
+            </span>
           </Link>
         </div>
-      </div>
+      </aside>
 
       {/* Mobile Sidebar */}
       <AnimatePresence>
         {menuOpen && (
           <>
             <motion.div
-              className="fixed inset-0 bg-black/50 z-40"
+              className="fixed inset-0 bg-black/60 backdrop-blur-sm z-40"
               onClick={() => setMenuOpen(false)}
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
@@ -240,148 +103,52 @@ const AdminSidebar = () => {
             />
 
             <motion.aside
-              className="fixed top-0 left-0 w-3/4 max-w-xs h-full bg-background z-50 flex flex-col"
               initial={{ x: "-100%" }}
               animate={{ x: 0 }}
               exit={{ x: "-100%" }}
+              transition={{ type: "spring", stiffness: 90, damping: 15 }}
+              className="fixed top-0 left-0 w-full h-full bg-background z-100 flex flex-col shadow-2xl"
             >
-              <div className="flex items-center p-4 border-b border-border">
-                <span className="font-bold">Admin Dashboard</span>
-                <button className="ml-auto" onClick={() => setMenuOpen(false)}>
-                  <X />
+              {/* Mobile Header */}
+              <div className="flex-shrink-0 flex items-center justify-between h-16 px-6 border-b border-border">
+                <div className="flex flex-col">
+                  <h1 className="text-xl font-black uppercase tracking-tighter text-foreground">
+                    Admin<span className="text-green-500"> Dashboard</span>
+                  </h1>
+                  <p className="text-[8px] font-bold tracking-[0.2em] text-muted-foreground uppercase">
+                    Manage your platform
+                  </p>
+                </div>
+                <button
+                  className="rounded-lg text-foreground"
+                  onClick={() => setMenuOpen(false)}
+                >
+                  <X className="w-5 h-5" />
                 </button>
               </div>
 
-              <div className="flex-1 p-4">
-                <nav className="space-y-1">
-                  {menuItems.map((item, i) => {
-                    if (item.isSubmenu) {
-                      const isActive = pathname.startsWith(item.href);
-                      const isSubmenuActive = item.submenuItems?.some(subItem => pathname === subItem.href);
-                      
-                      return (
-                        <div key={i} className="space-y-1">
-                          <button
-                            onClick={() => setTasksMenuOpen(!tasksMenuOpen)}
-                            className={`w-full flex items-center justify-between p-3 rounded-lg transition text-base ${
-                              isActive ? "bg-linear-to-r from-green-500 to-purple-500 text-white" : "text-muted-foreground hover:bg-muted"
-                            }`}
-                          >
-                            <div className="flex items-center space-x-3">
-                              <span className={isActive ? "text-white" : item.color}>
-                                {item.icon}
-                              </span>
-                              <span>{item.label}</span>
-                            </div>
-                            {tasksMenuOpen ? <ChevronDown className="w-4 h-4" /> : <ChevronRight className="w-4 h-4" />}
-                          </button>
-                          
-                          {tasksMenuOpen && (
-                            <div className="ml-4 space-y-1">
-                              {item.submenuItems?.map((subItem, subIndex) => {
-                                const isSubActive = pathname === subItem.href;
-                                return (
-                                  <Link
-                                    key={subIndex}
-                                    href={subItem.href}
-                                    onClick={() => setMenuOpen(false)}
-                                    className={`flex items-center space-x-3 p-3 rounded-lg transition text-base ${
-                                      isSubActive
-                                        ? "bg-linear-to-r from-green-500 to-purple-500 text-white"
-                                        : "text-muted-foreground hover:bg-muted"
-                                    }`}
-                                  >
-                                    <span className={isSubActive ? "text-white" : subItem.color}>
-                                      {subItem.icon}
-                                    </span>
-                                    <span>{subItem.label}</span>
-                                  </Link>
-                                );
-                              })}
-                            </div>
-                          )}
-                        </div>
-                      );
-                    } else {
-                      const isActive = pathname.startsWith(item.href);
-                      return (
-                        <Link
-                          key={i}
-                          href={item.href}
-                          onClick={() => setMenuOpen(false)}
-                          className={`flex items-center space-x-3 p-3 rounded-lg transition text-base ${
-                            isActive
-                              ? "bg-linear-to-r from-green-500 to-purple-500 text-white"
-                              : "text-muted-foreground hover:bg-muted"
-                          }`}
-                        >
-                          <span className={isActive ? "text-white" : item.color}>
-                            {item.icon}
-                          </span>
-                          <span>{item.label}</span>
-                        </Link>
-                      );
-                    }
-                  })}
-                </nav>
-              </div>
+              {/* Mobile Nav */}
+              <nav className="flex-1 min-h-0 overflow-y-auto px-4 py-5 space-y-1 scrollbar-thin scrollbar-thumb-border scrollbar-track-transparent">
+                <SidebarNavItems
+                  admin={admin}
+                  loading={loading}
+                  getInitials={getInitials}
+                  pathname={pathname}
+                  onLinkClick={() => setMenuOpen(false)}
+                />
+              </nav>
 
-              {/* Mobile Admin Profile and Logout - At Bottom */}
-              <div className="p-4 border-t border-border space-y-3">
-                {/* Bottom Menu Items */}
-                <nav className="space-y-1">
-                  {bottomMenuItems.map((item, i) => (
-                    <Link
-                      key={i}
-                      href={item.href}
-                      onClick={() => setMenuOpen(false)}
-                      className={`flex items-center space-x-3 p-3 rounded-lg transition text-base ${
-                        pathname.startsWith(item.href)
-                          ? "bg-linear-to-r from-green-500 to-purple-500 text-white"
-                          : "text-muted-foreground hover:bg-muted"
-                      }`}
-                    >
-                      <span className={pathname.startsWith(item.href) ? "text-white" : item.color}>
-                        {item.icon}
-                      </span>
-                      <span>{item.label}</span>
-                    </Link>
-                  ))}
-                </nav>
-                
-                {/* Admin Profile */}
-                <Link href="/admin-dashboard/profile" className="flex items-center space-x-3">
-                  {admin?.avatarUrl ? (
-                    <img
-                      src={admin.avatarUrl}
-                      alt={admin.name}
-                      className="w-8 h-8 rounded-full object-cover"
-                    />
-                  ) : admin?.name ? (
-                    <div className="w-8 h-8 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-xs font-medium">
-                      {getInitials(admin.name)}
-                    </div>
-                  ) : (
-                    <div className="w-8 h-8 rounded-full bg-muted flex items-center justify-center">
-                      <UserIcon className="w-4 h-4 text-green-500" />
-                    </div>
-                  )}
-                  <div className="flex-1 min-w-0">
-                    <p className="font-medium text-sm truncate">
-                      {loading ? 'Loading...' : (admin?.name || 'Admin')}
-                    </p>
-                    <p className="text-xs text-muted-foreground">
-                      {admin?.role === 'admin' ? 'Administrator' : 'User'}
-                    </p>
-                  </div>
-                </Link>
-
+              {/* Mobile Logout */}
+              <div className="flex-shrink-0 border-t border-border px-4 py-2">
                 <Link
                   href="/auth/login"
-                  className="flex items-center space-x-3 p-3 rounded-lg text-muted-foreground hover:text-red-600 hover:bg-muted"
+                  onClick={() => setMenuOpen(false)}
+                  className="flex items-center cursor-pointer w-full px-4 py-3 text-red-500 hover:bg-red-500/10 transition-all rounded-sm group"
                 >
-                  <LogOut className={`${iconClass} text-red-500`} />
-                  <span>Logout</span>
+                  <LogOut className="w-5 h-5 mr-3 group-hover:-translate-x-1 transition-transform" />
+                  <span className="text-xs font-black uppercase tracking-widest">
+                    Logout My Account
+                  </span>
                 </Link>
               </div>
             </motion.aside>
@@ -393,3 +160,269 @@ const AdminSidebar = () => {
 };
 
 export default AdminSidebar;
+
+/* ── Sidebar Nav Items (shared between desktop & mobile) ── */
+function SidebarNavItems({
+  admin,
+  loading,
+  getInitials,
+  pathname,
+  onLinkClick,
+}: {
+  admin: any;
+  loading: boolean;
+  getInitials: (name: string) => string;
+  pathname: string;
+  onLinkClick: () => void;
+}) {
+  const basePath = "/admin-dashboard";
+
+  const navItems: NavItem[] = [
+    {
+      name: "Dashboard",
+      icon: LayoutDashboard,
+      href: `${basePath}/dashboard`,
+      color: "text-green-500",
+    },
+    {
+      name: "Manage Tasks",
+      icon: CheckCircle,
+      color: "text-green-500",
+      children: [
+        {
+          name: "Active Tasks",
+          icon: CheckCircle,
+          href: `${basePath}/manage-tasks`,
+          color: "text-green-500",
+        },
+        {
+          name: "Task History",
+          icon: History,
+          href: `${basePath}/manage-tasks/history`,
+          color: "text-green-500",
+        },
+      ],
+    },
+    {
+      name: "Users Management",
+      icon: Users,
+      href: `${basePath}/users`,
+      color: "text-green-500",
+    },
+    {
+      name: "Users Submissions",
+      icon: FileText,
+      href: `${basePath}/submissions`,
+      color: "text-green-500",
+    },
+    {
+      name: "Payout Requests",
+      icon: Wallet,
+      href: `${basePath}/withdrawals`,
+      color: "text-green-500",
+    },
+    {
+      name: "Contact Messages",
+      icon: MessageSquare,
+      href: `${basePath}/contact-messages`,
+      color: "text-green-500",
+    },
+    {
+      name: "Bookings",
+      icon: Calendar,
+      href: `${basePath}/bookings`,
+      color: "text-green-500",
+    },
+    {
+      name: "Broadcast",
+      icon: Send,
+      href: `${basePath}/broadcast`,
+      color: "text-green-500",
+    },
+    {
+      name: "Rewards",
+      icon: Award,
+      href: `${basePath}/rewards`,
+      color: "text-green-500",
+    },
+    {
+      name: "Settings",
+      icon: Settings,
+      color: "text-green-500",
+      children: [
+        {
+          name: "Admin Profile",
+          icon: UserIcon,
+          href: `${basePath}/profile`,
+          color: "text-green-500",
+        },
+        {
+          name: "Admin Settings",
+          icon: Settings,
+          href: `${basePath}/settings`,
+          color: "text-green-500",
+        },
+        {
+          name: "Switch To User",
+          icon: Lock,
+          href: "/user-dashboard/dashboard",
+          color: "text-cyan-500",
+        },
+      ],
+    },
+  ];
+
+  const [openGroups, setOpenGroups] = useState<Record<string, boolean>>({
+    "Manage Tasks": true,
+    "Settings": true,
+  });
+
+  useEffect(() => {
+    navItems.forEach((item) => {
+      if ("children" in item) {
+        const hasActive = item.children.some((c) => pathname.startsWith(c.href));
+        if (hasActive) {
+          setOpenGroups((prev) => ({ ...prev, [item.name]: true }));
+        }
+      }
+    });
+  }, [pathname]);
+
+  const toggleGroup = (name: string) =>
+    setOpenGroups((prev) => ({ ...prev, [name]: !prev[name] }));
+
+  return (
+    <>
+      {/* Admin Profile Widget */}
+      <div className="mb-5 px-4 py-3 rounded-sm bg-muted/40 border border-border">
+        <Link
+          href="/admin-dashboard/profile"
+          onClick={onLinkClick}
+          className="flex items-center gap-3"
+        >
+          {admin?.avatarUrl ? (
+            <img
+              src={admin.avatarUrl}
+              alt={admin.name}
+              className="w-9 h-9 rounded-full object-cover flex-shrink-0"
+            />
+          ) : admin?.name ? (
+            <div className="w-9 h-9 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-sm font-black flex-shrink-0">
+              {getInitials(admin.name)}
+            </div>
+          ) : (
+            <div className="w-9 h-9 rounded-full bg-muted flex items-center justify-center flex-shrink-0">
+              <UserIcon className="w-4 h-4 text-green-500" />
+            </div>
+          )}
+          <div className="flex-1 min-w-0">
+            <p className="text-xs font-black uppercase tracking-widest text-foreground truncate">
+              {loading ? "Loading..." : admin?.name || "Admin"}
+            </p>
+            <p className="text-[10px] font-bold tracking-widest text-green-500 uppercase">
+              {admin?.role === "admin" ? "Administrator" : "User"}
+            </p>
+          </div>
+        </Link>
+      </div>
+
+      {/* Nav Links */}
+      <div className="space-y-1">
+        {navItems.map((item) => {
+          if ("href" in item) {
+            const active = pathname.startsWith(item.href);
+            return (
+              <Link
+                key={item.name}
+                href={item.href}
+                onClick={onLinkClick}
+                className={`group flex items-center px-4 py-2.5 rounded-sm transition-all duration-200 ${
+                  active
+                    ? "bg-gradient-to-r from-green-500 to-emerald-500 text-white"
+                    : "text-muted-foreground hover:bg-muted hover:text-foreground"
+                }`}
+              >
+                <item.icon
+                  className={`w-5 h-5 mr-5 transition-transform flex-shrink-0 ${
+                    active
+                      ? "text-white scale-110"
+                      : `${item.color ?? "text-green-500"} group-hover:scale-110`
+                  }`}
+                />
+                <span className="text-[12px] font-black uppercase tracking-widest">
+                  {item.name}
+                </span>
+              </Link>
+            );
+          }
+
+          const isOpen = !!openGroups[item.name];
+          const hasActiveChild =
+            "children" in item &&
+            item.children.some((c) => pathname.startsWith(c.href));
+
+          return (
+            <div key={item.name} className="flex flex-col">
+              <button
+                onClick={() => toggleGroup(item.name)}
+                className={`group w-full flex items-center px-4 py-2.5 rounded-sm transition-all duration-200 cursor-pointer ${
+                  hasActiveChild
+                    ? "text-foreground"
+                    : "text-muted-foreground hover:bg-muted hover:text-foreground"
+                }`}
+              >
+                <item.icon
+                  className={`w-5 h-5 mr-5 flex-shrink-0 transition-transform ${
+                    hasActiveChild
+                      ? `scale-110 ${item.color ?? "text-green-500"}`
+                      : `${item.color ?? "text-green-500"} group-hover:scale-110`
+                  }`}
+                />
+                <span className="flex-1 text-left text-[12px] font-black uppercase tracking-widest">
+                  {item.name}
+                </span>
+                <ChevronDown
+                  className={`w-4 h-4 transition-transform duration-300 ${
+                    isOpen ? "rotate-180" : ""
+                  }`}
+                />
+              </button>
+
+              <div className={`${isOpen ? "block" : "hidden"} transition-all duration-300`}>
+                <div className="ml-4 mt-1 mb-1 pl-4 border-l border-border space-y-0.5">
+                  {"children" in item &&
+                    item.children.map((child) => {
+                      const childActive = pathname.startsWith(child.href);
+                      return (
+                        <Link
+                          key={child.name}
+                          href={child.href}
+                          onClick={onLinkClick}
+                          className={`group flex items-center gap-3 px-3 py-2 rounded-sm transition-all duration-200 ${
+                            childActive
+                              ? "bg-gradient-to-r from-green-500 to-emerald-500 text-white shadow-lg shadow-green-500/20"
+                              : "text-muted-foreground hover:bg-muted hover:text-foreground"
+                          }`}
+                        >
+                          <child.icon
+                            className={`w-4 h-4 flex-shrink-0 transition-transform ${
+                              childActive
+                                ? "text-white scale-110"
+                                : `${child.color ?? "text-green-500"} group-hover:scale-110`
+                            }`}
+                          />
+                          <span className="text-[11px] font-black uppercase tracking-widest">
+                            {child.name}
+                          </span>
+                        </Link>
+                      );
+                    })}
+                </div>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    </>
+  );
+}

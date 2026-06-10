@@ -2,13 +2,13 @@
 
 import React, { useState, useEffect, useRef } from "react";
 import Link from "next/link";
-import { Montserrat } from "next/font/google";
+// import { Montserrat } from "next/font/google";
 import { Target, Check, ArrowUpRight, Terminal } from "lucide-react";
 
-const montserrat = Montserrat({
-  subsets: ["latin"],
-  weight: ["700", "800", "900"],
-});
+// const montserrat = Montserrat({
+//   subsets: ["latin"],
+//   weight: ["700", "800", "900"],
+// });
 
 const brandBenefits = [
   "Launch structured engagement campaigns",
@@ -141,7 +141,7 @@ export default function Engagement() {
           </div> */}
 
           <h2
-            className={`${montserrat.className} text-3xl sm:text-3xl md:text-3xl lg:text-3xl font-black leading-[1.1] tracking-tight text-foreground mb-5 uppercase`}
+            className={`text-3xl sm:text-3xl md:text-3xl lg:text-3xl font-black leading-[1.1] tracking-tight text-foreground mb-5 uppercase`}
           >
             Engagement That Converts
           </h2>

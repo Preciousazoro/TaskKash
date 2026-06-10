@@ -1,6 +1,6 @@
 "use client";
 
-import { Montserrat } from "next/font/google";
+// import { Montserrat } from "next/font/google";
 import { Wallet, Check, ArrowRight, ClipboardList } from "lucide-react";
 import {
   Carousel,
@@ -9,11 +9,6 @@ import {
   CarouselNext,
   CarouselPrevious,
 } from "@/components/ui/carousel";
-
-const montserrat = Montserrat({
-  subsets: ["latin"],
-  weight: ["700", "800", "900"],
-});
 
 const howItWorks = [
   {
@@ -58,7 +53,7 @@ export default function HowWeWork() {
           </span>
         </div>
 
-        <h2 className={`${montserrat.className} text-4xl md:text-4xl font-black uppercase tracking-tighter mb-6`}>
+        <h2 className={`text-4xl md:text-4xl font-black uppercase tracking-tighter mb-6`}>
           How TaskKash Works
         </h2>
 

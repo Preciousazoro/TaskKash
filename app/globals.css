@@ -1,3 +1,6 @@
+@import "react-toastify/dist/ReactToastify.css";
+
+
 @import "tailwindcss";
 @import "tw-animate-css";
 @import "react-toastify/dist/ReactToastify.css";
@@ -119,7 +122,7 @@
 
 @layer base {
   * {
-    @apply border-border outline-ring/50;
+    @apply border-border;
   }
   body {
     @apply bg-background text-foreground overflow-x-hidden;
@@ -137,16 +140,16 @@
   input[type="button"]:not([disabled]),
   input[type="submit"]:not([disabled]),
   .cursor-pointer {
-    @apply cursor-pointer;
+    cursor: pointer;
   }
   
   /* Enhanced hover effects for links */
   a {
-    @apply transition-all duration-200;
+    transition: all 200ms;
   }
   
   a:not(.no-hover):hover {
-    @apply opacity-80;
+    opacity: 0.8;
   }
   
   /* Interactive elements with hover effects */
@@ -154,20 +157,20 @@
   button:not(.no-hover):not([disabled]):hover,
   input[type="button"]:not(.no-hover):not([disabled]):hover,
   input[type="submit"]:not(.no-hover):not([disabled]):hover {
-    @apply transition-all duration-200;
+    transition: all 200ms;
   }
   
   /* Enhanced hover effects for common interactive patterns */
   .hover-scale:hover:not(.no-hover):not([disabled]) {
-    @apply scale-105;
+    transform: scale(1.05);
   }
   
   .hover-lift:hover:not(.no-hover):not([disabled]) {
-    @apply -translate-y-1;
+    transform: translateY(-0.25rem);
   }
   
   .hover-glow:hover:not(.no-hover):not([disabled]) {
-    @apply shadow-lg;
+    box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
   }
 }
 

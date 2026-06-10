@@ -3,15 +3,7 @@ import { auth } from '@/lib/auth';
 import connectDB from '@/lib/mongodb';
 import User, { IUser } from '@/models/User';
 import { deleteFromCloudinary } from '@/lib/cloudinary';
-
-// Simple in-memory cache for profile data (5 minutes TTL)
-const profileCache = new Map<string, { data: any; timestamp: number }>();
-const CACHE_TTL = 5 * 60 * 1000; // 5 minutes
-
-// Export function to clear cache for a specific user
-export function clearProfileCache(userId: string) {
-  profileCache.delete(userId);
-}
+import { getProfileCache, setProfileCache, clearProfileCache } from '@/lib/profileCache';
 
 export async function GET(request: NextRequest) {
   try {
@@ -22,9 +14,9 @@ export async function GET(request: NextRequest) {
     }
 
     // Check cache first
-    const cached = profileCache.get(session.user.id);
-    if (cached && Date.now() - cached.timestamp < CACHE_TTL) {
-      return NextResponse.json(cached.data);
+    const cached = getProfileCache(session.user.id);
+    if (cached) {
+      return NextResponse.json(cached);
     }
 
     await connectDB();
@@ -59,7 +51,7 @@ export async function GET(request: NextRequest) {
     };
 
     // Cache the result
-    profileCache.set(session.user.id, { data: userProfile, timestamp: Date.now() });
+    setProfileCache(session.user.id, userProfile);
 
     return NextResponse.json(userProfile);
   } catch (error) {
@@ -148,7 +140,7 @@ export async function PUT(request: NextRequest) {
     await user.save();
 
     // Clear cache for this user
-    profileCache.delete(session.user.id);
+    clearProfileCache(session.user.id);
 
     const updatedProfile = {
       id: user._id.toString(),

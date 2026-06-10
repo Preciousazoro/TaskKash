@@ -2,13 +2,13 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { Montserrat } from "next/font/google";
+// import { Montserrat } from "next/font/google";
 import { Users, Wallet, BarChart3, ArrowRight, Headphones } from "lucide-react";
 
-const montserrat = Montserrat({
-  subsets: ["latin"],
-  weight: ["700", "800", "900"],
-});
+// const montserrat = Montserrat({
+//   subsets: ["latin"],
+//   weight: ["700", "800", "900"],
+// });
 
 const DEFAULT_AVATARS = [
   "https://github.com/shadcn.png",
@@ -44,7 +44,7 @@ export default function NumbersThatSpeaks() {
       {/* Header */}
       <div className="text-center mb-10">
         <h2
-          className={`${montserrat.className} text-3xl md:text-5xl lg:text-4xl font-black leading-[1.1] tracking-tight text-foreground mb-6 uppercase`}
+          className={`text-3xl md:text-5xl lg:text-4xl font-black leading-[1.1] tracking-tight text-foreground mb-6 uppercase`}
         >
           {" "}
           Numbers that speaks

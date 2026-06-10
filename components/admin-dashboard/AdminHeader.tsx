@@ -1,24 +1,23 @@
 "use client";
 
-import React, { useState, useRef, useCallback, useEffect } from "react";
-import Link from "next/link";
+import React, { useState, useRef, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import ModeToggle from "@/components/ui/ModeToggle";
-import { Bell, ChevronDown, User as UserIcon, Check, Settings, LogOut } from "lucide-react";
-import { toast } from 'react-toastify';
+import { Bell, Menu, User as UserIcon, Settings, LogOut, Sun, Moon } from "lucide-react";
+import { useTheme } from "next-themes";
 import { SafeHTMLRenderer } from "@/components/ui/SafeHTMLRenderer";
 import { useAdminData } from "@/components/providers/AdminDataProvider";
 
-
-const AdminHeader = () => {
-  const router = useRouter();
-  const [isOpen, setIsOpen] = useState(false);
-  const [notificationsOpen, setNotificationsOpen] = useState(false);
-  const menuRef = useRef<HTMLDivElement>(null);
-  const triggerRef = useRef<HTMLButtonElement>(null);
-  const notificationsRef = useRef<HTMLDivElement>(null);
-  const notificationsTriggerRef = useRef<HTMLButtonElement>(null);
+export default function AdminHeader({ title = "Admin Dashboard" }: { title?: string }) {
+  const [notifOpen, setNotifOpen] = useState(false);
+  const [profileOpen, setProfileOpen] = useState(false);
   
+  const notifRef = useRef<HTMLDivElement>(null);
+  const profileRef = useRef<HTMLDivElement>(null);
+  
+  const router = useRouter();
+  const { theme, setTheme } = useTheme();
+  const [mounted, setMounted] = useState(false);
+
   // Use centralized admin data
   const {
     admin,
@@ -29,42 +28,39 @@ const AdminHeader = () => {
     markAllNotificationsAsRead
   } = useAdminData();
 
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
   // Close dropdowns when clicking outside
   useEffect(() => {
-    const onClickOutside = (e: MouseEvent) => {
+    const handler = (e: MouseEvent) => {
       const target = e.target as Node;
-      
-      // Close profile menu
-      if (isOpen && menuRef.current && triggerRef.current &&
-          !menuRef.current.contains(target) && !triggerRef.current.contains(target)) {
-        setIsOpen(false);
+      if (notifRef.current && !notifRef.current.contains(target)) {
+        setNotifOpen(false);
       }
-      
-      // Close notifications dropdown
-      if (notificationsOpen && notificationsRef.current && notificationsTriggerRef.current &&
-          !notificationsRef.current.contains(target) && !notificationsTriggerRef.current.contains(target)) {
-        setNotificationsOpen(false);
+      if (profileRef.current && !profileRef.current.contains(target)) {
+        setProfileOpen(false);
       }
     };
+    document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
+  }, []);
 
-    const onKeyDown = (e: KeyboardEvent) => {
-      if (e.key === "Escape") {
-        setIsOpen(false);
-        setNotificationsOpen(false);
-      }
-    };
+  const handleNotificationClick = () => {
+    setNotifOpen((v) => !v);
+  };
 
-    document.addEventListener("mousedown", onClickOutside);
-    document.addEventListener("keydown", onKeyDown);
+  const handleIndividualNotificationClick = (notification: any) => {
+    if (!notification.read) {
+      markNotificationAsRead(notification.id);
+    }
+    if (notification.link) {
+      router.push(notification.link);
+    }
+    setNotifOpen(false);
+  };
 
-    return () => {
-      document.removeEventListener("mousedown", onClickOutside);
-      document.removeEventListener("keydown", onKeyDown);
-    };
-  }, [isOpen, notificationsOpen]);
-
-
-  // Format time ago
   const formatTimeAgo = (dateString: string) => {
     const date = new Date(dateString);
     const now = new Date();
@@ -73,307 +69,261 @@ const AdminHeader = () => {
     const diffHours = Math.floor(diffMs / 3600000);
     const diffDays = Math.floor(diffMs / 86400000);
 
-    if (diffMins < 1) return 'Just now';
+    if (diffMins < 1) return "Just now";
     if (diffMins < 60) return `${diffMins}m ago`;
     if (diffHours < 24) return `${diffHours}h ago`;
     return `${diffDays}d ago`;
   };
 
-  // Get initials for avatar fallback
   const getInitials = (name: string) => {
     return name
-      .split(' ')
-      .map(word => word[0])
-      .join('')
+      .split(" ")
+      .map((word) => word[0])
+      .join("")
       .toUpperCase()
       .slice(0, 2);
   };
 
-  return (
-    <header className="sticky top-0 z-40 p-4 flex items-center justify-between border-b bg-background text-foreground border-border">
-      {/* Logo Section */}
-      <div className="flex items-center space-x-2">
-        <img
-            src="/taskkash-logo.png"
-            alt="TaskKash Logo"
-            className="w-12 h-12 object-contain"
-          />
-        <span className="text-2xl font-bold bg-clip-text text-transparent bg-linear-to-r from-green-500 to-purple-600 ml-2 tracking-tight">
-          TASKKASH
+  const displayName = admin?.name || "Admin";
+  const displayEmail = admin?.email || "admin@taskkash.com";
+
+  /* ── Shared Notification Dropdown Markup ── */
+  const NotificationDropdown = ({ mobile }: { mobile?: boolean }) => (
+    <div
+      className={`mt-[-10px] lg:mt-2
+        rounded-xl
+        border border-border/70
+        bg-background
+        shadow-[0_12px_35px_rgba(0,0,0,0.18)]
+        ring-1 ring-border/40
+        z-50 overflow-hidden ${
+        mobile
+          ? "fixed top-[70px] left-1/2 -translate-x-1/2 w-[90vw]"
+          : "absolute right-0 w-[360px]"
+      }`}
+    >
+      {/* Header */}
+      <div className="px-5 py-4 border-b border-border/70 flex items-center justify-between bg-muted/40">
+        <span className="text-sm font-black uppercase tracking-wider text-foreground">
+          Notifications
         </span>
-      </div>
 
-      {/* Spacer */}
-      <div className="mx-4 hidden md:block" />
-
-      {/* Actions (desktop) */}
-      <div className="hidden md:flex items-center space-x-4">
-        <ModeToggle />
-
-        {/* Notifications */}
-        <div className="relative">
-          <button
-            ref={notificationsTriggerRef}
-            onClick={() => setNotificationsOpen((v) => !v)}
-            className="relative p-2 rounded-full hover:bg-muted transition-colors"
-          >
-            <Bell className="w-5 h-5" />
-            {unreadCount > 0 && (
-              <span className="absolute -top-1 -right-1 h-5 w-5 rounded-full bg-green-500 text-xs text-black flex items-center justify-center">
-                {unreadCount > 9 ? '9+' : unreadCount}
-              </span>
-            )}
-          </button>
-
-          {/* Notifications Dropdown */}
-          <div
-            ref={notificationsRef}
-            className={`${
-              notificationsOpen ? "block" : "hidden"
-            } absolute right-0 mt-2 w-80 bg-background rounded-md shadow-lg border border-border z-10 max-h-96 overflow-hidden`}
-          >
-            <div className="p-4 border-b border-border">
-              <div className="flex items-center justify-between">
-                <h3 className="font-semibold">Notifications</h3>
-                {unreadCount > 0 && (
-                  <button
-                    onClick={markAllNotificationsAsRead}
-                    className="text-xs text-primary hover:underline"
-                  >
-                    Mark all as read
-                  </button>
-                )}
-              </div>
-            </div>
-
-            <div className="max-h-64 overflow-y-auto">
-              {notifications.length === 0 ? (
-                <div className="p-4 text-center text-muted-foreground">
-                  <p className="text-sm">No notifications</p>
-                </div>
-              ) : (
-                <div className="divide-y divide-border">
-                  {notifications.map((notification) => (
-                    <div
-                      key={notification.id}
-                      className={`p-4 hover:bg-muted cursor-pointer transition-colors ${
-                        !notification.read ? 'bg-muted/30' : ''
-                      }`}
-                      onClick={() => {
-                        if (!notification.read) {
-                          markNotificationAsRead(notification.id);
-                        }
-                        if (notification.link) {
-                          router.push(notification.link);
-                        }
-                      }}
-                    >
-                      <div className="flex items-start gap-3">
-                        <div className="flex-1">
-                          <div className="flex items-center gap-2">
-                            <p className={`text-sm font-medium ${
-                              !notification.read ? 'text-foreground' : 'text-muted-foreground'
-                            }`}>
-                              {notification.title}
-                            </p>
-                            {!notification.read && (
-                              <span className="h-2 w-2 rounded-full bg-primary"></span>
-                            )}
-                          </div>
-                          <SafeHTMLRenderer 
-                            content={notification.message}
-                            className="text-xs text-muted-foreground mt-1"
-                          />
-                          <p className="text-xs text-muted-foreground mt-2">
-                            {formatTimeAgo(notification.createdAt)}
-                          </p>
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
-          </div>
-        </div>
-
-        {/* Admin Menu */}
-        <div className="relative">
-          <button
-            ref={triggerRef}
-            onClick={() => setIsOpen((v) => !v)}
-            aria-haspopup="menu"
-            aria-expanded={isOpen}
-            className="flex items-center gap-2 p-2 rounded hover:bg-muted transition-colors"
-          >
-            {admin?.avatarUrl ? (
-              <img
-                src={admin.avatarUrl}
-                alt={admin.name}
-                className="w-6 h-6 rounded-full object-cover"
-              />
-            ) : admin?.name ? (
-              <div className="w-6 h-6 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-xs font-medium">
-                {getInitials(admin.name)}
-              </div>
-            ) : (
-              <div className="w-6 h-6 rounded-full bg-muted flex items-center justify-center">
-                <UserIcon className="w-4 h-4 text-muted-foreground" />
-              </div>
-            )}
-            <ChevronDown className="w-4 h-4" />
-          </button>
-
-          {/* Dropdown */}
-          <div
-            ref={menuRef}
-            role="menu"
-            className={`${
-              isOpen ? "block" : "hidden"
-            } absolute right-0 mt-2 w-48 bg-background rounded-md shadow-lg border border-border z-10`}
-          >
-            <div className="px-4 py-2 border-b border-border">
-              <p className="text-sm font-medium truncate">
-                {admin?.name || 'Admin'}
-              </p>
-              <p className="text-xs text-muted-foreground truncate">
-                {admin?.email || 'admin@taskkash.com'}
-              </p>
-            </div>
-
-            <Link
-              href="/admin-dashboard/profile"
-              className="flex items-center gap-2 px-4 py-2 text-sm hover:bg-muted"
+        <div className="flex items-center gap-2">
+          {unreadCount > 0 && (
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                markAllNotificationsAsRead();
+              }}
+              className="text-xs text-primary hover:underline font-semibold mr-1"
             >
-              <UserIcon className="w-4 h-4" />
-              Profile
-            </Link>
-
-            <Link
-              href="/admin-dashboard/settings"
-              className="flex items-center gap-2 px-4 py-2 text-sm hover:bg-muted"
-            >
-              <Settings className="w-4 h-4" />
-              Settings
-            </Link>
-
-            <Link
-              href="/auth/login"
-              className="flex items-center gap-2 px-4 py-2 text-sm hover:bg-muted hover:text-red-600"
-            >
-              <LogOut className="w-4 h-4" />
-              Logout
-            </Link>
-          </div>
+              Mark all as read
+            </button>
+          )}
+          {unreadCount > 0 && (
+            <span className="text-[11px] font-bold uppercase tracking-wide bg-red-500/10 text-red-500 px-2.5 py-1 rounded-full border border-red-500/20">
+              {unreadCount} unread
+            </span>
+          )}
         </div>
       </div>
 
-      {/* Mobile Actions */}
-      <div className="md:hidden flex items-center space-x-2">
-        <ModeToggle />
-        
-        {/* Mobile Notifications */}
-        <div className="relative">
-          <button
-            ref={notificationsTriggerRef}
-            onClick={() => setNotificationsOpen((v) => !v)}
-            className="relative p-2 rounded-full hover:bg-muted transition-colors"
-          >
-            <Bell className="w-5 h-5" />
-            {unreadCount > 0 && (
-              <span className="absolute -top-1 -right-1 h-5 w-5 rounded-full bg-green-500 text-xs text-black flex items-center justify-center">
-                {unreadCount > 9 ? '9+' : unreadCount}
-              </span>
-            )}
-          </button>
+      {/* List */}
+      <div className="max-h-[65vh] overflow-y-auto">
+        {notifications.length > 0 ? (
+          notifications.map((notif: any) => (
+            <div
+              key={notif.id}
+              onClick={() => handleIndividualNotificationClick(notif)}
+              className={`px-5 py-4 cursor-pointer transition-all duration-200 border-b border-border/40
+                hover:bg-muted/60
+                ${
+                  !notif.read
+                    ? "bg-primary/5 border-l-2 border-l-primary"
+                    : "bg-background"
+                }`}
+            >
+              <div className="flex items-start gap-3">
+                <div className="mt-1 flex-shrink-0">
+                  <Bell className="w-4 h-4 text-primary" />
+                </div>
 
-          {/* Mobile Notifications Dropdown */}
-          <div
-            ref={notificationsRef}
-            className={`${
-              notificationsOpen ? "block" : "hidden"
-            } absolute right-0 mt-2 w-80 bg-background rounded-md shadow-lg border border-border z-10 max-h-96 overflow-hidden`}
-          >
-            <div className="p-4 border-b border-border">
-              <div className="flex items-center justify-between">
-                <h3 className="font-semibold">Notifications</h3>
-                {unreadCount > 0 && (
-                  <button
-                    onClick={markAllNotificationsAsRead}
-                    className="text-xs text-primary hover:underline"
-                  >
-                    Mark all as read
-                  </button>
-                )}
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center justify-between gap-2 mb-1">
+                    <p className="text-sm font-bold tracking-tight text-foreground truncate">
+                      {notif.title}
+                    </p>
+
+                    {!notif.read && (
+                      <div className="w-2.5 h-2.5 bg-primary rounded-full flex-shrink-0" />
+                    )}
+                  </div>
+
+                  <SafeHTMLRenderer
+                    content={notif.message}
+                    className="text-xs text-muted-foreground leading-relaxed line-clamp-2"
+                  />
+
+                  <p className="text-[11px] text-muted-foreground/70 mt-2 font-semibold uppercase tracking-wide">
+                    {formatTimeAgo(notif.createdAt)}
+                  </p>
+                </div>
               </div>
             </div>
-
-            <div className="max-h-64 overflow-y-auto">
-              {notifications.length === 0 ? (
-                <div className="p-4 text-center text-muted-foreground">
-                  <p className="text-sm">No notifications</p>
-                </div>
-              ) : (
-                <div className="divide-y divide-border">
-                  {notifications.map((notification) => (
-                    <div
-                      key={notification.id}
-                      className={`p-4 hover:bg-muted cursor-pointer transition-colors ${
-                        !notification.read ? 'bg-muted/30' : ''
-                      }`}
-                      onClick={() => {
-                        if (!notification.read) {
-                          markNotificationAsRead(notification.id);
-                        }
-                        if (notification.link) {
-                          router.push(notification.link);
-                        }
-                      }}
-                    >
-                      <div className="flex items-start gap-3">
-                        <div className="flex-1">
-                          <div className="flex items-center gap-2">
-                            <p className={`text-sm font-medium ${
-                              !notification.read ? 'text-foreground' : 'text-muted-foreground'
-                            }`}>
-                              {notification.title}
-                            </p>
-                            {!notification.read && (
-                              <span className="h-2 w-2 rounded-full bg-primary"></span>
-                            )}
-                          </div>
-                          <SafeHTMLRenderer 
-                            content={notification.message}
-                            className="text-xs text-muted-foreground mt-1"
-                          />
-                          <p className="text-xs text-muted-foreground mt-2">
-                            {formatTimeAgo(notification.createdAt)}
-                          </p>
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
+          ))
+        ) : (
+          <div className="p-8 text-center text-sm font-semibold tracking-wide text-muted-foreground">
+            No notifications
           </div>
-        </div>
-        
-        {/* Mobile Hamburger */}
+        )}
+      </div>
+    </div>
+  );
+
+  return (
+    <header className="h-15 border-b border-border flex items-center justify-between gap-4 px-4 sm:px-6 bg-background/80 backdrop-blur-md sticky top-0 z-50">
+      {/* Left — Page layout title / Mobile Burger */}
+      <div className="flex items-center gap-3 flex-shrink-0">
         <button
-          onClick={() =>
-            window.dispatchEvent(new CustomEvent("open-sidebar"))
-          }
-          className="p-2 rounded hover:bg-muted"
-          aria-label="Open menu"
+          className="md:hidden p-2 rounded-xl hover:bg-secondary transition-colors"
+          onClick={() => window.dispatchEvent(new CustomEvent("open-sidebar"))}
         >
-          <span className="block w-6 h-0.5 bg-foreground/70 mb-1" />
-          <span className="block w-6 h-0.5 bg-foreground/70 mb-1" />
-          <span className="block w-6 h-0.5 bg-foreground/70" />
+          <Menu className="h-5 w-5" />
         </button>
+
+        {title && (
+          <p className="text-[8px] md:text-xs text-muted-foreground font-bold uppercase tracking-widest hidden xs:block">
+            {title}
+          </p>
+        )}
+      </div>
+
+      {/* Right controls */}
+      <div className="flex items-center gap-3">
+        {/* Theme toggle */}
+        <button
+          onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
+          className="p-2 rounded-xl hover:bg-secondary transition-colors"
+          title="Toggle theme"
+        >
+          {mounted && (theme === "dark" ? (
+            <Sun className="w-5 h-5 text-white" />
+          ) : (
+            <Moon className="w-5 h-5 text-black" />
+          ))}
+        </button>
+
+        {/* Notification Bell */}
+        <div className="relative" ref={notifRef}>
+          <button
+            className="p-2 rounded-xl hover:bg-secondary transition-colors relative"
+            onClick={handleNotificationClick}
+          >
+            <Bell className="w-5 h-5" />
+            {unreadCount > 0 && (
+              <span className="absolute -top-0.5 -right-0.5 min-w-[16px] h-4 px-1 rounded-full bg-red-500 text-white text-[9px] font-black flex items-center justify-center border-2 border-background">
+                {unreadCount > 9 ? "9+" : unreadCount}
+              </span>
+            )}
+          </button>
+
+          {notifOpen && (
+            <>
+              {/* Desktop dropdown */}
+              <div className="hidden md:block">
+                <NotificationDropdown />
+              </div>
+              {/* Mobile dropdown */}
+              <div className="md:hidden">
+                <NotificationDropdown mobile />
+              </div>
+            </>
+          )}
+        </div>
+
+        {/* Profile Dropdown Component Container */}
+        <div className="relative flex items-center pl-4 border-l border-border" ref={profileRef}>
+          <div className="flex items-center gap-2">
+            {/* User credentials descriptive metadata — Desktop only */}
+            <div className="hidden lg:block text-right mr-1">
+              <p className="text-xs font-black uppercase tracking-tight leading-none text-foreground">
+                {loading ? "Loading..." : displayName}
+              </p>
+              <p className="text-[9px] text-muted-foreground font-bold uppercase tracking-tighter mt-1 truncate max-w-[140px]">
+                {loading ? "" : displayEmail}
+              </p>
+            </div>
+
+            {/* Combined Avatar Action Trigger (Functional across Desktop & Mobile) */}
+            <button
+              onClick={() => setProfileOpen((v) => !v)}
+              className="w-10 h-10 rounded-xl border-2 border-border hover:border-green-500 transition-colors overflow-hidden flex items-center justify-center bg-muted"
+              title="Admin Menu"
+            >
+              {admin?.avatarUrl ? (
+                <img
+                  src={admin.avatarUrl}
+                  alt={displayName}
+                  className="w-full h-full object-cover"
+                />
+              ) : admin?.name ? (
+                <div className="text-xs font-black text-green-500">
+                  {getInitials(admin.name)}
+                </div>
+              ) : (
+                <UserIcon className="w-5 h-5 text-green-500" />
+              )}
+            </button>
+          </div>
+
+          {/* Settings Custom Context Profile Menu Dropdown */}
+          {profileOpen && (
+            <div className="absolute right-0 top-full mt-2 w-48 rounded-xl border border-border/70 bg-background shadow-[0_12px_35px_rgba(0,0,0,0.18)] ring-1 ring-border/40 z-50 overflow-hidden">
+              <div className="px-4 py-3 border-b border-border/70 bg-muted/40 lg:hidden">
+                <p className="text-xs font-black uppercase tracking-tight text-foreground truncate">
+                  {displayName}
+                </p>
+                <p className="text-[9px] text-muted-foreground font-bold mt-0.5 truncate">
+                  {displayEmail}
+                </p>
+              </div>
+
+              <button
+                onClick={() => {
+                  router.push("/admin-dashboard/profile");
+                  setProfileOpen(false);
+                }}
+                className="w-full flex items-center gap-2 px-4 py-2.5 text-xs font-bold uppercase tracking-wider text-muted-foreground hover:text-foreground hover:bg-muted/60 transition-colors text-left"
+              >
+                <UserIcon className="w-4 h-4" />
+                Profile
+              </button>
+
+              <button
+                onClick={() => {
+                  router.push("/admin-dashboard/settings");
+                  setProfileOpen(false);
+                }}
+                className="w-full flex items-center gap-2 px-4 py-2.5 text-xs font-bold uppercase tracking-wider text-muted-foreground hover:text-foreground hover:bg-muted/60 transition-colors text-left"
+              >
+                <Settings className="w-4 h-4" />
+                Settings
+              </button>
+
+              <button
+                onClick={() => {
+                  router.push("/auth/login");
+                  setProfileOpen(false);
+                }}
+                className="w-full flex items-center gap-2 px-4 py-2.5 text-xs font-bold uppercase tracking-wider text-red-500 hover:bg-red-500/5 border-t border-border/40 transition-colors text-left"
+              >
+                <LogOut className="w-4 h-4" />
+                Logout
+              </button>
+            </div>
+          )}
+        </div>
       </div>
     </header>
   );
-};
-
-export default AdminHeader;
+}

@@ -1,22 +1,24 @@
 import type { Metadata } from "next";
+// Ignore missing type declarations for CSS side-effect import
+// @ts-ignore: CSS module without type declarations
 import "./globals.css";
 import { ThemeProvider } from "@/components/providers/ThemeProvider";
 import { SessionProvider } from "next-auth/react";
 import { ToastContainer } from "react-toastify";
-import "react-toastify/dist/ReactToastify.css";
-import { Geist, Geist_Mono } from "next/font/google";
+// import "react-toastify/dist/ReactToastify.css";
+// import { Geist, Geist_Mono } from "next/font/google";
 
-const geist = Geist({
-  subsets: ["latin"],
-  variable: "--font-geist-sans",
-  weight: "variable",
-});
+// const geist = Geist({
+//   subsets: ["latin"],
+//   variable: "--font-geist-sans",
+//   weight: "variable",
+// });
 
-const geistMono = Geist_Mono({
-  subsets: ["latin"],
-  variable: "--font-geist-mono",
-  weight: "variable",
-});
+// const geistMono = Geist_Mono({
+//   subsets: ["latin"],
+//   variable: "--font-geist-mono",
+//   weight: "variable",
+// });
 
 export const metadata: Metadata = {
   title: "TaskKash",
@@ -47,7 +49,7 @@ export default function RootLayout({
     <html
       lang="en"
       suppressHydrationWarning
-      className={`${geist.variable} ${geistMono.variable}`}
+      // className={`${geist.variable} ${geistMono.variable}`}
     >
       <body className="min-h-screen font-sans antialiased">
         <SessionProvider

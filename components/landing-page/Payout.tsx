@@ -1,12 +1,12 @@
 "use client";
 
 import Image from "next/image";
-import { Montserrat } from "next/font/google";
+// import { Montserrat } from "next/font/google";
 
-const montserrat = Montserrat({
-  subsets: ["latin"],
-  weight: ["700", "800", "900"],
-});
+// const montserrat = Montserrat({
+//   subsets: ["latin"],
+//   weight: ["700", "800", "900"],
+// });
 
 const LEFT_FEATURES = [
   {
@@ -71,7 +71,7 @@ function FeatureItem({
       {/* Text Container */}
       <div className={isLeft ? "text-right" : "text-left"}>
         <h3
-          className={`${montserrat.className} text-foreground font-extrabold text-base xl:text-lg mb-1.5 leading-tight uppercase`}
+          className={`text-foreground font-extrabold text-base xl:text-lg mb-1.5 leading-tight uppercase`}
         >
           {title}
         </h3>
@@ -118,7 +118,7 @@ export default function PayoutsSection() {
           Guaranteed Settlement
         </div>
         <h2
-          className={`${montserrat.className} text-4xl mb-6 md:text-5xl xl:text-4xl font-black uppercase tracking-tight text-foreground`}
+          className={`text-4xl mb-6 md:text-5xl xl:text-4xl font-black uppercase tracking-tight text-foreground`}
         >
           100% Verified Payouts
         </h2>

@@ -1,13 +1,13 @@
 "use client";
 
 import { useState } from "react";
-import { Montserrat } from "next/font/google";
+// import { Montserrat } from "next/font/google";
 import { Plus, X } from "lucide-react";
 
-const montserrat = Montserrat({
-  subsets: ["latin"],
-  weight: ["700", "800", "900"],
-});
+// const montserrat = Montserrat({
+//   subsets: ["latin"],
+//   weight: ["700", "800", "900"],
+// });
 
 const faqs = [
   {
@@ -114,7 +114,7 @@ export default function FAQ() {
 
         {/* Main Heading */}
         <h2
-          className={`${montserrat.className} text-3xl md:text-5xl lg:text-4xl font-black leading-[1.1] tracking-tight text-foreground mb-6 uppercase`}
+          className={` text-3xl md:text-5xl lg:text-4xl font-black leading-[1.1] tracking-tight text-foreground mb-6 uppercase`}
         >
           Frequently Asked Questions
         </h2>
