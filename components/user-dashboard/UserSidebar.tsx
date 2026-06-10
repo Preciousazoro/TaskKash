@@ -270,6 +270,7 @@ function SidebarNavItems({
 }) {
   const pathname = usePathname();
   const streak = userData?.dailyStreak || 0;
+  const [withdrawalVisible, setWithdrawalVisible] = useState(true);
 
   const [openGroups, setOpenGroups] = useState<Record<string, boolean>>({
     Community: true,
@@ -277,6 +278,22 @@ function SidebarNavItems({
   });
 
   const basePath = "/user-dashboard";
+
+  // Fetch withdrawal visibility
+  useEffect(() => {
+    const fetchWithdrawalVisibility = async () => {
+      try {
+        const response = await fetch("/api/withdrawal-visibility");
+        const data = await response.json();
+        if (data.isVisible !== undefined) {
+          setWithdrawalVisible(data.isVisible);
+        }
+      } catch (error) {
+        console.error("Failed to fetch withdrawal visibility:", error);
+      }
+    };
+    fetchWithdrawalVisibility();
+  }, []);
 
   const navItems: NavItem[] = [
     {
@@ -300,7 +317,7 @@ function SidebarNavItems({
     {
       name: "Withdrawals",
       icon: Wallet,
-      href: `${basePath}/withdraw`,
+      href: withdrawalVisible ? `${basePath}/withdraw` : `${basePath}/withdraw/locked`,
       color: "text-green-500",
     },
     {

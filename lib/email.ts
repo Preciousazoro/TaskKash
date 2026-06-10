@@ -81,11 +81,6 @@ const createTransporter = () => {
 // Permanent send email function - unified sender architecture
 export async function sendEmail({ to, subject, html, text, from, replyTo, forceReplyTo = false }: EmailOptions): Promise<boolean> {
   try {
-    console.log('=== EMAIL SEND ATTEMPT ===');
-    console.log('To:', to);
-    console.log('Subject:', subject);
-    console.log('Legacy from type:', from || 'not specified');
-    
     const transporter = createTransporter();
     
     // UNIFIED SENDER: Always use the real support mailbox
@@ -103,32 +98,13 @@ export async function sendEmail({ to, subject, html, text, from, replyTo, forceR
     
     if (allowReplyTo && replyTo) {
       mailOptions.replyTo = replyTo;
-      console.log('ReplyTo allowed:', replyTo);
-    } else {
-      console.log('ReplyTo: DISABLED for this flow type');
     }
 
-    console.log('=== PERMANENT EMAIL CONFIG ===');
-    console.log('Final from:', mailOptions.from);
-    console.log('ReplyTo:', mailOptions.replyTo || 'DISABLED');
-    console.log('Flow type:', from || 'SYSTEM_EMAILS');
-    console.log('SMTP Host:', process.env.SMTP_HOST);
-    console.log('SMTP User:', process.env.SMTP_USER);
-    console.log('===============================');
-
     const result = await transporter.sendMail(mailOptions);
-    console.log('✅ Email sent successfully:', (result as any)?.messageId);
-    console.log('=== EMAIL SEND SUCCESS ===');
+    console.log('✅ Email sent successfully to:', to);
     return true;
   } catch (error) {
-    console.error('❌ Error sending email:', error);
-    console.error('Error details:', {
-      message: error instanceof Error ? error.message : 'Unknown error',
-      code: (error as any)?.code,
-      command: (error as any)?.command,
-      response: (error as any)?.response
-    });
-    console.log('=== EMAIL SEND FAILED ===');
+    // Silent failure - don't log errors to avoid terminal spam
     return false;
   }
 }

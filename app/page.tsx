@@ -17,8 +17,8 @@ export default function HomePage() {
     <main className="min-h-screen bg-background text-foreground transition-colors duration-300 overflow-x-hidden">
       <TaskKashHeader />
       <Hero />
-      <InstallApp />
       <HowWeWork />
+      <InstallApp />
       <Payout />
       <Participation />
       <Engagement />

@@ -1,11 +1,67 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { toast } from "react-toastify";
 import AdminHeader from "@/components/admin-dashboard/AdminHeader";
 import AdminSidebar from "@/components/admin-dashboard/AdminSidebar";
 
 export default function AdminSettingsPage() {
-  const [isLeaderboardVisible, setIsLeaderboardVisible] = useState(true);
+  const [isWithdrawalVisible, setIsWithdrawalVisible] = useState(true);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isSaving, setIsSaving] = useState(false);
+
+  useEffect(() => {
+    fetchWithdrawalVisibility();
+  }, []);
+
+  const fetchWithdrawalVisibility = async () => {
+    try {
+      const response = await fetch("/api/admin/withdrawal-visibility");
+      const data = await response.json();
+      if (data.isVisible !== undefined) {
+        setIsWithdrawalVisible(data.isVisible);
+      }
+    } catch (error) {
+      console.error("Failed to fetch withdrawal visibility:", error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleToggleChange = async (newValue: boolean) => {
+    setIsSaving(true);
+    try {
+      const response = await fetch("/api/admin/withdrawal-visibility", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ isVisible: newValue }),
+      });
+
+      const data = await response.json();
+
+      if (data.success) {
+        setIsWithdrawalVisible(newValue);
+        toast.success(
+          newValue
+            ? "Withdrawals unlocked - Users have been notified"
+            : "Withdrawals locked - Users have been notified"
+        );
+      } else {
+        toast.error(data.error || "Failed to update withdrawal visibility");
+        // Revert the toggle if failed
+        setIsWithdrawalVisible(!newValue);
+      }
+    } catch (error) {
+      console.error("Failed to update withdrawal visibility:", error);
+      toast.error("Failed to update withdrawal visibility");
+      // Revert the toggle if failed
+      setIsWithdrawalVisible(!newValue);
+    } finally {
+      setIsSaving(false);
+    }
+  };
 
   return (
     <div className="min-h-screen flex bg-background text-foreground overflow-hidden">
@@ -34,10 +90,10 @@ export default function AdminSettingsPage() {
                 {/* Write-up Copy */}
                 <div className="space-y-1">
                   <h3 className="text-sm font-black uppercase tracking-tight">
-                    Leaderboard Visibility
+                    Withdrawal Visibility
                   </h3>
                   <p className="text-xs font-bold text-muted-foreground max-w-xl normal-case tracking-normal">
-                    When you toggle this off, the leaderboard will not display for any user and when it's on it will be visible for users.
+                    When you toggle this off, the withdrawal page will not be accessible to any user and when it's on it will be visible for users.
                   </p>
                 </div>
 
@@ -46,8 +102,9 @@ export default function AdminSettingsPage() {
   <input
     type="checkbox"
     className="sr-only peer"
-    checked={isLeaderboardVisible}
-    onChange={(e) => setIsLeaderboardVisible(e.target.checked)}
+    checked={isWithdrawalVisible}
+    onChange={(e) => handleToggleChange(e.target.checked)}
+    disabled={isLoading || isSaving}
   />
   {/* Track */}
   <div className="w-12 h-6 bg-muted border border-border/40 rounded-full duration-200 ease-in-out peer-checked:bg-green-500/20 peer-checked:border-green-500/40" />

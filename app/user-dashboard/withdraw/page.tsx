@@ -98,10 +98,23 @@ export default function WithdrawPage() {
   const [userData, setUserData] = useState<UserData | null>(null);
   const [loading, setLoading] = useState(true);
   const [withdrawalHistory, setWithdrawalHistory] = useState<WithdrawalHistory[]>([]);
+  const [withdrawalVisible, setWithdrawalVisible] = useState(true);
 
   useEffect(() => {
+    fetchVisibility();
     fetchUserData();
   }, []);
+
+  const fetchVisibility = async () => {
+    try {
+      const response = await fetch("/api/withdrawal-visibility");
+      const data = await response.json();
+      setWithdrawalVisible(data.isVisible);
+    } catch (error) {
+      // Default to visible if fetch fails
+      setWithdrawalVisible(true);
+    }
+  };
 
   const fetchUserData = async () => {
     try {
@@ -254,13 +267,50 @@ export default function WithdrawPage() {
               </p>
             </section>
 
-            <div className="flex flex-col lg:flex-row gap-8">
-              {/* Left: Withdrawal Form */}
-              <div className="flex-1">
-                <form
-                  onSubmit={handleWithdraw}
-                  className="bg-card border border-border rounded-[1rem] p-6 md:p-10 shadow-sm space-y-8"
-                >
+            {/* Locked State */}
+            {!withdrawalVisible && (
+              <div className="relative overflow-hidden rounded-[1.2rem] border-2 border-red-500/30 bg-gradient-to-br from-red-500/15 via-orange-500/10 to-red-500/15 p-6 md:p-8 backdrop-blur-sm">
+                <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(255,255,255,0.08),transparent_35%)]" />
+                <Lock className="absolute -right-5 -top-5 h-28 w-28 text-red-400 opacity-10" />
+                
+                <div className="relative z-10 flex items-center gap-4 mb-4">
+                  <div className="flex h-12 w-12 items-center justify-center rounded-full bg-red-500/20 border border-red-500/30">
+                    <Lock className="h-6 w-6 text-red-400" />
+                  </div>
+                  <div>
+                    <p className="text-[12px] font-black uppercase tracking-[0.25em] text-red-300">
+                      WITHDRAWALS TEMPORARILY LOCKED
+                    </p>
+                    <p className="mt-1 text-[11px] font-bold uppercase tracking-tight text-red-100/70">
+                      System maintenance in progress
+                    </p>
+                  </div>
+                </div>
+                
+                <div className="relative z-10 space-y-3">
+                  <div className="flex items-center justify-between rounded-xl border border-red-500/10 bg-black/20 px-4 py-3">
+                    <span className="text-[11px] font-black uppercase tracking-tight text-red-100/80">
+                      Status
+                    </span>
+                    <span className="text-sm font-black text-red-300">
+                      LOCKED
+                    </span>
+                  </div>
+                  <p className="text-[10px] text-red-100/60 leading-relaxed">
+                    Withdrawal operations are temporarily locked for scheduled maintenance. Your funds remain safe and will be available once maintenance is complete. You will be notified via email when withdrawals are unlocked.
+                  </p>
+                </div>
+              </div>
+            )}
+
+            {withdrawalVisible && (
+              <div className="flex flex-col lg:flex-row gap-8">
+                {/* Left: Withdrawal Form */}
+                <div className="flex-1">
+                  <form
+                    onSubmit={handleWithdraw}
+                    className="bg-card border border-border rounded-[1rem] p-6 md:p-10 shadow-sm space-y-8"
+                  >
                   {/* Currency Selection */}
                   <div className="space-y-3">
                     <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">
@@ -561,6 +611,7 @@ export default function WithdrawPage() {
                 </div>
               </div>
             </div>
+            )}
           </div>
         </main>
       </div>
