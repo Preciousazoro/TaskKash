@@ -2,11 +2,25 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { useSearchParams, useRouter, usePathname } from "next/navigation";
-import { Eye, Edit, Ban, Trash2, Shield } from "lucide-react";
+import {
+  Users,
+  UserCheck,
+  UserMinus,
+  Briefcase,
+  Search,
+  Filter,
+  Trash2,
+  Ban,
+  Eye,
+  Loader2,
+  DollarSign,
+  Edit,
+  Shield,
+  Mail,
+} from "lucide-react";
 import AdminHeader from "../../../components/admin-dashboard/AdminHeader";
 import AdminSidebar from "../../../components/admin-dashboard/AdminSidebar";
 import { toast } from 'react-toastify';
-import { Pagination } from "@/components/ui/Pagination";
 import { UserAvatar } from "../../../components/admin-dashboard/UserAvatar";
 import { UserPreviewModal } from "../../../components/admin-dashboard/UserPreviewModal";
 import { confirmToast } from "../../../components/admin-dashboard/confirmToast";
@@ -27,15 +41,6 @@ interface User {
   socialLinks?: any;
 }
 
-interface PaginationData {
-  currentPage: number;
-  totalPages: number;
-  totalUsers: number;
-  limit: number;
-  hasNextPage: boolean;
-  hasPrevPage: boolean;
-}
-
 /* ---------------- COMPONENT ---------------- */
 export default function AdminUsersPage() {
   const [users, setUsers] = useState<User[]>([]);
@@ -44,16 +49,40 @@ export default function AdminUsersPage() {
   const [filterCounts, setFilterCounts] = useState({
     all: 0,
     admins: 0,
-    suspended: 0
+    suspended: 0,
+    active: 0
   });
-  const [pagination, setPagination] = useState<PaginationData>({
-    currentPage: 1,
-    totalPages: 0,
-    totalUsers: 0,
-    limit: 10,
-    hasNextPage: false,
-    hasPrevPage: false
-  });
+  const [searchTerm, setSearchTerm] = useState("");
+  const [stats, setStats] = useState([
+    {
+      label: "Total Users",
+      value: "0",
+      icon: Users,
+      color: "text-primary",
+      bg: "bg-primary/10",
+    },
+    {
+      label: "Active Users",
+      value: "0",
+      icon: UserCheck,
+      color: "text-teal-600",
+      bg: "bg-teal-50",
+    },
+    {
+      label: "Suspended Users",
+      value: "0",
+      icon: UserMinus,
+      color: "text-red-500",
+      bg: "bg-red-500/10",
+    },
+    {
+      label: "Admins",
+      value: "0",
+      icon: Shield,
+      color: "text-purple-600",
+      bg: "bg-purple-50",
+    },
+  ]);
   const [loading, setLoading] = useState(true);
   const [detailOpen, setDetailOpen] = useState(false);
   const [detailUser, setDetailUser] = useState<User | null>(null);
@@ -67,22 +96,38 @@ export default function AdminUsersPage() {
 
   /* -------- FILTER USERS -------- */
   const filteredUsers = useMemo(() => {
+    let filtered = allUsers;
+    
+    // Apply filter tabs
     switch (activeFilter) {
       case 'admins':
-        return allUsers.filter(user => user.role === 'admin');
+        filtered = filtered.filter(user => user.role?.toLowerCase() === 'admin');
+        break;
       case 'suspended':
-        return allUsers.filter(user => user.status === 'suspended');
+        filtered = filtered.filter(user => user.status?.toLowerCase() === 'suspended');
+        break;
       default:
-        return allUsers;
+        filtered = filtered;
     }
-  }, [allUsers, activeFilter]);
+    
+    // Apply search term
+    if (searchTerm) {
+      filtered = filtered.filter(user =>
+        user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        user.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        (user.username && user.username.toLowerCase().includes(searchTerm.toLowerCase()))
+      );
+    }
+    
+    return filtered;
+  }, [allUsers, activeFilter, searchTerm]);
 
 
   /* -------- FETCH USERS FROM DATABASE -------- */
-  const fetchUsers = async (page: number, limit: number) => {
+  const fetchUsers = async () => {
     try {
       setLoading(true);
-      const response = await fetch(`/api/admin/users?page=${page}&limit=${limit}`);
+      const response = await fetch('/api/admin/users');
       
       if (!response.ok) {
         throw new Error('Failed to fetch users');
@@ -90,10 +135,42 @@ export default function AdminUsersPage() {
       
       const data = await response.json();
       setAllUsers(data.users);
-      setPagination(data.pagination);
+      
       if (data.filterCounts) {
         setFilterCounts(data.filterCounts);
       }
+      
+      // Use filterCounts from API for accurate stats
+      setStats([
+        {
+          label: "Total Users",
+          value: data.filterCounts.all.toString(),
+          icon: Users,
+          color: "text-primary",
+          bg: "bg-primary/10",
+        },
+        {
+          label: "Active Users",
+          value: data.filterCounts.active.toString(),
+          icon: UserCheck,
+          color: "text-teal-600",
+          bg: "bg-teal-50",
+        },
+        {
+          label: "Suspended Users",
+          value: data.filterCounts.suspended.toString(),
+          icon: UserMinus,
+          color: "text-red-500",
+          bg: "bg-red-500/10",
+        },
+        {
+          label: "Admins",
+          value: data.filterCounts.admins.toString(),
+          icon: Shield,
+          color: "text-purple-600",
+          bg: "bg-purple-50",
+        },
+      ]);
     } catch (error) {
       console.error('Error fetching users:', error);
       toast.error('Failed to load users');
@@ -102,29 +179,10 @@ export default function AdminUsersPage() {
     }
   };
 
-  /* -------- INITIAL LOAD AND URL SYNC -------- */
+  /* -------- INITIAL LOAD -------- */
   useEffect(() => {
-    const pageParam = searchParams.get('page');
-    const limitParam = searchParams.get('limit');
-    const page = pageParam ? parseInt(pageParam) : 1;
-    const limit = limitParam ? parseInt(limitParam) : 10;
-    
-    fetchUsers(page, limit);
-  }, [searchParams]);
-
-  /* -------- PAGINATION HANDLERS -------- */
-  const handlePageChange = (newPage: number) => {
-    const params = new URLSearchParams(searchParams.toString());
-    params.set('page', newPage.toString());
-    router.push(`${pathname}?${params.toString()}`);
-  };
-
-  const handleItemsPerPageChange = (newLimit: number) => {
-    const params = new URLSearchParams(searchParams.toString());
-    params.set('page', '1');
-    params.set('limit', newLimit.toString());
-    router.push(`${pathname}?${params.toString()}`);
-  };
+    fetchUsers();
+  }, []);
 
   /* -------- FILTER HANDLERS -------- */
   const handleFilterChange = (filter: 'all' | 'admins' | 'suspended') => {
@@ -212,7 +270,7 @@ export default function AdminUsersPage() {
           }
 
           // Refresh user list
-          await fetchUsers(pagination.currentPage, pagination.limit);
+          await fetchUsers();
         } finally {
           setLoadingActions(prev => {
             const p = { ...prev };
@@ -245,7 +303,7 @@ export default function AdminUsersPage() {
           }
 
           // Refresh user list
-          await fetchUsers(pagination.currentPage, pagination.limit);
+          await fetchUsers();
         } finally {
           setLoadingActions(prev => {
             const p = { ...prev };
@@ -282,7 +340,7 @@ export default function AdminUsersPage() {
 
           // Refresh user list
           setDetailOpen(false);
-          await fetchUsers(pagination.currentPage, pagination.limit);
+          await fetchUsers();
         } catch (error) {
           console.error('Delete user error:', error);
           throw error; // Re-throw to let confirmToast handle the error display
@@ -312,6 +370,15 @@ export default function AdminUsersPage() {
     );
   }
 
+  // Format date
+  const formatDate = (dateString: string) => {
+    return new Date(dateString).toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric',
+    });
+  };
+
   return (
     <div className="min-h-screen flex bg-background text-foreground">
       <AdminSidebar />
@@ -319,151 +386,224 @@ export default function AdminUsersPage() {
       <div className="flex-1 flex flex-col h-screen overflow-hidden">
         <AdminHeader />
 
-        <main className="flex-1 overflow-y-auto p-4 lg:p-6 animate-in fade-in duration-500">
-          <div className="flex flex-col gap-4 lg:gap-6 min-w-0">
-            <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-2">
-              <h2 className="text-xl lg:text-2xl font-bold">Users</h2>
-              <span className="text-muted-foreground text-sm">
-                Total: {filterCounts.all} users
-              </span>
+        <main className="flex-1 overflow-y-auto p-4 md:p-8 pb-24">
+          {/* Header */}
+          <div className="mb-8 flex flex-col md:flex-row md:items-end justify-between gap-4">
+            <div>
+              <h1 className="text-2xl md:text-3xl font-black uppercase tracking-tighter leading-none flex items-center gap-4">
+                User Management
+              </h1>
+              <p className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground flex items-center gap-2 mt-1">
+                <Users className="w-3 h-3 text-primary" />
+                Community Control
+              </p>
             </div>
 
-          {/* FILTER TABS */}
-          <div className="flex flex-wrap gap-2 p-1 bg-muted rounded-lg">
-            <button
-              onClick={() => handleFilterChange('all')}
-              className={`px-3 py-2 rounded-md text-sm font-medium transition-all shrink-0 ${
-                activeFilter === 'all'
-                  ? 'bg-background text-foreground shadow-sm'
-                  : 'text-muted-foreground hover:text-foreground hover:bg-background/50'
-              }`}
-            >
-              All ({filterCounts.all})
-            </button>
-            <button
-              onClick={() => handleFilterChange('admins')}
-              className={`px-3 py-2 rounded-md text-sm font-medium transition-all shrink-0 ${
-                activeFilter === 'admins'
-                  ? 'bg-background text-foreground shadow-sm'
-                  : 'text-muted-foreground hover:text-foreground hover:bg-background/50'
-              }`}
-            >
-              Admins ({filterCounts.admins})
-            </button>
-            <button
-              onClick={() => handleFilterChange('suspended')}
-              className={`px-3 py-2 rounded-md text-sm font-medium transition-all shrink-0 ${
-                activeFilter === 'suspended'
-                  ? 'bg-background text-foreground shadow-sm'
-                  : 'text-muted-foreground hover:text-foreground hover:bg-background/50'
-              }`}
-            >
-              Suspended ({filterCounts.suspended})
-            </button>
+            <div className="flex items-center gap-2">
+              <div className="relative flex-1 md:flex-none">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+
+                <input
+                  type="text"
+                  placeholder="Search by name/email/username"
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="
+      bg-card
+      border border-border
+      rounded-xl
+      py-2 pl-10 pr-4
+      text-sm
+      text-foreground
+      placeholder:text-gray-400
+      dark:placeholder:text-gray-300
+      focus:ring-2 focus:ring-primary/50
+      w-full md:w-64
+      shadow-sm
+    "
+                />
+              </div>
+              <button className="p-2 bg-card border border-border rounded-xl text-primary shadow-sm">
+                <Filter className="w-5 h-5" />
+              </button>
+            </div>
           </div>
 
-          {/* TABLE */}
-          <div className="bg-card border rounded-2xl overflow-hidden">
-            <div className="overflow-x-auto">
-              <table className="w-full min-w-[600px]">
-                <thead className="bg-muted">
-                  <tr>
-                    {["User", "Role", "Status", "Points", "Created", "Actions"].map(h => (
-                      <th key={h} className="px-4 lg:px-6 py-3 text-left text-xs uppercase text-muted-foreground whitespace-nowrap">
-                        {h}
+          {/* Stats Grid */}
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+            {stats.map((stat, i) => (
+              <div
+                key={i}
+                className="bg-card p-4 md:p-5 md:py-4 rounded-2xl border border-border shadow-sm"
+              >
+                <div
+                  className={`w-10 h-10 rounded-xl ${stat.bg} flex items-center justify-center mb-3`}
+                >
+                  <stat.icon className={`w-5 h-5 ${stat.color}`} />
+                </div>
+                <p className="text-lg md:text-xl font-bold text-foreground">
+                  {stat.value}
+                </p>
+                <p className="text-muted-foreground text-[10px] font-bold uppercase tracking-wider">
+                  {stat.label}
+                </p>
+              </div>
+            ))}
+          </div>
+
+          {/* FILTER TABS */}
+        <div className="w-full flex md:justify-end mb-6">
+  <div className="w-full md:w-auto flex gap-2 p-1 bg-muted rounded-lg">
+    <button
+      onClick={() => handleFilterChange('all')}
+      className={`flex-1 md:flex-none text-center lg:px-3 py-2 rounded-md text-sm font-medium transition-all shrink-0 ${
+        activeFilter === 'all'
+          ? 'bg-background text-foreground shadow-sm'
+          : 'text-muted-foreground hover:text-foreground hover:bg-background/50'
+      }`}
+    >
+      All ({filterCounts.all})
+    </button>
+    <button
+      onClick={() => handleFilterChange('admins')}
+      className={`flex-1 md:flex-none text-center lg:px-3 py-2 rounded-md text-sm font-medium transition-all shrink-0 ${
+        activeFilter === 'admins'
+          ? 'bg-background text-foreground shadow-sm'
+          : 'text-muted-foreground hover:text-foreground hover:bg-background/50'
+      }`}
+    >
+      Admins ({filterCounts.admins})
+    </button>
+    <button
+      onClick={() => handleFilterChange('suspended')}
+      className={`flex-1 md:flex-none text-center lg:px-3 py-2 rounded-md text-sm font-medium transition-all shrink-0 ${
+        activeFilter === 'suspended'
+          ? 'bg-background text-foreground shadow-sm'
+          : 'text-muted-foreground hover:text-foreground hover:bg-background/50'
+      }`}
+    >
+      Suspended ({filterCounts.suspended})
+    </button>
+  </div>
+</div>
+
+          {/* User Table */}
+          <div className="bg-card rounded-2xl shadow-sm border border-border overflow-hidden">
+            {filteredUsers.length === 0 ? (
+              <div className="overflow-x-auto">
+                <table className="w-full text-left">
+                  <tbody>
+                    <tr>
+                      <td colSpan={5} className="px-6 py-12">
+                        <div className="flex items-center justify-center py-20">
+                          <div className="text-center">
+                            <Users className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
+                            <p className="text-sm font-black uppercase tracking-tighter mb-2">
+                              {searchTerm ? "No users found" : `No ${activeFilter === 'all' ? '' : activeFilter} users found`}
+                            </p>
+                            <p className="text-[10px] text-muted-foreground uppercase mb-6">
+                              {searchTerm
+                                ? "Try adjusting your search terms"
+                                : activeFilter === 'all'
+                                ? "When users register, they will appear here"
+                                : `No users match the ${activeFilter} filter`}
+                            </p>
+                          </div>
+                        </div>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            ) : (
+              <div className="overflow-x-auto">
+                <table className="w-full text-left border-collapse">
+                  <thead className="bg-muted text-muted-foreground text-[10px] uppercase tracking-widest font-bold">
+                    <tr>
+                      <th className="px-6 py-4">User</th>
+                      <th className="px-6 py-4 hidden md:table-cell">Joined</th>
+                      <th className="px-6 py-4">Status</th>
+                      <th className="px-6 py-4 hidden sm:table-cell">
+                        Points
                       </th>
-                    ))}
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-border">
-                  {loading ? (
-                    <tr>
-                      <td colSpan={6} className="px-4 lg:px-6 py-8 text-center text-muted-foreground">
-                        Loading users...
-                      </td>
+                      <th className="px-6 py-4 text-right">Actions</th>
                     </tr>
-                  ) : filteredUsers.length === 0 ? (
-                    <tr>
-                      <td colSpan={6} className="px-4 lg:px-6 py-8 text-center text-muted-foreground">
-                        {activeFilter === 'admins' && 'No admin users found'}
-                        {activeFilter === 'suspended' && 'No suspended users found'}
-                        {activeFilter === 'all' && 'No users found'}
-                      </td>
-                    </tr>
-                  ) : (
-                    filteredUsers.map(u => (
-                      <tr key={u._id} className="hover:bg-muted/50">
-                        <td className="px-4 lg:px-6 py-4">
+                  </thead>
+                  <tbody className="divide-y divide-border text-sm">
+                    {filteredUsers.map(u => (
+                      <tr
+                        key={u._id}
+                        className="group hover:bg-muted/50 transition-colors"
+                      >
+                        <td className="px-6 py-4">
                           <div className="flex items-center gap-3">
                             <UserAvatar user={u} size="sm" />
-                            <div className="min-w-0 flex-1">
-                              <div className="font-medium truncate">{u.name}</div>
-                              <div className="text-xs text-muted-foreground truncate">{u.email}</div>
+                            <div className="flex flex-col">
+                              <span className="font-bold text-sm text-foreground">
+                                {u.name}
+                              </span>
+                              {u.username && (
+                                <span className="text-xs text-muted-foreground">
+                                  @{u.username}
+                                </span>
+                              )}
+                              <span className="text-xs text-muted-foreground flex items-center gap-1">
+                                <Mail className="w-3 h-3" /> {u.email}
+                              </span>
                             </div>
                           </div>
                         </td>
-                        <td className="px-4 lg:px-6 py-4 capitalize whitespace-nowrap">{u.role}</td>
-                        <td className="px-4 lg:px-6 py-4 capitalize whitespace-nowrap">{u.status}</td>
-                        <td className="px-4 lg:px-6 py-4 whitespace-nowrap">
-                          {editingPoints[u._id] !== undefined ? (
-                            <div className="flex gap-2">
-                              <input
-                                type="number"
-                                value={editingPoints[u._id]}
-                                onChange={e =>
-                                  setEditingPoints(p => ({
-                                    ...p,
-                                    [u._id]: Number(e.target.value),
-                                  }))
-                                }
-                                className="w-16 lg:w-20 border rounded px-2 py-1 bg-background"
-                              />
-                              <button
-                                onClick={() => updatePoints(u._id, editingPoints[u._id])}
-                                disabled={savingPoints[u._id]}
-                                className="px-2 py-1 text-xs bg-primary text-primary-foreground rounded hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed"
-                              >
-                                {savingPoints[u._id] ? 'Saving...' : 'Save'}
-                              </button>
-                            </div>
-                          ) : (
-                            <div className="flex items-center gap-2">
-                              {u.points}
-                              <button
-                                onClick={() =>
-                                  setEditingPoints(p => ({ ...p, [u._id]: u.points }))
-                                }
-                                className="p-1 hover:bg-muted rounded"
-                              >
-                                <Edit className="w-3 h-3" />
-                              </button>
-                            </div>
-                          )}
+                        <td className="px-6 py-4 hidden md:table-cell text-gray-500 font-medium">
+                          {formatDate(u.createdAt)}
                         </td>
-                        <td className="px-4 lg:px-6 py-4 text-sm text-muted-foreground whitespace-nowrap">
-                          {new Date(u.createdAt).toLocaleDateString()}
+                        <td className="px-6 py-4">
+                          <span
+                            className={`px-2 py-1 rounded-full text-[10px] font-bold uppercase ${
+                              u.status === 'active'
+                                ? 'bg-teal-500/10 text-teal-600 border-teal-500/20'
+                                : u.status === 'suspended'
+                                ? 'bg-red-500/10 text-red-600 border-red-500/20'
+                                : 'bg-gray-500/10 text-gray-600 border-gray-500/20'
+                            }`}
+                          >
+                            {u.status}
+                          </span>
                         </td>
-                        <td className="px-4 lg:px-6 py-4">
-                          <div className="flex items-center gap-1 lg:gap-2 justify-end">
+                        <td className="px-6 py-4 hidden sm:table-cell font-bold text-[#1D429A]">
+                          <div className="flex items-center gap-1">
+                            <DollarSign className="w-4 h-4 text-green-600" />
+                            {u.points}
+                          </div>
+                        </td>
+                        <td className="px-6 py-4">
+                          <div className="flex justify-end gap-2">
                             {/* View */}
                             <button
                               onClick={() => onViewDetails(u)}
-                              className="p-1.5 lg:p-2 text-blue-500 hover:bg-blue-50 hover:text-blue-600 dark:hover:bg-blue-950 rounded-lg transition-colors"
-                              title="View Details"
+                              disabled={loadingActions[u._id]}
+                              className="p-3 bg-blue-500/10 text-blue-500 cursor-pointer hover:bg-blue-500/20 rounded-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                              title="View User Details"
                             >
-                              <Eye className="w-3.5 h-3.5 lg:w-4 lg:h-4" />
+                              {loadingActions[u._id] ? (
+                                <Loader2 className="w-4 h-4 animate-spin" />
+                              ) : (
+                                <Eye className="w-5 h-5" />
+                              )}
                             </button>
 
-                            
                             {/* Make Admin (only for non-admins) */}
                             {u.role !== "admin" && (
                               <button
                                 onClick={() => makeAdmin(u)}
                                 disabled={loadingActions[u._id]}
-                                className="p-1.5 lg:p-2 text-indigo-500 hover:bg-indigo-50 hover:text-indigo-600 dark:hover:bg-indigo-950 rounded-lg transition-colors disabled:opacity-50"
+                                className="p-3 bg-purple-500/10 text-purple-500 cursor-pointer hover:bg-purple-500/20 rounded-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed"
                                 title="Make Admin"
                               >
-                                <Shield className="w-3.5 h-3.5 lg:w-4 lg:h-4" />
+                                {loadingActions[u._id] ? (
+                                  <Loader2 className="w-4 h-4 animate-spin" />
+                                ) : (
+                                  <Shield className="w-5 h-5" />
+                                )}
                               </button>
                             )}
 
@@ -471,44 +611,45 @@ export default function AdminUsersPage() {
                             <button
                               onClick={() => toggleSuspend(u)}
                               disabled={loadingActions[u._id]}
-                              className={`p-1.5 lg:p-2 rounded-lg transition-colors disabled:opacity-50 ${
+                              className={`p-3 cursor-pointer rounded-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed ${
                                 u.status === 'suspended'
-                                  ? 'text-green-500 hover:bg-green-50 hover:text-green-600 dark:hover:bg-green-950'
-                                  : 'text-orange-500 hover:bg-orange-50 hover:text-orange-600 dark:hover:bg-orange-950'
+                                  ? 'bg-green-500/10 text-green-500 hover:bg-green-500/20'
+                                  : 'bg-orange-500/10 text-orange-500 hover:bg-orange-500/20'
                               }`}
-                              title={u.status === 'suspended' ? 'Activate User' : 'Suspend User'}
+                              title={
+                                u.status === 'suspended'
+                                  ? 'Activate User'
+                                  : 'Suspend User'
+                              }
                             >
-                              <Ban className="w-3.5 h-3.5 lg:w-4 lg:h-4" />
+                              {loadingActions[u._id] ? (
+                                <Loader2 className="w-4 h-4 animate-spin" />
+                              ) : (
+                                <Ban className="w-4 h-4" />
+                              )}
                             </button>
 
                             {/* Delete */}
                             <button
                               onClick={() => deleteUser(u)}
                               disabled={loadingActions[u._id]}
-                              className="p-1.5 lg:p-2 text-red-500 hover:bg-red-50 hover:text-red-600 dark:hover:bg-red-950 rounded-lg transition-colors disabled:opacity-50"
+                              className="p-3 bg-red-500/10 text-red-500 cursor-pointer hover:bg-red-500/20 rounded-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed"
                               title="Delete User"
                             >
-                              <Trash2 className="w-3.5 h-3.5 lg:w-4 lg:h-4" />
+                              {loadingActions[u._id] ? (
+                                <Loader2 className="w-4 h-4 animate-spin" />
+                              ) : (
+                                <Trash2 className="w-4 h-4" />
+                              )}
                             </button>
                           </div>
                         </td>
                       </tr>
-                    ))
-                  )}
-                </tbody>
-              </table>
-            </div>
-
-            {/* PAGINATION */}
-            <div className="p-4 border-t">
-              <Pagination
-                currentPage={pagination.currentPage}
-                totalItems={pagination.totalUsers}
-                itemsPerPage={pagination.limit}
-                onPageChange={handlePageChange}
-                onItemsPerPageChange={handleItemsPerPageChange}
-              />
-            </div>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
           </div>
 
           {/* USER PREVIEW MODAL */}
@@ -516,11 +657,10 @@ export default function AdminUsersPage() {
             user={detailUser}
             isOpen={detailOpen}
             onClose={() => setDetailOpen(false)}
-            onUserUpdate={() => fetchUsers(pagination.currentPage, pagination.limit)}
+            onUserUpdate={() => fetchUsers()}
           />
-        </div>
-      </main>
+        </main>
+      </div>
     </div>
-  </div>
-);
+  );
 }

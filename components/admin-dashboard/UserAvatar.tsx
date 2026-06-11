@@ -62,14 +62,18 @@ export function UserAvatar({ user, size = 'md', className }: UserAvatarProps) {
     );
   }
 
+  // Use default avatar image when avatarUrl is null
   return (
     <div className={cn(
-      'relative rounded-full flex items-center justify-center text-white font-medium flex-shrink-0',
+      'relative rounded-full overflow-hidden flex-shrink-0',
       sizeClasses[size],
-      getAvatarColor(user.email || user.name),
       className
     )}>
-      {getInitials(user.name)}
+      <img
+        src="https://github.com/shadcn.png"
+        alt={user.name}
+        className="w-full h-full object-cover"
+      />
     </div>
   );
 }

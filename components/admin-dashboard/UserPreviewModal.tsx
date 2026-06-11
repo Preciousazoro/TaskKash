@@ -170,13 +170,13 @@ export function UserPreviewModal({ user, isOpen, onClose, onUserUpdate }: UserPr
 
   return (
     <div 
-      className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4"
+      className="fixed inset-0 bg-background/10 backdrop-blur-sm flex items-center justify-center z-100 p-4"
       onClick={handleBackdropClick}
     >
       <div className="bg-background border rounded-2xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-hidden flex flex-col">
         {/* Header */}
         <div className="flex items-center justify-between p-6 border-b">
-          <h2 className="text-2xl font-bold">User Details</h2>
+          <h2 className="text-xl font-black text-foreground uppercase tracking-tighter">User Details</h2>
           <Button
             variant="ghost"
             size="icon"
@@ -338,7 +338,7 @@ export function UserPreviewModal({ user, isOpen, onClose, onUserUpdate }: UserPr
                   onClick={handleMakeAdmin}
                   variant="default"
                   size="sm"
-                  className="flex items-center gap-2"
+                  className="flex items-center gap-2 p-5"
                 >
                   <Shield className="h-4 w-4" />
                   Make Admin
@@ -349,7 +349,7 @@ export function UserPreviewModal({ user, isOpen, onClose, onUserUpdate }: UserPr
                 onClick={handleToggleSuspend}
                 variant={user.status === 'suspended' ? 'default' : 'secondary'}
                 size="sm"
-                className="flex items-center gap-2"
+                className="flex items-center gap-2 p-5"
               >
                 <Ban className="h-4 w-4" />
                 {user.status === 'suspended' ? 'Activate' : 'Suspend'}
@@ -359,7 +359,7 @@ export function UserPreviewModal({ user, isOpen, onClose, onUserUpdate }: UserPr
                 onClick={handleDeleteUser}
                 variant="destructive"
                 size="sm"
-                className="flex items-center gap-2"
+                className="flex items-center gap-2 p-5"
               >
                 <Trash2 className="h-4 w-4" />
                 Delete User

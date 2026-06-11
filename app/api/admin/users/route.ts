@@ -6,22 +6,17 @@ export async function GET(request: NextRequest) {
   try {
     await connectDB();
     
-    const { searchParams } = new URL(request.url);
-    const page = parseInt(searchParams.get('page') || '1');
-    const limit = parseInt(searchParams.get('limit') || '10');
-    
-    const skip = (page - 1) * limit;
-    
     // Get total count of users - use lean() for better performance
     const totalUsers = await User.countDocuments().lean();
     
     // Get counts for each filter category
-    const [adminCount, suspendedCount] = await Promise.all([
+    const [adminCount, suspendedCount, activeCount] = await Promise.all([
       User.countDocuments({ role: 'admin' }).lean(),
-      User.countDocuments({ status: 'suspended' }).lean()
+      User.countDocuments({ status: 'suspended' }).lean(),
+      User.countDocuments({ status: 'active' }).lean()
     ]);
     
-    // Get paginated users with optimized query
+    // Get all users with optimized query (no pagination)
     type LeanUser = { 
       _id: any;
       name: string;
@@ -40,10 +35,8 @@ export async function GET(request: NextRequest) {
     const users = await User.find({})
       .select('-password -passwordResetToken -passwordResetExpires') // Exclude sensitive fields
       .sort({ createdAt: -1 })
-      .skip(skip)
-      .limit(limit)
       .lean<LeanUser[]>()
-      .maxTimeMS(5000); // Add timeout to prevent hanging
+      .maxTimeMS(10000); // Add timeout to prevent hanging
     
     // Transform users to match expected format
     const transformedUsers = users.map(user => ({
@@ -61,22 +54,13 @@ export async function GET(request: NextRequest) {
       socialLinks: user.socialLinks || {}
     }));
     
-    const totalPages = Math.ceil(totalUsers / limit);
-    
     return NextResponse.json({
       users: transformedUsers,
-      pagination: {
-        currentPage: page,
-        totalPages,
-        totalUsers,
-        limit,
-        hasNextPage: page < totalPages,
-        hasPrevPage: page > 1
-      },
       filterCounts: {
         all: totalUsers,
         admins: adminCount,
-        suspended: suspendedCount
+        suspended: suspendedCount,
+        active: activeCount
       }
     });
     
