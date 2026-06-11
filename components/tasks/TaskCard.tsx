@@ -96,16 +96,18 @@ export function TaskCard({ task, onClick, onStartTask }: TaskCardProps) {
             <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">
               {task.category}
             </span>
-            <h3 className="text-base font-black uppercase tracking-tighter leading-snug line-clamp-2">
-              {task.title}
-            </h3>
+           <h3 className="text-base font-black uppercase tracking-tighter leading-snug">
+  {task.title.length > 20
+    ? `${task.title.slice(0, 20)}...`
+    : task.title}
+</h3>
           </div>
           <StatusBadge status={task.userTaskStatus || 'available'} />
         </div>
 
         {/* Description — truncated */}
         <p className="text-[12px] text-muted-foreground leading-relaxed line-clamp-2 flex-1">
-          {truncateText(task.description, 100)}
+          {truncateText(task.description, 90)}
         </p>
 
         {/* Meta row */}

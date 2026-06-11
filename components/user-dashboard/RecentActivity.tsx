@@ -47,7 +47,7 @@ interface ActivitiesResponse {
 }
 
 export function RecentActivity() {
-  const limit = 10;
+  const limit = 20;
   const [activities, setActivities] = useState<ActivityItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -74,7 +74,9 @@ export function RecentActivity() {
         }
         
         const data: ActivitiesResponse = await response.json();
-        setActivities(data.activities);
+        // Filter out user_deleted activities
+        const filteredActivities = data.activities.filter(activity => activity.type !== 'user_deleted');
+        setActivities(filteredActivities);
       } catch (err) {
         console.error('Error fetching activities:', err);
         setError('Failed to load activities');
@@ -156,6 +158,9 @@ export function RecentActivity() {
                   Task
                 </div>
                 <div className="flex-1 text-right text-[9px] font-black uppercase tracking-widest text-muted-foreground">
+                  Category
+                </div>
+                <div className="flex-1 text-right text-[9px] font-black uppercase tracking-widest text-muted-foreground">
                   Status
                 </div>
                 <div className="flex-1 text-right text-[9px] font-black uppercase tracking-widest text-muted-foreground">
@@ -173,6 +178,7 @@ export function RecentActivity() {
                     className="flex justify-between items-center px-6 py-4 animate-pulse"
                   >
                     <div className="flex-1 h-4 bg-muted rounded w-32"></div>
+                    <div className="flex-1 h-4 bg-muted rounded w-16 ml-auto"></div>
                     <div className="flex-1 h-4 bg-muted rounded w-16 ml-auto"></div>
                     <div className="flex-1 h-4 bg-muted rounded w-12 ml-auto"></div>
                     <div className="flex-1 h-4 bg-muted rounded w-16 mx-auto"></div>
@@ -225,10 +231,24 @@ export function RecentActivity() {
           </div>
         </div>
 
-        <div className="bg-card border border-border rounded-3xl overflow-hidden shadow-xl p-8 text-center">
-          <p className="text-muted-foreground">
-            No recent activity found. Start completing tasks to see your activity here!
-          </p>
+        <div className="bg-card border border-border rounded-3xl overflow-hidden shadow-xl p-12 text-center">
+          <div className="flex flex-col items-center justify-center gap-6">
+            <div className="w-20 h-20 bg-primary/10 rounded-2xl flex items-center justify-center border border-primary/20">
+              <Activity className="w-10 h-10 text-primary" />
+            </div>
+            <div className="space-y-2">
+              <h3 className="text-lg font-bold text-foreground">No Recent Activity</h3>
+              <p className="text-sm text-muted-foreground max-w-md">
+                Start completing tasks to see your activity here! Your task submissions, approvals, and rewards will appear in this section.
+              </p>
+            </div>
+            <button
+              onClick={() => window.location.href = '/user-dashboard/tasks'}
+              className="px-6 py-3 bg-primary text-primary-foreground font-bold rounded-xl hover:bg-primary/90 transition-colors"
+            >
+              Browse Tasks
+            </button>
+          </div>
         </div>
       </section>
     );
@@ -264,6 +284,9 @@ export function RecentActivity() {
                 Task
               </div>
               <div className="flex-1 text-right text-[9px] font-black uppercase tracking-widest text-muted-foreground">
+                Category
+              </div>
+              <div className="flex-1 text-right text-[9px] font-black uppercase tracking-widest text-muted-foreground">
                 Status
               </div>
               <div className="flex-1 text-right text-[9px] font-black uppercase tracking-widest text-muted-foreground">
@@ -284,8 +307,12 @@ export function RecentActivity() {
                   {/* Task */}
                   <div className="flex-1 flex items-center gap-3 min-w-0">
                     <div className="flex-shrink-0">
-                      <div className="w-9 h-9 bg-primary/10 rounded-xl flex items-center justify-center border border-primary/20">
-                        <Activity className="w-4 h-4 text-primary" />
+                      <div className="w-9 h-9 bg-primary/10 rounded-full overflow-hidden flex items-center justify-center border border-primary/20">
+                        <img
+                          src="https://i.postimg.cc/59XZ1skK/LOGO.jpg"
+                          alt="Activity"
+                          className="w-full h-full object-cover"
+                        />
                       </div>
                     </div>
                     <div className="truncate">
@@ -295,6 +322,13 @@ export function RecentActivity() {
                       <div className="text-[10px] text-muted-foreground font-medium truncate">
                         {activity.type}
                       </div>
+                    </div>
+                  </div>
+
+                  {/* Category */}
+                  <div className="flex-1 text-right">
+                    <div className="text-[10px] text-muted-foreground font-medium uppercase tracking-tight">
+                      {activity.taskDetails?.category || activity.metadata?.taskCategory || '-'}
                     </div>
                   </div>
 

@@ -253,6 +253,9 @@ export default function DashboardPage() {
               </Link>
             </section>
 
+
+
+
             {/* Quick Stats Summary */}
             <section className="grid grid-cols-2 lg:grid-cols-4 gap-4">
               <Link
@@ -343,6 +346,7 @@ export default function DashboardPage() {
                 </p>
               </Link>
             </section>
+
 
 
 
@@ -448,6 +452,8 @@ export default function DashboardPage() {
   )}
 
 </section>
+
+
 
 
             {/* 4. Recent Activity Section */}
