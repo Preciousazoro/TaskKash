@@ -23,17 +23,18 @@ import {
   ChevronDown,
   LayoutDashboard,
   Lock,
+  Plus,
 } from "lucide-react";
 import { useAdminData } from "@/components/providers/AdminDataProvider";
 
 type NavItem =
   | { name: string; icon: React.ElementType; href: string; color?: string }
   | {
-      name: string;
-      icon: React.ElementType;
-      color?: string;
-      children: { name: string; icon: React.ElementType; href: string; color?: string }[];
-    };
+    name: string;
+    icon: React.ElementType;
+    color?: string;
+    children: { name: string; icon: React.ElementType; href: string; color?: string }[];
+  };
 
 const AdminSidebar = () => {
   const pathname = usePathname();
@@ -52,7 +53,7 @@ const AdminSidebar = () => {
   return (
     <>
       {/* Desktop Sidebar */}
-      <aside className="hidden md:flex w-70 border-r h-screen sticky top-0 bg-background flex-col shadow-xl">
+      <aside className="hidden md:flex w-65 border-r h-screen sticky top-0 bg-background flex-col shadow-xl">
         {/* Header */}
         <div className="flex-shrink-0 flex items-center justify-between h-15 px-6 border-b border-border">
           <div className="flex flex-col">
@@ -72,7 +73,7 @@ const AdminSidebar = () => {
             loading={loading}
             getInitials={getInitials}
             pathname={pathname}
-            onLinkClick={() => {}}
+            onLinkClick={() => { }}
           />
         </nav>
 
@@ -190,27 +191,34 @@ function SidebarNavItems({
       color: "text-green-500",
       children: [
         {
+          name: "Create Task",
+          icon: Plus,
+          href: `${basePath}/tasks/create`,
+          color: "text-green-500",
+        },
+        {
           name: "Active Tasks",
           icon: CheckCircle,
-          href: `${basePath}/manage-tasks`,
+          href: `${basePath}/active-tasks`,
           color: "text-green-500",
         },
         {
           name: "Task History",
           icon: History,
-          href: `${basePath}/manage-tasks/history`,
+          href: `${basePath}/task-history`,
           color: "text-green-500",
         },
       ],
     },
+
     {
-      name: "Users Management",
+      name: "User Management",
       icon: Users,
       href: `${basePath}/users`,
       color: "text-green-500",
     },
     {
-      name: "Users Submissions",
+      name: "Submissions",
       icon: FileText,
       href: `${basePath}/submissions`,
       color: "text-green-500",
@@ -336,18 +344,16 @@ function SidebarNavItems({
                 key={item.name}
                 href={item.href}
                 onClick={onLinkClick}
-                className={`group flex items-center px-4 py-2.5 rounded-sm transition-all duration-200 ${
-                  active
+                className={`group flex items-center px-4 py-2.5 rounded-sm transition-all duration-200 ${active
                     ? "bg-gradient-to-r from-green-500 to-emerald-500 text-white"
                     : "text-muted-foreground hover:bg-muted hover:text-foreground"
-                }`}
+                  }`}
               >
                 <item.icon
-                  className={`w-5 h-5 mr-5 transition-transform flex-shrink-0 ${
-                    active
+                  className={`w-5 h-5 mr-5 transition-transform flex-shrink-0 ${active
                       ? "text-white scale-110"
                       : `${item.color ?? "text-green-500"} group-hover:scale-110`
-                  }`}
+                    }`}
                 />
                 <span className="text-[12px] font-black uppercase tracking-widest">
                   {item.name}
@@ -365,26 +371,23 @@ function SidebarNavItems({
             <div key={item.name} className="flex flex-col">
               <button
                 onClick={() => toggleGroup(item.name)}
-                className={`group w-full flex items-center px-4 py-2.5 rounded-sm transition-all duration-200 cursor-pointer ${
-                  hasActiveChild
+                className={`group w-full flex items-center px-4 py-2.5 rounded-sm transition-all duration-200 cursor-pointer ${hasActiveChild
                     ? "text-foreground"
                     : "text-muted-foreground hover:bg-muted hover:text-foreground"
-                }`}
+                  }`}
               >
                 <item.icon
-                  className={`w-5 h-5 mr-5 flex-shrink-0 transition-transform ${
-                    hasActiveChild
+                  className={`w-5 h-5 mr-5 flex-shrink-0 transition-transform ${hasActiveChild
                       ? `scale-110 ${item.color ?? "text-green-500"}`
                       : `${item.color ?? "text-green-500"} group-hover:scale-110`
-                  }`}
+                    }`}
                 />
                 <span className="flex-1 text-left text-[12px] font-black uppercase tracking-widest">
                   {item.name}
                 </span>
                 <ChevronDown
-                  className={`w-4 h-4 transition-transform duration-300 ${
-                    isOpen ? "rotate-180" : ""
-                  }`}
+                  className={`w-4 h-4 transition-transform duration-300 ${isOpen ? "rotate-180" : ""
+                    }`}
                 />
               </button>
 
@@ -398,18 +401,16 @@ function SidebarNavItems({
                           key={child.name}
                           href={child.href}
                           onClick={onLinkClick}
-                          className={`group flex items-center gap-3 px-3 py-2 rounded-sm transition-all duration-200 ${
-                            childActive
+                          className={`group flex items-center gap-3 px-3 py-2 rounded-sm transition-all duration-200 ${childActive
                               ? "bg-gradient-to-r from-green-500 to-emerald-500 text-white shadow-lg shadow-green-500/20"
                               : "text-muted-foreground hover:bg-muted hover:text-foreground"
-                          }`}
+                            }`}
                         >
                           <child.icon
-                            className={`w-4 h-4 flex-shrink-0 transition-transform ${
-                              childActive
+                            className={`w-4 h-4 flex-shrink-0 transition-transform ${childActive
                                 ? "text-white scale-110"
                                 : `${child.color ?? "text-green-500"} group-hover:scale-110`
-                            }`}
+                              }`}
                           />
                           <span className="text-[11px] font-black uppercase tracking-widest">
                             {child.name}

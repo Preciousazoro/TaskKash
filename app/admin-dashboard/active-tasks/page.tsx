@@ -1,8 +1,9 @@
 "use client";
 
 import feather from "feather-icons";
-import { Edit, Eye, Trash2, Loader2, Search, CheckSquare } from "lucide-react";
+import { Edit, Eye, Trash2, Layers, Loader2, Search, CheckSquare, Plus } from "lucide-react";
 import React, { useEffect, useState, useMemo } from "react";
+import { useRouter } from "next/navigation";
 import { toast } from 'react-toastify';
 import { confirmToast } from '../../../components/admin-dashboard/confirmToast';
 import AdminHeader from "../../../components/admin-dashboard/AdminHeader";
@@ -42,6 +43,8 @@ interface PaginationData {
 }
 
 const ManageTasks = () => {
+  const router = useRouter();
+
   /* ------------------ STATE ------------------ */
   const [tasks, setTasks] = useState<Task[]>([]);
   const [filteredTasks, setFilteredTasks] = useState<Task[]>([]);
@@ -61,7 +64,6 @@ const ManageTasks = () => {
   const [selectedTasks, setSelectedTasks] = useState<string[]>([]);
   const [bulkAction, setBulkAction] = useState('');
 
-  const [showCreateModal, setShowCreateModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
   const [showViewModal, setShowViewModal] = useState(false);
 
@@ -241,96 +243,6 @@ const ManageTasks = () => {
     }
   };
 
-  const handleCreateTask = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setIsSubmitting(true);
-
-    // Basic client-side validation before sending
-    if (!title.trim()) {
-      toast.error('Title is required');
-      setIsSubmitting(false);
-      return;
-    }
-
-    if (!description.trim()) {
-      toast.error('Description is required');
-      setIsSubmitting(false);
-      return;
-    }
-
-    if (!taskLink.trim() && !alternateUrl.trim()) {
-      toast.error('At least one link is required (Task Link or Alternate URL)');
-      setIsSubmitting(false);
-      return;
-    }
-
-    try {
-      const requestData = {
-        title: title.trim(),
-        description: description.trim(),
-        category,
-        rewardPoints: Number(rewardPoints),
-        validationType: validationType.trim(),
-        instructions: instructions.trim(),
-        taskLink: taskLink.trim(),
-        alternateUrl: alternateUrl.trim() || '',
-        deadline: deadline || null,
-        status: status || 'active'
-      };
-
-      console.log('Creating task with data:', requestData);
-
-      const response = await fetch('/api/admin/tasks', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(requestData),
-      });
-
-      console.log('Response status:', response.status);
-      console.log('Response ok:', response.ok);
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        console.error('Error response:', errorData);
-        throw new Error(errorData.error || errorData.details?.join(', ') || 'Failed to create task');
-      }
-
-      const data = await response.json();
-      console.log('Success response:', data);
-      toast.success('Task created successfully!');
-      
-      // Reset form
-      setTitle("");
-      setDescription("");
-      setCategory('social');
-      setRewardPoints("");
-      setValidationType("");
-      setInstructions("");
-      setTaskLink("");
-      setAlternateUrl("");
-      setDeadline("");
-      setStatus('active');
-      setShowCreateModal(false);
-      
-      // Refresh tasks list
-      fetchTasks({
-        category: categoryFilter,
-        status: statusFilter,
-        dateRange: dateRangeFilter,
-        search: searchQuery,
-        page: currentPage,
-        limit: itemsPerPage
-      });
-    } catch (error: any) {
-      console.error('Error creating task:', error);
-      toast.error(error.message || 'Failed to create task');
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
-
   const handleDeleteTask = async (id: string) => {
     await confirmToast({
       title: 'Delete Task',
@@ -448,17 +360,24 @@ const ManageTasks = () => {
       <div className="flex-1 flex flex-col h-screen overflow-hidden">
         <AdminHeader />
 
-        <main className="flex-1 overflow-y-auto p-6 animate-in fade-in duration-500">
+        <main className="flex-1 overflow-y-auto p-4 md:p-8 pb-30">
           <div className="max-w-7xl mx-auto space-y-6">
 
             {/* Header */}
             <div className="flex justify-between items-center">
-              <h2 className="text-2xl font-bold">Manage Tasks</h2>
+              <div>
+                            <h1 className="text-xl md:text-2xl font-black uppercase tracking-tighter leading-none flex items-center gap-4">Task Histor</h1>
+              <p className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground flex items-center gap-2 mt-1">
+                <Layers className="w-3 h-3 text-primary" />
+                 Task Management
+              </p>
+            </div>
               <button
-                onClick={() => setShowCreateModal(true)}
-                className="bg-linear-to-r from-green-500 to-purple-500 text-white px-4 py-2 rounded-lg"
+                onClick={() => router.push('/admin-dashboard/tasks/create')}
+                className="hidden md:flex items-center text-base font-semibold gap-1 px-3 py-2 rounded-lg text-white bg-green-500 hover:bg-green-600 transition-colors"
               >
-                + Create Task
+                <Plus size={16} />
+                Create Task
               </button>
             </div>
 
@@ -704,169 +623,6 @@ const ManageTasks = () => {
                     </div>
                   </div>
                 </div>
-              </div>
-            )}
-
-            {/* CREATE MODAL */}
-            {showCreateModal && (
-              <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4">
-                <form
-                  onSubmit={handleCreateTask}
-                  className="bg-card p-8 rounded-2xl w-full max-w-2xl max-h-[90vh] space-y-6 text-foreground overflow-y-auto border border-border"
-                >
-                  <h3 className="text-2xl font-bold text-center sticky top-0 bg-card pb-4 border-b border-border">Create Task</h3>
-
-                  {/* Title */}
-                  <div>
-                    <label className="block text-sm font-medium mb-2 text-foreground">Title</label>
-                    <input
-                      className="w-full bg-card border border-border rounded-lg px-4 py-3 text-foreground placeholder-muted-foreground focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20"
-                      placeholder="Enter task title"
-                      value={title}
-                      onChange={(e) => setTitle(e.target.value)}
-                      required
-                    />
-                  </div>
-
-                  {/* Category */}
-                  <div>
-                    <label className="block text-sm font-medium mb-2 text-foreground">Category</label>
-                    <select
-                      className="w-full bg-card border border-border rounded-lg px-4 py-3 text-foreground focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20"
-                      value={category}
-                      onChange={(e) => setCategory(e.target.value as 'social' | 'content' | 'commerce')}
-                      required
-                    >
-                      <option value="" className="bg-gray-800">Select category</option>
-                      <option value="social" className="bg-gray-800">Social</option>
-                      <option value="content" className="bg-gray-800">Content</option>
-                      <option value="commerce" className="bg-gray-800">Commerce</option>
-                    </select>
-                  </div>
-
-                  {/* Description */}
-                  <div>
-                    <label className="block text-sm font-medium mb-2 text-foreground">Description</label>
-                    <RichTextEditor
-                      content={description}
-                      onChange={setDescription}
-                      placeholder="Enter task description"
-                      className="bg-card border-border text-foreground placeholder-muted-foreground"
-                    />
-                  </div>
-
-                  {/* Reward Points */}
-                  <div>
-                    <label className="block text-sm font-medium mb-2 text-foreground">Reward Points</label>
-                    <input
-                      type="number"
-                      className="w-full bg-card border border-border rounded-lg px-4 py-3 text-foreground placeholder-muted-foreground focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20"
-                      placeholder="Enter reward points"
-                      value={rewardPoints}
-                      onChange={(e) =>
-                        setRewardPoints(e.target.value === "" ? "" : Number(e.target.value))
-                      }
-                      required
-                    />
-                  </div>
-
-                  {/* Validation Type */}
-                  <div>
-                    <label className="block text-sm font-medium mb-2 text-foreground">Validation Type</label>
-                    <select
-                      className="w-full bg-card border border-border rounded-lg px-4 py-3 text-foreground focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20"
-                      value={validationType}
-                      onChange={(e) => setValidationType(e.target.value)}
-                      required
-                    >
-                      <option value="" className="bg-gray-800">Select validation type</option>
-                      <option value="screenshot" className="bg-gray-800">Screenshot</option>
-                      <option value="username" className="bg-gray-800">Username</option>
-                      <option value="text" className="bg-gray-800">Text</option>
-                      <option value="link" className="bg-gray-800">Link</option>
-                    </select>
-                  </div>
-
-                  {/* Instructions */}
-                  <div>
-                    <label className="block text-sm font-medium mb-2 text-foreground">Instructions</label>
-                    <RichTextEditor
-                      content={instructions}
-                      onChange={setInstructions}
-                      placeholder="Enter task instructions"
-                      className="bg-card border-border text-foreground placeholder-muted-foreground"
-                    />
-                  </div>
-
-                  {/* Task Links */}
-                  <div className="space-y-4">
-                    <div>
-                      <label className="block text-sm font-medium mb-2 text-foreground">Task Link (preferred)</label>
-                      <input
-                        type="url"
-                        className="w-full bg-card border border-border rounded-lg px-4 py-3 text-foreground placeholder-muted-foreground focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20"
-                        placeholder="https://example.com/task"
-                        value={taskLink}
-                        onChange={(e) => setTaskLink(e.target.value)}
-                      />
-                    </div>
-
-                    <div>
-                      <label className="block text-sm font-medium mb-2 text-foreground">Alternate URL</label>
-                      <input
-                        type="url"
-                        className="w-full bg-card border border-border rounded-lg px-4 py-3 text-foreground placeholder-muted-foreground focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20"
-                        placeholder="https://example.com/alternate"
-                        value={alternateUrl}
-                        onChange={(e) => setAlternateUrl(e.target.value)}
-                      />
-                    </div>
-
-                    <p className="text-xs text-muted-foreground bg-card p-3 rounded-lg border border-border">
-                      ⚠️ At least one link is required (Task Link or Alternate URL)
-                    </p>
-                  </div>
-
-                  {/* Deadline */}
-                  <div>
-                    <label className="block text-sm font-medium mb-2 text-foreground">Deadline</label>
-                    <input
-                      type="datetime-local"
-                      className="w-full bg-card border border-border rounded-lg px-4 py-3 text-foreground placeholder-muted-foreground focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20"
-                      value={deadline}
-                      onChange={(e) => setDeadline(e.target.value)}
-                      min={new Date().toISOString().slice(0, 16)}
-                    />
-                  </div>
-
-                  {/* Form Actions - Sticky at bottom */}
-                  <div className="sticky bottom-0 bg-card pt-6 border-t border-border">
-                    <div className="flex justify-end gap-4">
-                      <button
-                        type="button"
-                        onClick={() => setShowCreateModal(false)}
-                        className="px-6 py-3 border border-border rounded-lg text-foreground hover:bg-muted transition-colors focus:outline-none focus:ring-2 focus:ring-border/20"
-                        disabled={isSubmitting}
-                      >
-                        Cancel
-                      </button>
-                      <button
-                        type="submit"
-                        className="px-6 py-3 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed focus:outline-none focus:ring-2 focus:ring-primary/20"
-                        disabled={isSubmitting}
-                      >
-                        {isSubmitting ? (
-                          <div className="flex items-center gap-2">
-                            <Loader2 className="w-4 h-4 animate-spin" />
-                            Creating...
-                          </div>
-                        ) : (
-                          'Create Task'
-                        )}
-                      </button>
-                    </div>
-                  </div>
-                </form>
               </div>
             )}
 

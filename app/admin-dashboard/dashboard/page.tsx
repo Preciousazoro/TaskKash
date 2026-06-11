@@ -1,16 +1,30 @@
 'use client';
 
 import { useEffect, useMemo, useState, useRef, lazy, Suspense, useCallback } from "react";
+import { useRouter } from "next/navigation";
 import AdminHeader from "@/components/admin-dashboard/AdminHeader";
 import AdminSidebar from "@/components/admin-dashboard/AdminSidebar";
 import { AdminContentOnlySkeleton } from "@/components/ui/LoadingSkeleton";
-import { RichTextEditor } from "@/components/ui/RichTextEditor";
 import {
   Users,
   FileText,
   CheckCircle,
   Plus,
   Loader2,
+  UserMinus,
+  UserCheck,
+  TrendingUp,
+  Clock,
+  ArrowUpRight,
+  ArrowDownLeft,
+  Layers,
+  Gift,
+  Trophy,
+  Star,
+  XCircle,
+  MessageSquare,
+  Mail,
+  Shield,
 } from "lucide-react";
 import { toast } from "react-toastify";
 
@@ -57,29 +71,28 @@ type Task = {
 };
 
 type DashboardMetrics = {
+  stats: Array<{
+    label: string;
+    value: number;
+    icon: string;
+    color: string;
+    bg: string;
+  }>;
   totalUsers: number;
   tasksCompleted: number;
   pendingReviews: number;
+  rejectedSubmissions: number;
+  totalWithdrawalAmount: string;
+  pendingWithdrawalAmount: string;
+  totalTaskPoints: number;
+  userGrowthLabels: string[];
+  userGrowthValues: number[];
   lastUpdated: string;
 };
 
 /* ---------------- COMPONENT ---------------- */
 const Dashboard = () => {
-  /* ---------- UI STATE ---------- */
-  const [showCreateModal, setShowCreateModal] = useState(false);
-
-  /* ---------- FORM STATE ---------- */
-  const [title, setTitle] = useState("");
-  const [description, setDescription] = useState("");
-  const [category, setCategory] = useState<'social' | 'content' | 'commerce'>('social');
-  const [rewardPoints, setRewardPoints] = useState<number | "">("");
-  const [validationType, setValidationType] = useState("");
-  const [instructions, setInstructions] = useState("");
-  const [taskLink, setTaskLink] = useState("");
-  const [alternateUrl, setAlternateUrl] = useState("");
-  const [deadline, setDeadline] = useState("");
-  const [status, setStatus] = useState<'active' | 'expired' | 'disabled'>('active');
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  const router = useRouter();
 
   /* ---------- LOCAL DATA ---------- */
   const [tasks, setTasks] = useState<Task[]>([]);
@@ -92,15 +105,35 @@ const Dashboard = () => {
   const [activitiesPage, setActivitiesPage] = useState(1);
   const [activitiesTotalPages, setActivitiesTotalPages] = useState(1);
 
+  const iconMap: { [key: string]: any } = {
+    Users,
+    UserCheck,
+    UserMinus,
+    Layers,
+    TrendingUp,
+    Clock,
+    ArrowDownLeft,
+    ArrowUpRight,
+    Shield,
+    Gift,
+    Trophy,
+    Star,
+    CheckCircle,
+    FileText,
+    XCircle,
+    MessageSquare,
+    Mail,
+  };
+
   /* ---------- FETCH METRICS ---------- */
   const fetchMetrics = useCallback(async () => {
     try {
       setMetricsLoading(true);
       setMetricsError(null);
-      
+
       const response = await fetch('/api/admin/metrics');
       const data = await response.json();
-      
+
       if (data.success) {
         setMetrics(data.data);
       } else {
@@ -120,10 +153,10 @@ const Dashboard = () => {
     try {
       setActivitiesLoading(true);
       setActivitiesError(null);
-      
-      const response = await fetch(`/api/admin/activities?page=${page}&limit=10`);
+
+      const response = await fetch(`/api/admin/activities?page=${page}&limit=20`);
       const data = await response.json();
-      
+
       if (data.activities) {
         setActivities(data.activities);
         setActivitiesTotalPages(data.pagination.totalPages);
@@ -160,104 +193,19 @@ const Dashboard = () => {
 
   /* ---------- STATS ---------- */
   const stats = useMemo(() => {
-    if (metrics) {
-      return {
-        totalUsers: metrics.totalUsers,
-        tasksCompleted: metrics.tasksCompleted,
-        pendingReviews: metrics.pendingReviews,
-      };
+    if (metrics && metrics.stats) {
+      return metrics.stats.map((stat) => ({
+        ...stat,
+        icon: iconMap[stat.icon] || Users
+      }));
     }
-    
-    // Fallback to calculated values if metrics not loaded
-    return {
-      totalUsers: 0,
-      tasksCompleted: tasks.length * 5,
-      pendingReviews: tasks.length,
-    };
-  }, [metrics, tasks]);
+
+    // Fallback to empty array if metrics not loaded
+    return [];
+  }, [metrics]);
 
   /* ---------- CHARTS ---------- */
   // Charts are now lazy loaded with Suspense, no initialization needed
-
-  /* ---------- CREATE TASK ---------- */
-  const handleCreateTask = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setIsSubmitting(true);
-
-    // Basic client-side validation before sending
-    if (!title.trim()) {
-      toast.error('Title is required');
-      setIsSubmitting(false);
-      return;
-    }
-
-    if (!description.trim()) {
-      toast.error('Description is required');
-      setIsSubmitting(false);
-      return;
-    }
-
-    if (!taskLink.trim() && !alternateUrl.trim()) {
-      toast.error('At least one link is required (Task Link or Alternate URL)');
-      setIsSubmitting(false);
-      return;
-    }
-
-    try {
-      const requestData = {
-        title: title.trim(),
-        description: description.trim(),
-        category,
-        rewardPoints: Number(rewardPoints),
-        validationType: validationType.trim(),
-        instructions: instructions.trim(),
-        taskLink: taskLink.trim(),
-        alternateUrl: alternateUrl.trim() || '',
-        deadline: deadline || null,
-        status: status || 'active'
-      };
-
-      const response = await fetch('/api/admin/tasks', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(requestData),
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || errorData.details?.join(', ') || 'Failed to create task');
-      }
-
-      const data = await response.json();
-      toast.success('Task created successfully!');
-      
-      // Reset form
-      setTitle("");
-      setDescription("");
-      setCategory('social');
-      setRewardPoints("");
-      setValidationType("");
-      setInstructions("");
-      setTaskLink("");
-      setAlternateUrl("");
-      setDeadline("");
-      setStatus('active');
-      setShowCreateModal(false);
-      
-      // Refresh activities to show the new task creation
-      fetchActivities();
-      
-      // Also refresh metrics to get updated counts
-      fetchMetrics();
-    } catch (error: any) {
-      console.error('Error creating task:', error);
-      toast.error(error.message || 'Failed to create task');
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
 
   /* ---------- UI ---------- */
   if (metricsLoading || activitiesLoading) {
@@ -281,15 +229,19 @@ const Dashboard = () => {
       <div className="flex-1 flex flex-col h-screen overflow-hidden">
         <AdminHeader />
 
-        <main className="flex-1 overflow-y-auto p-6 space-y-8 animate-in fade-in duration-500">
+        <main className="flex-1 overflow-y-auto p-4 md:p-8 pb-30">
           {/* HEADER */}
-          <div className="flex justify-between items-center">
-            <h2 className="text-2xl font-bold">
-              System Dashboard
-            </h2>
+          <div className="flex justify-between items-start mb-8">
+            <div>
+              <h1 className="text-xl md:text-2xl font-black uppercase tracking-tighter leading-none flex items-center gap-4">Dashboard Overview</h1>
+              <p className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground flex items-center gap-2 mt-1">
+                <Layers className="w-3 h-3 text-primary" />
+                Platform Analytics
+              </p>
+            </div>
             <button
-              onClick={() => setShowCreateModal(true)}
-              className="flex items-center gap-2 px-4 py-2 rounded-lg text-white bg-linear-to-r from-green-500 to-purple-500 hover:opacity-90"
+              onClick={() => router.push('/admin-dashboard/tasks/create')}
+              className="hidden md:flex items-center text-base font-semibold gap-1 px-3 py-2 rounded-lg text-white bg-green-500 hover:bg-green-600 transition-colors"
             >
               <Plus size={16} />
               Create Task
@@ -297,18 +249,27 @@ const Dashboard = () => {
           </div>
 
           {/* STATS */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-5 gap-4 mb-8">
             {metricsLoading ? (
-              <>
-                <StatSkeleton label="Total Users" />
-                <StatSkeleton label="Tasks Completed" />
-                <StatSkeleton label="Pending Reviews" />
-              </>
+              [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20].map((item) => (
+                <div key={item} className="bg-card p-5 rounded-2xl border border-border shadow-sm">
+                  <div className="flex items-center justify-between mb-4">
+                    <div className="p-2 rounded-xl bg-muted animate-pulse">
+                      <div className="w-5 h-5 bg-muted-foreground/20 rounded"></div>
+                    </div>
+                    <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">Live</span>
+                  </div>
+                  <div>
+                    <div className="h-3 bg-muted rounded w-20 mb-2 animate-pulse"></div>
+                    <div className="h-6 bg-muted rounded w-16 animate-pulse"></div>
+                  </div>
+                </div>
+              ))
             ) : metricsError ? (
               <div className="col-span-full">
                 <div className="bg-card border rounded-2xl p-5 text-center">
                   <p className="text-red-500 text-sm">Failed to load metrics</p>
-                  <button 
+                  <button
                     onClick={fetchMetrics}
                     className="mt-2 text-xs text-blue-500 hover:underline"
                   >
@@ -317,16 +278,29 @@ const Dashboard = () => {
                 </div>
               </div>
             ) : (
-              <>
-                <Stat icon={<Users />} label="Total Users" value={stats.totalUsers} />
-                <Stat icon={<CheckCircle />} label="Tasks Completed" value={stats.tasksCompleted} />
-                <Stat icon={<FileText />} label="Pending Reviews" value={stats.pendingReviews} />
-              </>
+              stats.map((stat, index) => (
+                <div key={index} className="bg-card px-5 py-3 rounded-2xl border border-border shadow-sm hover:shadow-md transition-shadow">
+                  <div className="flex items-center justify-between mb-4">
+                    <div className={`p-2 rounded-xl ${stat.bg}`}>
+                      <stat.icon className={`w-5 h-5 ${stat.color}`} />
+                    </div>
+                    <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">Live</span>
+                  </div>
+                  <div>
+                    <p className="text-xl font-bold text-foreground mb-1">{stat.value.toLocaleString()}</p>
+                    <h4 className="text-muted-foreground text-xs font-medium">{stat.label}</h4>
+                  </div>
+                </div>
+              ))
             )}
           </div>
 
+
+
+
+
           {/* CHARTS */}
-          <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
+          <div className="grid grid-cols-1 xl:grid-cols-2 gap-6 mb-8">
             <div className="bg-card border rounded-2xl p-5 h-[360px] flex flex-col">
               <div className="flex justify-between mb-3">
                 <h3 className="text-sm font-semibold">User Growth</h3>
@@ -336,18 +310,16 @@ const Dashboard = () => {
               </div>
               <div className="flex-1">
                 {metrics ? (
-                  <SimpleChart 
+                  <SimpleChart
                     type="line"
                     data={{
                       type: "line",
                       data: {
-                        labels: ["Jan", "Feb", "Mar", "Apr", "May", "Jun"],
+                        labels: metrics.userGrowthLabels || ["Jan", "Feb", "Mar", "Apr", "May", "Jun"],
                         datasets: [
                           {
                             label: "Users",
-                            data: [Math.floor(metrics.totalUsers * 0.15), Math.floor(metrics.totalUsers * 0.30), 
-                                   Math.floor(metrics.totalUsers * 0.45), Math.floor(metrics.totalUsers * 0.60), 
-                                   Math.floor(metrics.totalUsers * 0.80), metrics.totalUsers],
+                            data: metrics.userGrowthValues || [0, 0, 0, 0, 0, 0],
                             borderColor: "#a855f7",
                             backgroundColor: "rgba(168,85,247,.15)",
                             borderWidth: 2,
@@ -370,6 +342,7 @@ const Dashboard = () => {
                           y: {
                             grid: { color: "rgba(255,255,255,0.05)" },
                             ticks: { color: "#6b7280", font: { size: 11 } },
+                            beginAtZero: true,
                           },
                         },
                       },
@@ -394,16 +367,16 @@ const Dashboard = () => {
               </div>
               <div className="flex-1 flex items-center justify-center">
                 {metrics ? (
-                  <SimpleChart 
+                  <SimpleChart
                     type="doughnut"
                     data={{
                       type: "doughnut",
                       data: {
-                        labels: ["Completed", "Pending"],
+                        labels: ["Completed", "Pending", "Rejected"],
                         datasets: [
                           {
-                            data: [metrics.tasksCompleted, metrics.pendingReviews],
-                            backgroundColor: ["#22c55e", "#facc15"],
+                            data: [metrics.tasksCompleted, metrics.pendingReviews, metrics.rejectedSubmissions],
+                            backgroundColor: ["#22c55e", "#facc15", "#ef4444"],
                             borderWidth: 0,
                           },
                         ],
@@ -435,367 +408,182 @@ const Dashboard = () => {
             </div>
           </div>
 
+
+
+
+
           {/* RECENT ACTIVITY */}
-          <div className="bg-card border rounded-2xl overflow-hidden">
-            <div className="bg-linear-to-r from-purple-500/10 to-blue-500/10 px-6 py-4 border-b">
-              <h3 className="font-semibold text-lg flex items-center gap-2">
-                <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
-                Recent Activity
-              </h3>
+          <div className="bg-card rounded-2xl shadow-sm border border-border overflow-hidden">
+            <div className="p-6 border-b border-border flex items-center justify-between">
+              <div>
+                <h2 className="text-foreground font-bold text-sm uppercase tracking-wider">Recent Activity</h2>
+                <p className="text-xs text-muted-foreground mt-1">Latest activities across the platform</p>
+              </div>
+              <button className="text-xs font-bold text-primary hover:text-primary/80 transition-colors">
+                View All
+              </button>
             </div>
 
-            <div className="p-6">
-              {activitiesLoading ? (
-                <div className="space-y-3">
-                  {[...Array(5)].map((_, i) => (
-                    <div key={i} className="bg-muted/30 rounded-lg p-4 border border-border/50">
-                      <div className="flex items-center gap-4">
-                        <div className="w-10 h-10 rounded-full bg-muted animate-pulse shrink-0" />
-                        <div className="flex-1 grid grid-cols-1 md:grid-cols-4 gap-4">
-                          <div className="h-4 bg-muted rounded animate-pulse" />
-                          <div className="h-4 bg-muted rounded animate-pulse" />
-                          <div className="h-4 bg-muted rounded animate-pulse" />
-                          <div className="h-4 bg-muted rounded animate-pulse" />
-                        </div>
-                      </div>
-                    </div>
-                  ))}
+            {activitiesLoading ? (
+              <div className="overflow-x-auto w-full">
+                <table className="w-full text-left table-auto whitespace-nowrap">
+                  <thead className="bg-muted text-muted-foreground text-[10px] uppercase tracking-widest font-bold">
+                    <tr>
+                      <th className="px-6 py-4">Activity</th>
+                      <th className="px-6 py-4">User</th>
+                      <th className="px-6 py-4">Email</th>
+                      <th className="px-6 py-4">Date</th>
+                      <th className="px-6 py-4">Status</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-border">
+                    {[1, 2, 3, 4, 5].map((item) => (
+                      <tr key={item} className="hover:bg-muted/50 transition-colors">
+                        <td className="px-6 py-4">
+                          <div className="h-4 bg-muted rounded w-24 animate-pulse"></div>
+                        </td>
+                        <td className="px-6 py-4">
+                          <div className="h-4 bg-muted rounded w-16 animate-pulse"></div>
+                        </td>
+                        <td className="px-6 py-4">
+                          <div className="h-4 bg-muted rounded w-32 animate-pulse"></div>
+                        </td>
+                        <td className="px-6 py-4">
+                          <div className="h-4 bg-muted rounded w-20 animate-pulse"></div>
+                        </td>
+                        <td className="px-6 py-4">
+                          <div className="h-4 bg-muted rounded w-16 animate-pulse"></div>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            ) : activitiesError ? (
+              <div className="text-center py-12">
+                <div className="w-16 h-16 bg-red-100 dark:bg-red-900/20 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <span className="text-red-600 dark:text-red-400 text-2xl">⚠️</span>
                 </div>
-              ) : activitiesError ? (
-                <div className="text-center py-12">
-                  <div className="w-16 h-16 bg-red-100 dark:bg-red-900/20 rounded-full flex items-center justify-center mx-auto mb-4">
-                    <span className="text-red-600 dark:text-red-400 text-2xl">⚠️</span>
-                  </div>
-                  <p className="text-red-500 text-sm mb-4">{activitiesError}</p>
-                  <button 
-                    onClick={() => fetchActivities(activitiesPage)}
-                    className="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors"
-                  >
-                    Retry
-                  </button>
-                </div>
-              ) : activities.length === 0 ? (
-                <div className="text-center py-12">
-                  <div className="w-16 h-16 bg-muted rounded-full flex items-center justify-center mx-auto mb-4">
-                    <span className="text-muted-foreground text-2xl">📋</span>
-                  </div>
-                  <p className="text-muted-foreground text-sm">
-                    No recent activity
+                <p className="text-red-500 text-sm mb-4">{activitiesError}</p>
+                <button
+                  onClick={() => fetchActivities(activitiesPage)}
+                  className="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors"
+                >
+                  Retry
+                </button>
+              </div>
+            ) : activities.length === 0 ? (
+              <div className="flex items-center justify-center p-12">
+                <div className="text-center">
+                  <Clock className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
+                  <p className="text-sm font-black uppercase tracking-tighter mb-2">
+                    No activities yet
+                  </p>
+                  <p className="text-[10px] text-muted-foreground uppercase mb-6">
+                    Once activities occur, they will appear here
                   </p>
                 </div>
-              ) : (
-                <>
-                  {/* Table Header */}
-                  <div className="hidden md:flex items-center gap-4 px-4 py-3 bg-muted/20 rounded-lg border border-border/30 mb-3">
-                    <div className="w-10"></div>
-                    <div className="flex-1 grid grid-cols-4 gap-4 text-xs font-medium text-muted-foreground">
-                      <div>Activity</div>
-                      <div>User</div>
-                      <div>Date & Time</div>
-                      <div>Status</div>
-                    </div>
-                  </div>
-
-                  {/* Table Rows */}
-                  <div className="space-y-2">
-                    {activities.map((activity) => (
-                      <div
-                        key={activity._id}
-                        className="flex items-center gap-4 p-4 bg-muted/30 rounded-lg border border-border/50 hover:bg-muted/50 transition-all duration-200 hover:shadow-sm hover:border-border"
-                      >
-                        <div className="relative shrink-0">
-                          <div className="w-10 h-10 rounded-full bg-linear-to-br from-purple-500 to-blue-500 flex items-center justify-center">
-                            {activity.user?.avatarUrl ? (
-                              <img 
-                                src={activity.user.avatarUrl} 
-                                alt={activity.user.name}
-                                className="w-10 h-10 rounded-full object-cover border-2 border-background"
-                              />
-                            ) : (
-                              <span className="text-sm font-semibold text-white">
-                                {activity.user?.name?.charAt(0) || 'U'}
+              </div>
+            ) : (
+              <div className="overflow-x-auto w-full">
+                <table className="w-full text-left table-auto whitespace-nowrap">
+                  <thead className="bg-muted text-muted-foreground text-[10px] uppercase tracking-widest font-bold">
+                    <tr>
+                      <th className="px-6 py-4">Activity</th>
+                      <th className="px-6 py-4">User</th>
+                      <th className="px-6 py-4">Email</th>
+                      <th className="px-6 py-4">Date</th>
+                      <th className="px-6 py-4">Status</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-border">
+                    {activities.slice(0, 20).map((activity) => (
+                      <tr key={activity._id} className="hover:bg-muted/50 transition-colors">
+                        {/* ACTIVITY COLUMN (MAX 20 CHARACTERS) */}
+                        <td className="px-6 py-4">
+                          <div className="flex items-center gap-3">
+                            <div className="relative shrink-0">
+                              <div className="w-10 h-10 rounded-lg bg-linear-to-br from-purple-500 to-blue-500 flex items-center justify-center overflow-hidden">
+                                {activity.user?.avatarUrl ? (
+                                  <img
+                                    src={activity.user.avatarUrl}
+                                    alt={activity.user.name}
+                                    className="w-10 h-10 rounded-lg object-cover border-2 border-background"
+                                    onError={(e) => {
+                                      e.currentTarget.src = "https://github.com/shadcn.png";
+                                    }}
+                                  />
+                                ) : (
+                                  <img
+                                    src="https://github.com/shadcn.png"
+                                    alt={activity.user?.name || 'User'}
+                                    className="w-10 h-10 rounded-lg object-cover border-2 border-background"
+                                  />
+                                )}
+                              </div>
+                              <div className={`absolute -bottom-1 -right-1 w-4 h-4 rounded-full border-2 border-background ${activity.type === 'task_approved' ? 'bg-green-500' :
+                                  activity.type === 'task_rejected' ? 'bg-red-500' :
+                                    activity.type === 'task_submitted' ? 'bg-blue-500' :
+                                      'bg-gray-500'
+                                }`}></div>
+                            </div>
+                            <div>
+                              <span className="text-sm font-medium text-card-foreground block whitespace-nowrap">
+                                {activity.title && activity.title.length > 20
+                                  ? `${activity.title.substring(0, 20)}...`
+                                  : activity.title || 'Untitled Activity'}
                               </span>
-                            )}
+                            </div>
                           </div>
-                          <div className={`absolute -bottom-1 -right-1 w-4 h-4 rounded-full border-2 border-background ${
-                            activity.type === 'task_approved' ? 'bg-green-500' :
-                            activity.type === 'task_rejected' ? 'bg-red-500' :
-                            activity.type === 'task_submitted' ? 'bg-blue-500' :
-                            'bg-gray-500'
-                          }`}></div>
-                        </div>
-                        
-                        <div className="flex-1 grid grid-cols-1 md:grid-cols-4 gap-2 md:gap-4">
-                          {/* Activity Column */}
-                          <div className="min-w-0">
-                            <p className="font-medium text-sm leading-tight">
-                              {activity.title}
-                            </p>
-                            <p className="text-xs text-muted-foreground md:hidden mt-1">
-                              {activity.user?.name || 'Unknown User'}
-                            </p>
-                          </div>
-                          
-                          {/* User Column */}
-                          <div className="hidden md:block min-w-0">
-                            <p className="text-sm text-muted-foreground truncate">
-                              {activity.user?.name || 'Unknown User'}
-                            </p>
-                            <p className="text-xs text-muted-foreground truncate">
-                              {activity.user?.email || 'No email'}
-                            </p>
-                          </div>
-                          
-                          {/* Date & Time Column */}
-                          <div className="hidden md:block min-w-0">
-                            <p className="text-sm text-muted-foreground">
-                              {new Date(activity.createdAt).toLocaleDateString()}
-                            </p>
-                            <p className="text-xs text-muted-foreground">
-                              {new Date(activity.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                            </p>
-                          </div>
-                          
-                          {/* Status Column */}
-                          <div className="flex items-center">
-                            <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium border ${
-                              activity.type === 'task_approved' ? 'bg-green-50 text-green-700 border-green-200 dark:bg-green-900/20 dark:text-green-400 dark:border-green-800' :
-                              activity.type === 'task_rejected' ? 'bg-red-50 text-red-700 border-red-200 dark:bg-red-900/20 dark:text-red-400 dark:border-red-800' :
-                              activity.type === 'task_submitted' ? 'bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-900/20 dark:text-blue-400 dark:border-blue-800' :
-                              'bg-gray-50 text-gray-700 border-gray-200 dark:bg-gray-900/20 dark:text-gray-400 dark:border-gray-800'
-                            }`}>
-                              <span className={`w-1.5 h-1.5 rounded-full mr-1.5 ${
-                                activity.type === 'task_approved' ? 'bg-green-500' :
-                                activity.type === 'task_rejected' ? 'bg-red-500' :
-                                activity.type === 'task_submitted' ? 'bg-blue-500' :
-                                'bg-gray-500'
-                              }`}></span>
-                              {activity.type.replace('_', ' ').replace(/\b\w/g, (l: string) => l.toUpperCase())}
-                            </span>
-                          </div>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
+                        </td>
 
-                  {/* PAGINATION */}
-                  {activitiesTotalPages > 1 && (
-                    <div className="flex items-center justify-center gap-2 mt-8 pt-6 border-t border-border/50">
-                      <button
-                        onClick={() => fetchActivities(activitiesPage - 1)}
-                        disabled={activitiesPage <= 1}
-                        className="px-4 py-2 text-sm font-medium border border-border rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-muted transition-colors hover:border-border"
-                      >
-                        ← Previous
-                      </button>
-                      <div className="flex items-center gap-1">
-                        {[...Array(Math.min(5, activitiesTotalPages))].map((_, i) => {
-                          let pageNum;
-                          if (activitiesTotalPages <= 5) {
-                            pageNum = i + 1;
-                          } else if (activitiesPage <= 3) {
-                            pageNum = i + 1;
-                          } else if (activitiesPage >= activitiesTotalPages - 2) {
-                            pageNum = activitiesTotalPages - 4 + i;
-                          } else {
-                            pageNum = activitiesPage - 2 + i;
-                          }
-                          
-                          const isActive = pageNum === activitiesPage;
-                          return (
-                            <button
-                              key={pageNum}
-                              onClick={() => fetchActivities(pageNum)}
-                              className={`w-8 h-8 text-sm font-medium rounded-md transition-colors ${
-                                isActive 
-                                  ? 'bg-primary text-primary-foreground' 
-                                  : 'hover:bg-muted'
-                              }`}
-                            >
-                              {pageNum}
-                            </button>
-                          );
-                        })}
-                      </div>
-                      <button
-                        onClick={() => fetchActivities(activitiesPage + 1)}
-                        disabled={activitiesPage >= activitiesTotalPages}
-                        className="px-4 py-2 text-sm font-medium border border-border rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-muted transition-colors hover:border-border"
-                      >
-                        Next →
-                      </button>
-                    </div>
-                  )}
-                </>
-              )}
-            </div>
+                        {/* USER COLUMN */}
+                        <td className="px-6 py-4">
+                          <span className="text-sm text-foreground font-semibold block whitespace-nowrap">
+                            {activity.user?.name || 'Unknown User'}
+                          </span>
+                        </td>
+
+                        {/* EMAIL COLUMN */}
+                        <td className="px-6 py-4">
+                          <span className="text-sm text-muted-foreground block whitespace-nowrap">
+                            {activity.user?.email || 'No email'}
+                          </span>
+                        </td>
+
+                        {/* DATE COLUMN */}
+                        <td className="px-6 py-4">
+                          <span className="text-xs text-muted-foreground font-medium block whitespace-nowrap">
+                            {new Date(activity.createdAt).toLocaleDateString('en-US', {
+                              year: 'numeric',
+                              month: 'short',
+                              day: 'numeric'
+                            })}
+                          </span>
+                        </td>
+
+                        {/* STATUS COLUMN */}
+                        <td className="px-6 py-4">
+                          <span className={`inline-block px-3 py-1 text-[10px] font-bold uppercase rounded-full border whitespace-nowrap ${activity.type === 'task_approved'
+                              ? 'bg-teal-500/10 text-teal-600 dark:text-teal-400 border-teal-500/20'
+                              : activity.type === 'task_rejected'
+                                ? 'bg-red-500/10 text-red-600 dark:text-red-400 border-red-500/20'
+                                : activity.type === 'task_submitted'
+                                  ? 'bg-blue-500/10 text-blue-600 dark:text-blue-400 border-blue-500/20'
+                                  : 'bg-gray-500/10 text-gray-600 dark:text-gray-400 border-gray-500/20'
+                            }`}>
+                            {activity.type ? activity.type.replace('_', ' ') : 'Unknown'}
+                          </span>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
           </div>
         </main>
       </div>
-
-      {/* CREATE TASK MODAL */}
-      {showCreateModal && (
-        <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4">
-          <form
-            onSubmit={handleCreateTask}
-            className="bg-card p-8 rounded-2xl w-full max-w-2xl max-h-[90vh] space-y-6 text-foreground overflow-y-auto border border-border"
-          >
-            <h3 className="text-2xl font-bold text-center sticky top-0 bg-card pb-4 border-b border-border">Create Task</h3>
-
-            {/* Title */}
-            <div>
-              <label className="block text-sm font-medium mb-2 text-foreground">Title</label>
-              <input
-                className="w-full bg-card border border-border rounded-lg px-4 py-3 text-foreground placeholder-muted-foreground focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20"
-                placeholder="Enter task title"
-                value={title}
-                onChange={(e) => setTitle(e.target.value)}
-                required
-              />
-            </div>
-
-            {/* Category */}
-            <div>
-              <label className="block text-sm font-medium mb-2 text-foreground">Category</label>
-              <select
-                className="w-full bg-card border border-border rounded-lg px-4 py-3 text-foreground focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20"
-                value={category}
-                onChange={(e) => setCategory(e.target.value as 'social' | 'content' | 'commerce')}
-                required
-              >
-                <option value="" className="bg-gray-800">Select category</option>
-                <option value="social" className="bg-gray-800">Social</option>
-                <option value="content" className="bg-gray-800">Content</option>
-                <option value="commerce" className="bg-gray-800">Commerce</option>
-              </select>
-            </div>
-
-            {/* Description */}
-            <div>
-              <label className="block text-sm font-medium mb-2 text-foreground">Description</label>
-              <RichTextEditor
-                content={description}
-                onChange={setDescription}
-                placeholder="Enter task description"
-                className="bg-card border-border text-foreground placeholder-muted-foreground"
-              />
-            </div>
-
-            {/* Reward Points */}
-            <div>
-              <label className="block text-sm font-medium mb-2 text-foreground">Reward Points</label>
-              <input
-                type="number"
-                className="w-full bg-card border border-border rounded-lg px-4 py-3 text-foreground placeholder-muted-foreground focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20"
-                placeholder="Enter reward points"
-                value={rewardPoints}
-                onChange={(e) =>
-                  setRewardPoints(e.target.value === "" ? "" : Number(e.target.value))
-                }
-                required
-              />
-            </div>
-
-            {/* Validation Type */}
-            <div>
-              <label className="block text-sm font-medium mb-2 text-foreground">Validation Type</label>
-              <select
-                className="w-full bg-card border border-border rounded-lg px-4 py-3 text-foreground focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20"
-                value={validationType}
-                onChange={(e) => setValidationType(e.target.value)}
-                required
-              >
-                <option value="" className="bg-gray-800">Select validation type</option>
-                <option value="screenshot" className="bg-gray-800">Screenshot</option>
-                <option value="username" className="bg-gray-800">Username</option>
-                <option value="text" className="bg-gray-800">Text</option>
-                <option value="link" className="bg-gray-800">Link</option>
-              </select>
-            </div>
-
-            {/* Instructions */}
-            <div>
-              <label className="block text-sm font-medium mb-2 text-foreground">Instructions</label>
-              <RichTextEditor
-                content={instructions}
-                onChange={setInstructions}
-                placeholder="Enter task instructions"
-                className="bg-card border-border text-foreground placeholder-muted-foreground"
-              />
-            </div>
-
-            {/* Task Links */}
-            <div className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium mb-2 text-foreground">Task Link (preferred)</label>
-                <input
-                  type="url"
-                  className="w-full bg-card border border-border rounded-lg px-4 py-3 text-foreground placeholder-muted-foreground focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20"
-                  placeholder="https://example.com/task"
-                  value={taskLink}
-                  onChange={(e) => setTaskLink(e.target.value)}
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium mb-2 text-foreground">Alternate URL</label>
-                <input
-                  type="url"
-                  className="w-full bg-card border border-border rounded-lg px-4 py-3 text-foreground placeholder-muted-foreground focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20"
-                  placeholder="https://example.com/alternate"
-                  value={alternateUrl}
-                  onChange={(e) => setAlternateUrl(e.target.value)}
-                />
-              </div>
-
-              <p className="text-xs text-muted-foreground bg-card p-3 rounded-lg border border-border">
-                ⚠️ At least one link is required (Task Link or Alternate URL)
-              </p>
-            </div>
-
-            {/* Deadline */}
-            <div>
-              <label className="block text-sm font-medium mb-2 text-foreground">Deadline</label>
-              <input
-                type="datetime-local"
-                className="w-full bg-card border border-border rounded-lg px-4 py-3 text-foreground placeholder-muted-foreground focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20"
-                value={deadline}
-                onChange={(e) => setDeadline(e.target.value)}
-                min={new Date().toISOString().slice(0, 16)}
-                pattern="[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}"
-              />
-            </div>
-
-            {/* Form Actions - Sticky at bottom */}
-            <div className="sticky bottom-0 bg-card pt-6 border-t border-border">
-              <div className="flex justify-end gap-4">
-                <button
-                  type="button"
-                  onClick={() => setShowCreateModal(false)}
-                  className="px-6 py-3 border border-border rounded-lg text-foreground hover:bg-muted transition-colors focus:outline-none focus:ring-2 focus:ring-border/20"
-                  disabled={isSubmitting}
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  className="px-6 py-3 bg-linear-to-r from-green-500 to-purple-500 text-white rounded-lg hover:opacity-90 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed focus:outline-none focus:ring-2 focus:ring-purple-500/20"
-                  disabled={isSubmitting}
-                >
-                  {isSubmitting ? (
-                    <div className="flex items-center gap-2">
-                      <Loader2 className="w-4 h-4 animate-spin" />
-                      Creating...
-                    </div>
-                  ) : (
-                    'Create Task'
-                  )}
-                </button>
-              </div>
-            </div>
-          </form>
-        </div>
-      )}
     </div>
   );
 };

@@ -15,14 +15,14 @@ import {
   Loader2
 } from "lucide-react";
 import { toast } from 'react-toastify';
-import { confirmToast } from '../../../../components/admin-dashboard/confirmToast';
-import AdminHeader from "../../../../components/admin-dashboard/AdminHeader";
-import AdminSidebar from "../../../../components/admin-dashboard/AdminSidebar";
-import { Button } from "../../../../components/ui/button";
-import { Input } from "../../../../components/ui/input";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../../../../components/ui/select";
-import { Checkbox } from "../../../../components/ui/checkbox";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "../../../../components/ui/dropdown-menu";
+import { confirmToast } from '../../../components/admin-dashboard/confirmToast';
+import AdminHeader from "../../../components/admin-dashboard/AdminHeader";
+import AdminSidebar from "../../../components/admin-dashboard/AdminSidebar";
+import { Button } from "../../../components/ui/button";
+import { Input } from "../../../components/ui/input";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../../../components/ui/select";
+import { Checkbox } from "../../../components/ui/checkbox";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "../../../components/ui/dropdown-menu";
 import { AdminContentOnlySkeleton } from "@/components/ui/LoadingSkeleton";
 
 interface ArchivedTask {
@@ -328,18 +328,18 @@ const TaskHistory = () => {
       <AdminSidebar />
       <div className="flex-1 flex flex-col h-screen overflow-hidden">
         <AdminHeader />
-        <main className="flex-1 overflow-y-auto p-6 animate-in fade-in duration-500">
+        <main className="flex-1 overflow-y-auto p-4 md:p-8 pb-30">
           <div className="max-w-7xl mx-auto space-y-6">
 
             {/* Header */}
             <div className="flex justify-between items-center">
-              <div className="flex items-center gap-3">
-                <History className="w-6 h-6" />
-                <h2 className="text-2xl font-bold">Task History</h2>
-                <span className="text-sm text-muted-foreground">
+              <div>
+                            <h1 className="text-xl md:text-2xl font-black uppercase tracking-tighter leading-none flex items-center gap-4">Task Histor</h1>
+                            <p className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground flex items-center gap-2 mt-1">
+                              <History className="w-3 h-3 text-primary" />
                   {pagination?.totalTasks || 0} archived tasks
-                </span>
-              </div>
+                            </p>
+                          </div>
             </div>
 
             {/* Filters Section */}
@@ -414,7 +414,7 @@ const TaskHistory = () => {
                     className="flex items-center gap-2"
                   >
                     <Trash2 className="w-4 h-4" />
-                    Delete Permanently
+                    Permanently
                   </Button>
                 </div>
               </div>

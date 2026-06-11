@@ -6,7 +6,7 @@ import {
   LayoutDashboard,
   Users,
   Settings,
-  CheckCircle,
+  Plus,
   Wallet,
   FileText,
 } from "lucide-react";
@@ -22,14 +22,14 @@ export default function UserNav() {
       href: `${basePath}/dashboard`,
     },
     {
+      name: "Publish",
+      icon: Plus,
+      href: `${basePath}/tasks/create`,
+    },
+    {
       name: "Payout",
       icon: Wallet,
       href: `${basePath}/withdrawals`,
-    },
-    {
-      name: "Tasks",
-      icon: CheckCircle,
-      href: `${basePath}/manage-tasks`,
     },
     {
       name: "Entry",
