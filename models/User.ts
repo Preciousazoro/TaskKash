@@ -5,6 +5,11 @@ export interface SocialMedia {
   twitter?: string | null;
   instagram?: string | null;
   linkedin?: string | null;
+  facebook?: string | null;
+  whatsapp?: string | null;
+  tiktok?: string | null;
+  telegram?: string | null;
+  discord?: string | null;
 }
 
 export interface CryptoAddress {
@@ -53,6 +58,7 @@ export interface IUser extends Document {
   emailVerified: boolean;
   phone?: string | null;
   country?: string | null;
+  telegramUsername?: string | null;
   createdAt: Date;
   updatedAt: Date;
   comparePassword(candidatePassword: string): Promise<boolean>;
@@ -133,7 +139,9 @@ const UserSchema = new Schema<IUser>({
       default: null,
       validate: {
         validator: function(v: string) {
-          return !v || /^https?:\/\/(www\.)?(twitter\.com|x\.com)\/.+/i.test(v);
+          if (!v) return true;
+          const trimmed = v.trim();
+          return !trimmed || /^https?:\/\/(www\.)?(twitter\.com|x\.com)\/.+/i.test(trimmed);
         },
         message: 'Please provide a valid Twitter/X URL'
       }
@@ -143,7 +151,9 @@ const UserSchema = new Schema<IUser>({
       default: null,
       validate: {
         validator: function(v: string) {
-          return !v || /^https?:\/\/(www\.)?instagram\.com\/.+/i.test(v);
+          if (!v) return true;
+          const trimmed = v.trim();
+          return !trimmed || /^https?:\/\/(www\.)?instagram\.com\/.+/i.test(trimmed);
         },
         message: 'Please provide a valid Instagram URL'
       }
@@ -153,9 +163,71 @@ const UserSchema = new Schema<IUser>({
       default: null,
       validate: {
         validator: function(v: string) {
-          return !v || /^https?:\/\/(www\.)?linkedin\.com\/in\/.+/i.test(v);
+          if (!v) return true;
+          const trimmed = v.trim();
+          return !trimmed || /^https?:\/\/(www\.)?linkedin\.com\/in\/.+/i.test(trimmed);
         },
         message: 'Please provide a valid LinkedIn URL'
+      }
+    },
+    facebook: {
+      type: String,
+      default: null,
+      validate: {
+        validator: function(v: string) {
+          if (!v) return true;
+          const trimmed = v.trim();
+          return !trimmed || /^https?:\/\/(www\.)?facebook\.com\/.+/i.test(trimmed);
+        },
+        message: 'Please provide a valid Facebook URL'
+      }
+    },
+    whatsapp: {
+      type: String,
+      default: null,
+      validate: {
+        validator: function(v: string) {
+          if (!v) return true;
+          const trimmed = v.trim();
+          return !trimmed || /^https?:\/\/(www\.)?wa\.me\/.+/i.test(trimmed) || /^https?:\/\/(www\.)?whatsapp\.com\/.+/i.test(trimmed);
+        },
+        message: 'Please provide a valid WhatsApp URL'
+      }
+    },
+    tiktok: {
+      type: String,
+      default: null,
+      validate: {
+        validator: function(v: string) {
+          if (!v) return true;
+          const trimmed = v.trim();
+          return !trimmed || /^https?:\/\/(www\.)?tiktok\.com\/@.+/i.test(trimmed);
+        },
+        message: 'Please provide a valid TikTok URL'
+      }
+    },
+    telegram: {
+      type: String,
+      default: null,
+      validate: {
+        validator: function(v: string) {
+          if (!v) return true;
+          const trimmed = v.trim();
+          return !trimmed || /^https?:\/\/(www\.)?t\.me\/.+/i.test(trimmed) || /^https?:\/\/(www\.)?telegram\.me\/.+/i.test(trimmed);
+        },
+        message: 'Please provide a valid Telegram URL'
+      }
+    },
+    discord: {
+      type: String,
+      default: null,
+      validate: {
+        validator: function(v: string) {
+          if (!v) return true;
+          const trimmed = v.trim();
+          return !trimmed || /^https?:\/\/(www\.)?discord\.gg\/.+/i.test(trimmed) || /^https?:\/\/(www\.)?discord\.com\/.+/i.test(trimmed);
+        },
+        message: 'Please provide a valid Discord URL'
       }
     }
   },
@@ -203,6 +275,11 @@ const UserSchema = new Schema<IUser>({
     trim: true
   },
   country: {
+    type: String,
+    default: null,
+    trim: true
+  },
+  telegramUsername: {
     type: String,
     default: null,
     trim: true

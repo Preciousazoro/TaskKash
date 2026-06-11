@@ -10,7 +10,7 @@ export default function ProfileSkeleton() {
         <UserHeader />
 
         <main className="flex-1 overflow-y-auto p-4 md:p-10 space-y-8 pb-32">
-          <div className="max-w-5xl mx-auto">
+          <div className="max-w-6xl mx-auto">
             <div className="grid lg:grid-cols-[300px_1fr] gap-8">
               
               {/* PROFILE CARD (LEFT) */}
@@ -33,7 +33,7 @@ export default function ProfileSkeleton() {
                   </div>
 
                   <div className="flex justify-center gap-4 mt-5">
-                    {[...Array(4)].map((_, i) => (
+                    {[...Array(8)].map((_, i) => (
                       <div key={i} className="w-10 h-10 bg-muted/30 rounded-lg animate-pulse" />
                     ))}
                   </div>
@@ -78,6 +78,20 @@ export default function ProfileSkeleton() {
                     <div className="h-12 w-full bg-muted/30 rounded-lg animate-pulse" />
                   </div>
 
+
+                  {/* Phone Number */}
+                  <div className="space-y-2">
+                    <div className="h-3 w-16 bg-muted/30 rounded animate-pulse ml-1" />
+                    <div className="h-12 w-full bg-muted/30 rounded-lg animate-pulse" />
+                  </div>
+
+
+                  {/* Telegram Username */}
+                  <div className="space-y-2">
+                    <div className="h-3 w-16 bg-muted/30 rounded animate-pulse ml-1" />
+                    <div className="h-12 w-full bg-muted/30 rounded-lg animate-pulse" />
+                  </div>
+
                   {/* Social Media Links Section */}
                   <div className="md:col-span-2 space-y-6 pt-6 border-t border-border">
                     <div className="flex items-center gap-2">
@@ -86,7 +100,7 @@ export default function ProfileSkeleton() {
                     </div>
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      {[...Array(4)].map((_, i) => (
+                      {[...Array(8)].map((_, i) => (
                         <div key={i} className="space-y-2">
                           <div className="flex items-center gap-2">
                             <div className="h-5 w-5 bg-muted/30 rounded animate-pulse" />

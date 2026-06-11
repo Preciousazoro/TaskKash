@@ -1316,13 +1316,13 @@ export function createGiftDeductionEmail(senderName: string, receiverName: strin
           
           <div class="amount-box">
             <p style="font-size: 14px; margin-bottom: 5px;">Amount Sent</p>
-            <p class="amount">$${amount.toFixed(2)}</p>
+            <p class="amount">${amount.toFixed(2)} TP</p>
           </div>
           
           <p><strong>Transaction Details:</strong></p>
           <ul style="list-style: none; padding: 0;">
             <li>• Recipient: ${receiverName}</li>
-            <li>• Amount Deducted: $${amount.toFixed(2)}</li>
+            <li>• Amount Deducted: ${amount.toFixed(2)} TP</li>
           </ul>
         </div>
         
@@ -1344,11 +1344,11 @@ export function createGiftDeductionEmail(senderName: string, receiverName: strin
     
     Your gift has been successfully sent to ${receiverName}.
     
-    Amount Sent: $${amount.toFixed(2)}
+    Amount Sent: ${amount.toFixed(2)} TP
     
     Transaction Details:
     - Recipient: ${receiverName}
-    - Amount Deducted: $${amount.toFixed(2)}
+    - Amount Deducted: ${amount.toFixed(2)} TP
     
     Best regards,
     The TaskKash Team
@@ -1475,13 +1475,13 @@ export function createGiftCreditEmail(receiverName: string, senderName: string, 
           
           <div class="amount-box">
             <p style="font-size: 14px; margin-bottom: 5px;">Amount Received</p>
-            <p class="amount">$${amount.toFixed(2)}</p>
+            <p class="amount">${amount.toFixed(2)} TP</p>
           </div>
           
           <p><strong>Transaction Details:</strong></p>
           <ul style="list-style: none; padding: 0;">
             <li>• From: ${senderName}</li>
-            <li>• Amount: $${amount.toFixed(2)}</li>
+            <li>• Amount: ${amount.toFixed(2)} TP</li>
             <li>• Status: Completed</li>
           </ul>
           
@@ -1506,11 +1506,11 @@ export function createGiftCreditEmail(receiverName: string, senderName: string, 
     
     Great news! You've received a gift from ${senderName}.
     
-    Amount Received: $${amount.toFixed(2)}
+    Amount Received: ${amount.toFixed(2)} TP
     
     Transaction Details:
     - From: ${senderName}
-    - Amount: $${amount.toFixed(2)}
+    - Amount: ${amount.toFixed(2)} TP
     - Status: Completed
     
     This amount has been added to your TaskKash balance. You can use it for withdrawals or other activities on the platform.

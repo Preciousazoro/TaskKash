@@ -356,7 +356,7 @@ export default function DashboardPage() {
   {/* Tasks Section Header */}
   <div className="flex items-center justify-between">
     <h2 className="text-xl font-black uppercase tracking-tighter leading-none">
-      Pending Tasks
+      Recent Tasks
     </h2>
     {filteredAndSortedTasks.length > 0 && (
       <span className="text-[10px] font-black uppercase text-muted-foreground tracking-widest">

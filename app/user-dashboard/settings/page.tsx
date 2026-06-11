@@ -11,10 +11,13 @@ import {
   Palette,
   Moon,
   Sun,
-  ChevronDown,
   Shield,
   AlertCircle,
+  Trash2,
+  Edit2,
   Eye,
+  Plus,
+  ChevronDown,
   EyeOff,
   Bell,
   Loader2,
@@ -22,9 +25,6 @@ import {
   Camera,
   Globe,
   Phone,
-  Plus,
-  Trash2,
-  Edit2,
   Wallet,
 } from "lucide-react";
 
@@ -92,24 +92,6 @@ export default function SettingsPage() {
     paymentNotifications: true,
   });
 
-  // Social Media Links
-  const [socialLinks, setSocialLinks] = useState({
-    twitter: "",
-    instagram: "",
-    linkedin: "",
-    facebook: "",
-  });
-  const [showAddSocialForm, setShowAddSocialForm] = useState(false);
-  const [editingPlatform, setEditingPlatform] = useState<keyof typeof socialLinks | null>(null);
-  const [socialLinkValue, setSocialLinkValue] = useState("");
-  const [isSavingSocial, setIsSavingSocial] = useState(false);
-
-  const SOCIAL_PLATFORMS = [
-    { key: 'twitter' as const, name: 'X (Twitter)', icon: '/x.jpg', symbol: 'X' },
-    { key: 'instagram' as const, name: 'Instagram', icon: '/instagram.jpg', symbol: 'IG' },
-    { key: 'linkedin' as const, name: 'LinkedIn', icon: '/linked in.jpg', symbol: 'LI' },
-    { key: 'facebook' as const, name: 'Facebook', icon: '/facebook.jpg', symbol: 'FB' },
-  ];
 
   const SUPPORTED_CRYPTOS = [
     { name: "Solana", symbol: "SOL", icon: "https://i.postimg.cc/FzHG6vnh/solana-128.png" },
@@ -146,12 +128,6 @@ export default function SettingsPage() {
           });
           setProfileImage(data.avatarUrl || "");
           setUserRole(data.role ? [data.role] : ["user"]);
-          setSocialLinks(data.socialLinks || {
-            twitter: "",
-            instagram: "",
-            linkedin: "",
-            facebook: "",
-          });
           setPayoutAddresses(data.cryptoPayoutAddresses || []);
           setShowAddForm(data.cryptoPayoutAddresses?.length === 0);
           setIsLoadingCryptoAddresses(false);
@@ -360,106 +336,6 @@ export default function SettingsPage() {
     toast.success('Notification preference updated (local only)');
   };
 
-  // Social Media Links functions
-  const handleAddNewSocial = () => {
-    setEditingPlatform(null);
-    setSocialLinkValue("");
-    setShowAddSocialForm(true);
-  };
-
-  const handleEditSocial = (platform: keyof typeof socialLinks) => {
-    setEditingPlatform(platform);
-    setSocialLinkValue(socialLinks[platform] || "");
-    setShowAddSocialForm(true);
-  };
-
-  const handleSaveSocial = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!editingPlatform) return;
-
-    setIsSavingSocial(true);
-
-    try {
-      const response = await fetch('/api/profile', {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          socialLinks: {
-            ...socialLinks,
-            [editingPlatform]: socialLinkValue || null,
-          },
-        }),
-      });
-
-      const data = await response.json();
-
-      if (data) {
-        setSocialLinks({
-          ...socialLinks,
-          [editingPlatform]: socialLinkValue || "",
-        });
-        toast.success('Social link saved successfully');
-        setShowAddSocialForm(false);
-        setEditingPlatform(null);
-        setSocialLinkValue("");
-      } else {
-        toast.error('Failed to save social link');
-      }
-    } catch (error) {
-      console.error('Error saving social link:', error);
-      toast.error('Failed to save social link');
-    } finally {
-      setIsSavingSocial(false);
-    }
-  };
-
-  const handleDeleteSocial = async (platform: keyof typeof socialLinks) => {
-    setIsSavingSocial(true);
-
-    try {
-      const response = await fetch('/api/profile', {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          socialLinks: {
-            ...socialLinks,
-            [platform]: null,
-          },
-        }),
-      });
-
-      const data = await response.json();
-
-      if (data) {
-        setSocialLinks({
-          ...socialLinks,
-          [platform]: "",
-        });
-        toast.success('Social link deleted successfully');
-      } else {
-        toast.error('Failed to delete social link');
-      }
-    } catch (error) {
-      console.error('Error deleting social link:', error);
-      toast.error('Failed to delete social link');
-    } finally {
-      setIsSavingSocial(false);
-    }
-  };
-
-  const handleCancelSocial = () => {
-    setShowAddSocialForm(false);
-    setEditingPlatform(null);
-    setSocialLinkValue("");
-  };
-
-  const getExistingSocialLinks = () => {
-    return SOCIAL_PLATFORMS.filter(platform => socialLinks[platform.key]);
-  };
 
   // Crypto Payout Settings functions
   const truncateAddress = (address: string) => {
@@ -1040,159 +916,6 @@ export default function SettingsPage() {
                       </div>
                     ))}
                   </div>
-                </div>
-
-                {/* Social Media Links */}
-                <div className="bg-card rounded-2xl shadow-lg border border-border p-6">
-                  <div className="flex items-center justify-between mb-6">
-                    <h3 className="text-sm font-black uppercase tracking-widest flex items-center gap-2">
-                      <Bell className="w-4 h-4 text-green-500" /> Social Media Links
-                    </h3>
-                    {getExistingSocialLinks().length > 0 && (
-                      <button
-                        onClick={handleAddNewSocial}
-                        className="flex items-center cursor-pointer gap-2 text-sm font-bold text-green-500 hover:text-green-500/80 transition-colors"
-                      >
-                        <Plus className="w-4 h-4" /> Add New
-                      </button>
-                    )}
-                  </div>
-
-                  {/* Saved Social Links - Always Visible Icons */}
-                  {getExistingSocialLinks().length > 0 && (
-                    <div className="space-y-3 mb-8">
-                      {getExistingSocialLinks().map((item) => (
-                        <div key={item.key} className="flex items-center justify-between bg-muted/30 border border-border rounded-xl p-4">
-                          <div className="flex items-center gap-4">
-                            <div className="w-10 h-10 rounded-lg bg-background border flex items-center justify-center">
-                              <img src={item.icon} alt={item.name} className="w-10 h-10 rounded-lg" />
-                            </div>
-                            <div>
-                              <div className="font-bold text-sm flex items-center gap-2">
-                                {item.name}
-                                <span className="text-xs text-muted-foreground font-mono">({item.symbol})</span>
-                              </div>
-                              <div className="font-mono text-xs text-muted-foreground">
-                                {socialLinks[item.key]
-                                  ? `${new URL(socialLinks[item.key]).origin}.....`
-                                  : "No link added"}
-                              </div>
-                            </div>
-                          </div>
-
-                          <div className="flex items-center gap-2">
-                            <button
-                              onClick={() => handleEditSocial(item.key)}
-                              className="p-2 text-muted-foreground cursor-pointer hover:text-foreground transition-colors"
-                            >
-                              <Edit2 className="w-4 h-4" />
-                            </button>
-                            <button
-                              onClick={() => handleDeleteSocial(item.key)}
-                              className="p-2 text-muted-foreground cursor-pointer hover:text-destructive transition-colors"
-                            >
-                              <Trash2 className="w-4 h-4" />
-                            </button>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-
-                  {/* Add / Edit Form */}
-                  {showAddSocialForm && (
-                    <form onSubmit={handleSaveSocial} className="space-y-5 border-t border-border pt-6">
-                      <div className="space-y-1">
-                        <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Social Platform</label>
-                        <DropdownMenu>
-                          <DropdownMenuTrigger asChild>
-                            <button type="button" className="w-full flex cursor-pointer items-center justify-between gap-3 bg-muted/30 border border-border rounded-xl px-4 py-3 text-sm hover:bg-muted/50 transition-colors">
-                              <div className="flex items-center gap-3">
-                                <div className="w-8 h-8 rounded-lg bg-background border flex items-center justify-center">
-                                  {editingPlatform ? (
-                                    <img src={SOCIAL_PLATFORMS.find(p => p.key === editingPlatform)?.icon} alt="platform" className="w-7 h-7 rounded-lg" />
-                                  ) : (
-                                    <Bell className="w-4 h-4 text-muted-foreground" />
-                                  )}
-                                </div>
-                                <span className="font-bold">
-                                  {editingPlatform ? SOCIAL_PLATFORMS.find(p => p.key === editingPlatform)?.name : 'Select a platform'}
-                                </span>
-                                {editingPlatform && (
-                                  <span className="text-xs text-muted-foreground font-bold uppercase tracking-wide">
-                                    ({SOCIAL_PLATFORMS.find(p => p.key === editingPlatform)?.symbol})
-                                  </span>
-                                )}
-                              </div>
-                              <ChevronDown className="w-4 h-4 text-muted-foreground" />
-                            </button>
-                          </DropdownMenuTrigger>
-                          <DropdownMenuContent className="w-full min-w-[240px]">
-                            {SOCIAL_PLATFORMS.map((platform) => (
-                              <DropdownMenuItem key={platform.key} onClick={() => setEditingPlatform(platform.key)} className="flex items-center gap-3 cursor-pointer">
-                                <img src={platform.icon} alt={platform.name} className="w-7 h-7 rounded-lg" />
-                                <span className="font-bold">{platform.name}</span>
-                                <span className="ml-auto text-xs text-muted-foreground">({platform.symbol})</span>
-                              </DropdownMenuItem>
-                            ))}
-                          </DropdownMenuContent>
-                        </DropdownMenu>
-                      </div>
-
-                      <div className="space-y-1">
-                        <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">
-                          {editingPlatform ? SOCIAL_PLATFORMS.find(p => p.key === editingPlatform)?.name : 'Platform'} URL
-                        </label>
-                        <div className="relative">
-                          <Bell className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                          <input
-                            type="text"
-                            value={socialLinkValue}
-                            onChange={(e) => setSocialLinkValue(e.target.value)}
-                            placeholder={`Enter ${editingPlatform ? SOCIAL_PLATFORMS.find(p => p.key === editingPlatform)?.name : 'platform'} URL`}
-                            className="w-full bg-muted/30 border border-border rounded-xl pl-10 pr-4 py-3 text-sm focus:ring-2 ring-primary/20 outline-none font-mono"
-                          />
-                        </div>
-                        <p className="text-[10px] text-muted-foreground mt-1">
-                          Make sure to double-check your URL. Links must be valid social media profile URLs.
-                        </p>
-                      </div>
-
-                      <div className="flex gap-3 pt-2">
-                        <button
-                          type="submit"
-                          disabled={isSavingSocial || !editingPlatform}
-                          className="flex-1 bg-green-500 cursor-pointer text-white py-3 rounded-xl font-bold text-sm hover:bg-green-500/90 disabled:opacity-50 flex items-center justify-center gap-2"
-                        >
-                          {isSavingSocial ? (
-                            <>
-                              <Loader2 className="w-4 h-4 cursor-pointer animate-spin" /> Saving...
-                            </>
-                          ) : (
-                            "Save Link"
-                          )}
-                        </button>
-
-                        <button
-                          type="button"
-                          onClick={handleCancelSocial}
-                          className="flex-1 border border-border cursor-pointer py-3 rounded-xl font-bold text-sm hover:bg-muted"
-                        >
-                          Cancel
-                        </button>
-                      </div>
-                    </form>
-                  )}
-
-                  {!showAddSocialForm && getExistingSocialLinks().length === 0 && (
-                    <button
-                      onClick={handleAddNewSocial}
-                      className="w-full py-6 border border-dashed border-border rounded-2xl text-muted-foreground hover:text-foreground hover:border-green-500 transition-colors flex flex-col items-center gap-2"
-                    >
-                      <Plus className="w-8 h-8" />
-                      <span className="font-bold">Add your first social link</span>
-                    </button>
-                  )}
                 </div>
 
                 {/* Security */}

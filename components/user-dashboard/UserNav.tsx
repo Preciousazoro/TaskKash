@@ -4,7 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
   LayoutDashboard,
-  Users,
+  ClipboardList,
   Settings,
   History,
   Smile,
@@ -24,9 +24,9 @@ export default function UserNav() {
       href: `${basePath}/dashboard`,
     },
     {
-      name: "Payout",
-      icon: Wallet,
-      href: `${basePath}/withdraw`,
+      name: "Tasks",
+      icon: ClipboardList,
+      href: `${basePath}/overall-tasks`,
     },
     {
       name: "History",

@@ -149,7 +149,7 @@ export function TaskCard({ task, onClick, onStartTask }: TaskCardProps) {
               </button>
             )}
 
-            {isAvailable && (
+            {isAvailable && !isStarted && (
               <button
                 onClick={handleStartTask}
                 disabled={isStarting}
@@ -163,6 +163,15 @@ export function TaskCard({ task, onClick, onStartTask }: TaskCardProps) {
                 ) : (
                   'Start Task'
                 )}
+              </button>
+            )}
+
+            {isStarted && (
+              <button
+                onClick={handleViewTask}
+                className="h-8 px-3 rounded-lg bg-blue-600 hover:bg-blue-500 text-white text-[10px] font-black uppercase tracking-widest transition-all"
+              >
+                Task Started
               </button>
             )}
 

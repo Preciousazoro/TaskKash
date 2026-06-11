@@ -22,7 +22,7 @@ export async function GET(request: NextRequest) {
     await connectDB();
     
     const user = await User.findById(session.user.id)
-      .select('name email role username avatarUrl avatarPublicId taskPoints dailyStreak socialLinks phone country cryptoPayoutAddresses')
+      .select('name email role username avatarUrl avatarPublicId taskPoints dailyStreak socialLinks phone country telegramUsername cryptoPayoutAddresses')
       .lean()
       .maxTimeMS(3000) as any; // Add timeout
     
@@ -44,9 +44,15 @@ export async function GET(request: NextRequest) {
         twitter: null,
         instagram: null,
         linkedin: null,
+        facebook: null,
+        whatsapp: null,
+        tiktok: null,
+        telegram: null,
+        discord: null,
       },
       phone: user.phone || null,
       country: user.country || null,
+      telegramUsername: user.telegramUsername || null,
       cryptoPayoutAddresses: user.cryptoPayoutAddresses || [],
     };
 
@@ -69,7 +75,10 @@ export async function PUT(request: NextRequest) {
     }
 
     const body = await request.json();
-    const { name, username, avatarUrl, avatarPublicId, socialLinks, phone, country } = body;
+    const { name, username, avatarUrl, avatarPublicId, socialLinks, phone, country, telegramUsername } = body;
+
+    console.log('=== PROFILE UPDATE REQUEST ===');
+    console.log('Received data:', { name, username, socialLinks, phone, telegramUsername });
 
     await connectDB();
     
@@ -132,12 +141,42 @@ export async function PUT(request: NextRequest) {
       user.avatarPublicId = avatarPublicId || null;
     }
     
-    if (socialLinks) user.socialLinks = socialLinks;
+    if (socialLinks) {
+      console.log('Updating socialLinks:', socialLinks);
+      // Trim all social media URLs to remove trailing spaces
+      const trimmedSocialLinks: any = {};
+      for (const [key, value] of Object.entries(socialLinks)) {
+        trimmedSocialLinks[key] = value && typeof value === 'string' ? value.trim() : value;
+      }
+      console.log('Trimmed socialLinks:', trimmedSocialLinks);
+      user.socialLinks = trimmedSocialLinks;
+    }
     
-    if (phone !== undefined) user.phone = phone;
+    if (phone !== undefined) {
+      console.log('Updating phone:', phone);
+      user.phone = phone;
+    }
     if (country !== undefined) user.country = country;
+    if (telegramUsername !== undefined) {
+      console.log('Updating telegramUsername:', telegramUsername);
+      user.telegramUsername = telegramUsername;
+    }
 
-    await user.save();
+    console.log('Saving user to database...');
+    try {
+      await user.save();
+      console.log('User saved successfully');
+    } catch (saveError: any) {
+      console.error('Error saving user:', saveError);
+      if (saveError.name === 'ValidationError') {
+        console.error('Validation errors:', saveError.errors);
+        return NextResponse.json({ 
+          error: 'Validation failed', 
+          details: Object.values(saveError.errors).map((err: any) => err.message)
+        }, { status: 400 });
+      }
+      throw saveError;
+    }
 
     // Clear cache for this user
     clearProfileCache(session.user.id);
@@ -156,9 +195,15 @@ export async function PUT(request: NextRequest) {
         twitter: null,
         instagram: null,
         linkedin: null,
+        facebook: null,
+        whatsapp: null,
+        tiktok: null,
+        telegram: null,
+        discord: null,
       },
       phone: user.phone || null,
       country: user.country || null,
+      telegramUsername: user.telegramUsername || null,
       cryptoPayoutAddresses: user.cryptoPayoutAddresses || [],
     };
 

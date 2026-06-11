@@ -18,6 +18,7 @@ import {
   LayoutDashboard,
   History,
   Gift, 
+  ClipboardList,
   X,
   LogOut,
   ChevronDown,
@@ -303,6 +304,12 @@ function SidebarNavItems({
       color: "text-green-500",
     },
     {
+      name: "Overall Tasks",
+      icon: ClipboardList,
+      href: `${basePath}/overall-tasks`,
+      color: "text-green-500",
+    },
+    {
       name: "Gift Member",
       icon: Smile,
       href: `${basePath}/gift-user`,
@@ -334,7 +341,7 @@ function SidebarNavItems({
         {
           name: "Rewards",
           icon: PartyPopper,
-          href: `${basePath}/rewards`,
+          href: `#`,
           color: "text-green-500",
         },
         {

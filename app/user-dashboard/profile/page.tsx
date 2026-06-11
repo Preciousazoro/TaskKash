@@ -37,6 +37,10 @@ type SocialMedia = {
   instagram?: string | null;
   linkedin?: string | null;
   facebook?: string | null;
+  whatsapp?: string | null;
+  tiktok?: string | null;
+  telegram?: string | null;
+  discord?: string | null;
 };
 
 type UserProfile = {
@@ -50,6 +54,8 @@ type UserProfile = {
   points?: number;
   dailyStreak?: number;
   socialMedia?: SocialMedia;
+  phone?: string | null;
+  telegramUsername?: string | null;
 };
 
 export default function ProfilePage() {
@@ -74,7 +80,13 @@ export default function ProfilePage() {
       instagram: null,
       linkedin: null,
       facebook: null,
+      whatsapp: null,
+      tiktok: null,
+      telegram: null,
+      discord: null,
     },
+    phone: null,
+    telegramUsername: null,
   });
 
   const [editableUser, setEditableUser] = useState<UserProfile>(user);
@@ -86,6 +98,10 @@ export default function ProfilePage() {
     { key: 'instagram' as const, name: 'Instagram', icon: '/instagram.jpg', symbol: 'IG' },
     { key: 'linkedin' as const, name: 'LinkedIn', icon: '/linked in.jpg', symbol: 'LI' },
     { key: 'facebook' as const, name: 'Facebook', icon: '/facebook.jpg', symbol: 'FB' },
+    { key: 'whatsapp' as const, name: 'WhatsApp', icon: '/whatsapp.jpg', symbol: 'WA' },
+    { key: 'tiktok' as const, name: 'TikTok', icon: '/tiktok.jpg', symbol: 'TT' },
+    { key: 'telegram' as const, name: 'Telegram', icon: '/telegram.jpg', symbol: 'TG' },
+    { key: 'discord' as const, name: 'Discord', icon: '/discord.jpg', symbol: 'DC' },
   ];
 
   // Generate username helper function
@@ -105,7 +121,7 @@ export default function ProfilePage() {
         name: data.name,
         username: data.username,
         email: data.email,
-        role: "user",
+        role: data.role,
         image: data.avatarUrl,
         avatarPublicId: data.avatarPublicId,
         points: data.taskPoints,
@@ -115,7 +131,13 @@ export default function ProfilePage() {
           instagram: null,
           linkedin: null,
           facebook: null,
+          whatsapp: null,
+          tiktok: null,
+          telegram: null,
+          discord: null,
         },
+        phone: data.phone || null,
+        telegramUsername: data.telegramUsername || null,
       };
       
       setUser(userProfile);
@@ -199,6 +221,15 @@ export default function ProfilePage() {
         setUsernameWarning('Please set a username (required for public profile)');
       }
 
+      // Log what we're sending
+      console.log('Saving profile with data:', {
+        name: editableUser.name,
+        username: editableUser.username,
+        socialLinks: editableUser.socialMedia,
+        phone: editableUser.phone,
+        telegramUsername: editableUser.telegramUsername,
+      });
+
       const response = await fetch('/api/profile', {
         method: 'PUT',
         headers: {
@@ -210,6 +241,8 @@ export default function ProfilePage() {
           avatarUrl: avatarPreview,
           avatarPublicId: editableUser.avatarPublicId,
           socialLinks: editableUser.socialMedia,
+          phone: editableUser.phone,
+          telegramUsername: editableUser.telegramUsername,
         }),
       });
       
@@ -226,7 +259,7 @@ export default function ProfilePage() {
         name: updatedData.name,
         username: updatedData.username,
         email: updatedData.email,
-        role: "user",
+        role: updatedData.role,
         image: updatedData.avatarUrl,
         avatarPublicId: updatedData.avatarPublicId,
         points: updatedData.taskPoints,
@@ -235,7 +268,13 @@ export default function ProfilePage() {
             instagram: null,
             linkedin: null,
             facebook: null,
+            whatsapp: null,
+            tiktok: null,
+            telegram: null,
+            discord: null,
           },
+        phone: updatedData.phone || null,
+        telegramUsername: updatedData.telegramUsername || null,
       };
       
       setUser(updatedProfile);
@@ -286,9 +325,12 @@ export default function ProfilePage() {
         {/* 2. HEADER */}
         <UserHeader />
 
+
+
+
         {/* 3. SCROLLABLE CONTENT */}
         <main className="flex-1 overflow-y-auto p-4 md:p-10 space-y-8 pb-32">
-          <div className="max-w-5xl mx-auto animate-in fade-in duration-500">
+          <div className="max-w-6xl mx-auto animate-in fade-in duration-500">
             <div className="grid lg:grid-cols-[300px_1fr] gap-8">
               
               {/* PROFILE CARD (LEFT) */}
@@ -296,7 +338,7 @@ export default function ProfilePage() {
   <div className="bg-card border border-border rounded-2xl p-5 text-center shadow-sm">
     
     {/* Avatar Wrapper Container */}
-    <div className="relative w-50 h-50 mx-auto group">
+    <div className="relative w-full h-65 mx-auto group">
       
       {/* Image Container Block */}
       <div className="w-full h-full rounded-3xl overflow-hidden border-2 border-green-500 shadow-lg relative">
@@ -333,33 +375,40 @@ export default function ProfilePage() {
       )}
     </div>
 
-    <h3 className="mt-4 text-xl font-bold">{user.name}</h3>
-    <p className="text-sm text-muted-foreground capitalize font-medium">
-      Role: {user.role}
-    </p>
+    <div className="flex flex-wrap mt-2 items-center justify-between gap-4 w-full">
+      <h3 className="text-xl font-bold">{user.name}</h3>
+      <p className="text-sm text-muted-foreground capitalize font-medium">
+        Role: {user.role}
+      </p>
+    </div>
 
     <div className="mt-5 p-4 bg-muted/50 rounded-xl border border-border">
       <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">
         Task Points
       </p>
-      <p className="font-black text-2xl text-green-500">{user.points} TP</p>
+      <p className="font-black text-xl text-green-500">{user.points} TP</p>
     </div>
 
-    <div className="flex justify-center gap-4 mt-5">
+    <div className="flex flex-wrap justify-center gap-2 mt-5">
       {SOCIAL_PLATFORMS.map((platform) => {
         const url = user.socialMedia?.[platform.key] || null;
         return (
           <button
             key={platform.key}
             onClick={() => handleSocialLinkClick(url)}
-            className={`rounded-lg transition-colors ${
+            className={`transition-all duration-200 cursor-pointer ${
               url
-                ? 'border-3 border-green-500/100 hover:border-green-500/50 text-green-500'
-                : 'bg-muted hover:text-green-500'
+                ? 'opacity-100 text-foreground hover:opacity-80'
+                : 'grayscale opacity-35 cursor-not-allowed'
             }`}
             title={url ? `Open ${platform.name}` : `No ${platform.name} link`}
+            disabled={!url}
           >
-            <img src={platform.icon} alt={platform.name} className="w-10 h-10 rounded-lg" />
+            <img 
+              src={platform.icon} 
+              alt={platform.name} 
+              className="w-10 h-10 rounded-full object-cover" 
+            />
           </button>
         );
       })}
@@ -367,8 +416,13 @@ export default function ProfilePage() {
   </div>
 </aside>
 
+
+
+
+
+
               {/* PROFILE FORM (RIGHT) */}
-<div className="bg-card border border-border rounded-3xl p-6 lg:p-7 shadow-sm">
+<div className="bg-card border border-border rounded-3xl p-5 lg:p-7 shadow-sm">
   {/* Header Section */}
   <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-10">
     <div className="space-y-1">
@@ -381,22 +435,22 @@ export default function ProfilePage() {
     {!isEditing ? (
       <button
         onClick={() => setIsEditing(true)}
-        className="flex items-center gap-2 px-4 py-2 bg-green-500 text-white font-bold rounded-lg shadow-lg active:scale-[0.98] transition-all cursor-pointer hover:bg-green-500/90"
+        className="w-full text-base sm:w-auto flex justify-center items-center gap-2 px-4 py-2 bg-green-500 text-white font-bold rounded-lg shadow-lg active:scale-[0.98] transition-all cursor-pointer hover:bg-green-500/90"
       >
         Edit Profile
       </button>
     ) : (
-      <div className="flex gap-3">
+      <div className="flex w-full sm:w-auto gap-3">
         <button
           onClick={handleCancel}
-          className="px-4 py-2 border border-border rounded-lg font-bold flex items-center gap-2 hover:bg-muted transition-colors cursor-pointer"
+          className="w-1/2 sm:w-auto px-4 py-2 border border-border rounded-lg font-bold flex items-center justify-center gap-2 hover:bg-muted transition-colors cursor-pointer"
         >
           Cancel
         </button>
         <button
           onClick={handleSave}
           disabled={isSaving}
-          className="flex items-center gap-2 px-4 py-2 bg-green-500 text-white font-bold rounded-lg shadow-lg active:scale-[0.98] transition-all cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+          className="w-1/2 sm:w-auto flex items-center justify-center gap-2 px-4 py-2 bg-green-500 text-white font-bold rounded-lg shadow-lg active:scale-[0.98] transition-all cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
         >
           {isSaving ? (
             <>
@@ -500,6 +554,48 @@ export default function ProfilePage() {
       <p className="p-3 py-4 bg-muted/10 rounded-lg border border-dashed border-border font-mono text-xs text-muted-foreground">
         {user.id}
       </p>
+    </div>
+
+    {/* Phone Number */}
+    <div className="space-y-2">
+      <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1">
+        Phone Number
+      </label>
+      {isEditing ? (
+        <input
+          value={editableUser.phone || ''}
+          onChange={(e) =>
+            setEditableUser({ ...editableUser, phone: e.target.value })
+          }
+          placeholder="+1234567890"
+          className="w-full p-3 bg-muted/50 border border-border rounded-lg focus:ring-2 ring-green-500/20 outline-none transition-all text-sm font-medium"
+        />
+      ) : (
+        <p className="p-3 bg-muted/30 rounded-lg border border-border font-medium text-sm text-foreground">
+          {user.phone || 'Not set'}
+        </p>
+      )}
+    </div>
+
+    {/* Telegram Username */}
+    <div className="space-y-2">
+      <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1">
+        Telegram Username
+      </label>
+      {isEditing ? (
+        <input
+          value={editableUser.telegramUsername || ''}
+          onChange={(e) =>
+            setEditableUser({ ...editableUser, telegramUsername: e.target.value })
+          }
+          placeholder="@username"
+          className="w-full p-3 bg-muted/50 border border-border rounded-lg focus:ring-2 ring-green-500/20 outline-none transition-all text-sm font-medium"
+        />
+      ) : (
+        <p className="p-3 bg-muted/30 rounded-lg border border-border font-medium text-sm text-foreground">
+          {user.telegramUsername || 'Not set'}
+        </p>
+      )}
     </div>
 
     {/* Social Media Links Section */}

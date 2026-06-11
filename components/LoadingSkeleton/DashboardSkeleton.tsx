@@ -86,7 +86,7 @@ export default function DashboardSkeleton() {
 
               {/* Task Cards Grid */}
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                {[...Array(6)].map((_, i) => (
+                {[...Array(9)].map((_, i) => (
                   <div key={i} className="bg-card border border-border rounded-2xl p-5 space-y-4">
                     <div className="flex justify-between items-start">
                       <div className="h-6 w-3/4 bg-muted/30 rounded animate-pulse" />
@@ -145,7 +145,7 @@ export default function DashboardSkeleton() {
 
                     {/* Data Rows */}
                     <div className="divide-y divide-border/50">
-                      {[...Array(5)].map((_, i) => (
+                      {[...Array(10)].map((_, i) => (
                         <div
                           key={i}
                           className="flex justify-between items-center px-6 py-4 animate-pulse"
