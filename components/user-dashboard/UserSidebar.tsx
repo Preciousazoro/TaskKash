@@ -182,7 +182,7 @@ export default function UserSidebar() {
                     setMenuOpen(false);
                     setShowLogoutConfirm(true);
                   }}
-                  className="flex items-center cursor-pointer w-full px-4 py-3 text-red-500 hover:bg-red-500/10 transition-all rounded-sm group"
+                  className="flex items-center cursor-pointer w-full px-4 py-3 text-red-500 hover:bg-green-500/10 transition-all rounded-sm group"
                 >
                   <LogOut className="w-5 h-5 mr-3 group-hover:-translate-x-1 transition-transform" />
                   <span className="text-xs font-black uppercase tracking-widest">
@@ -247,7 +247,7 @@ export default function UserSidebar() {
                   setShowLogoutConfirm(false);
                   setCountdown(10);
                 }}
-                className="flex-1 px-6 py-3 rounded-lg bg-green-500 cursor-pointer text-white font-bold text-xs uppercase tracking-widest hover:bg-green-600 transition-colors"
+                className="flex-1 px-6 py-3 rounded-lg bg-red-400 cursor-pointer text-white font-bold text-xs uppercase tracking-widest hover:bg-red-500 transition-colors"
               >
                 Exit
               </button>
@@ -301,91 +301,76 @@ function SidebarNavItems({
       name: "Dashboard",
       icon: LayoutDashboard,
       href: `${basePath}/dashboard`,
-      color: "text-green-500",
     },
     {
       name: "Overall Tasks",
       icon: ClipboardList,
       href: `${basePath}/overall-tasks`,
-      color: "text-green-500",
-    },
-    {
-      name: "Gift Member",
-      icon: Smile,
-      href: `${basePath}/gift-user`,
-      color: "text-green-500",
     },
     {
       name: "Commerce Tasks",
       icon: BarChart3,
       href: "#",
-      color: "text-green-500",
+    },
+    {
+      name: "Gift Member",
+      icon: Smile,
+      href: `${basePath}/gift-user`,
     },
     {
       name: "Withdrawals",
       icon: Wallet,
       href: withdrawalVisible ? `${basePath}/withdraw` : `${basePath}/withdraw/locked`,
-      color: "text-green-500",
     },
     {
       name: "Transactions",
       icon: History,
       href: `${basePath}/transactions`,
-      color: "text-green-500",
     },
     {
       name: "Community",
       icon: Users,
-      color: "text-green-500",
       children: [
         {
           name: "Rewards",
           icon: PartyPopper,
           href: `#`,
-          color: "text-green-500",
         },
         {
           name: "Leaderboard",
           icon: Trophy,
           href: `${basePath}/leaderboard`,
-          color: "text-green-500",
         },
         {
           name: "Achievements",
           icon: Gem,
-          href: `${basePath}/achievements`,
-          color: "text-green-500",
+          href: `#`,
         },
         {
           name: "Testimonials",
           icon: Crown,
           href: `${basePath}/testimonials`,
-          color: "text-green-500",
         },
       ],
     },
     {
       name: "Account",
       icon: Settings,
-      color: "text-green-500",
       children: [
         {
           name: "User Profile",
           icon: Users,
           href: `${basePath}/profile`,
-          color: "text-green-500",
         },
         {
           name: "Accounts Settings",
           icon: Settings,
           href: `${basePath}/settings`,
-          color: "text-green-500",
         },
         {
           name: "KYC Verification",
           icon: BadgeCheck,
           href: "#",
-          color: "text-green-500",
         },
         ...(isAdmin
           ? [
@@ -393,7 +378,7 @@ function SidebarNavItems({
                 name: "Switch to Admin",
                 icon: Lock,
                 href: "/admin-dashboard/dashboard",
-                color: "text-purple-400",
+                color: "text-green-500",
               },
             ]
           : []),
@@ -461,7 +446,7 @@ function SidebarNavItems({
                   className={`w-5 h-5 mr-5 transition-transform flex-shrink-0 ${
                     active
                       ? "text-white scale-110"
-                      : `${item.color ?? "text-green-500"} group-hover:scale-110`
+                      : `${item.color ?? "text-muted-foreground"} group-hover:scale-110`
                   }`}
                 />
                 <span className="text-[12px] font-black uppercase tracking-widest">
@@ -489,8 +474,8 @@ function SidebarNavItems({
                 <item.icon
                   className={`w-5 h-5 mr-5 flex-shrink-0 transition-transform ${
                     hasActiveChild
-                      ? `scale-110 ${item.color ?? "text-green-500"}`
-                      : `${item.color ?? "text-green-500"} group-hover:scale-110`
+                      ? `scale-110 ${item.color ?? "text-foreground"}`
+                      : `${item.color ?? "text-muted-foreground"} group-hover:scale-110`
                   }`}
                 />
                 <span className="flex-1 text-left text-[12px] font-black uppercase tracking-widest">
@@ -525,7 +510,7 @@ function SidebarNavItems({
                             className={`w-4 h-4 flex-shrink-0 transition-transform ${
                               childActive
                                 ? "text-white scale-110"
-                                : `${child.color ?? "text-green-500"} group-hover:scale-110`
+                                : `${child.color ?? "text-muted-foreground"} group-hover:scale-110`
                             }`}
                           />
                           <span className="text-[11px] font-black uppercase tracking-widest">

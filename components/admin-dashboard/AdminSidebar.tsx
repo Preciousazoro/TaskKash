@@ -183,30 +183,25 @@ function SidebarNavItems({
       name: "Dashboard",
       icon: LayoutDashboard,
       href: `${basePath}/dashboard`,
-      color: "text-green-500",
     },
     {
       name: "Manage Tasks",
       icon: CheckCircle,
-      color: "text-green-500",
       children: [
         {
           name: "Create Task",
           icon: Plus,
           href: `${basePath}/tasks/create`,
-          color: "text-green-500",
         },
         {
           name: "Active Tasks",
           icon: CheckCircle,
           href: `${basePath}/active-tasks`,
-          color: "text-green-500",
         },
         {
           name: "Task History",
           icon: History,
           href: `${basePath}/task-history`,
-          color: "text-green-500",
         },
       ],
     },
@@ -215,66 +210,56 @@ function SidebarNavItems({
       name: "User Management",
       icon: Users,
       href: `${basePath}/users`,
-      color: "text-green-500",
     },
     {
       name: "Submissions",
       icon: FileText,
       href: `${basePath}/submissions`,
-      color: "text-green-500",
     },
     {
       name: "Payout Requests",
       icon: Wallet,
       href: `${basePath}/withdrawals`,
-      color: "text-green-500",
     },
     {
       name: "Contact Messages",
       icon: MessageSquare,
       href: `${basePath}/contact-messages`,
-      color: "text-green-500",
     },
     {
       name: "Bookings",
       icon: Calendar,
       href: `${basePath}/bookings`,
-      color: "text-green-500",
     },
     {
       name: "Broadcast",
       icon: Send,
       href: `${basePath}/broadcast`,
-      color: "text-green-500",
     },
     {
       name: "Rewards",
       icon: Award,
       href: `${basePath}/rewards`,
-      color: "text-green-500",
     },
     {
       name: "Settings",
       icon: Settings,
-      color: "text-green-500",
       children: [
         {
           name: "Admin Profile",
           icon: UserIcon,
           href: `${basePath}/profile`,
-          color: "text-green-500",
         },
         {
           name: "Admin Settings",
           icon: Settings,
           href: `${basePath}/settings`,
-          color: "text-green-500",
         },
         {
           name: "Switch To User",
           icon: Lock,
           href: "/user-dashboard/dashboard",
-          color: "text-cyan-500",
+          color: "text-green-500",
         },
       ],
     },
@@ -352,7 +337,7 @@ function SidebarNavItems({
                 <item.icon
                   className={`w-5 h-5 mr-5 transition-transform flex-shrink-0 ${active
                       ? "text-white scale-110"
-                      : `${item.color ?? "text-green-500"} group-hover:scale-110`
+                      : `${item.color ?? "text-muted-foreground"} group-hover:scale-110`
                     }`}
                 />
                 <span className="text-[12px] font-black uppercase tracking-widest">
@@ -379,7 +364,7 @@ function SidebarNavItems({
                 <item.icon
                   className={`w-5 h-5 mr-5 flex-shrink-0 transition-transform ${hasActiveChild
                       ? `scale-110 ${item.color ?? "text-green-500"}`
-                      : `${item.color ?? "text-green-500"} group-hover:scale-110`
+                      : `${item.color ?? "text-muted-foreground"} group-hover:scale-110`
                     }`}
                 />
                 <span className="flex-1 text-left text-[12px] font-black uppercase tracking-widest">
@@ -409,7 +394,7 @@ function SidebarNavItems({
                           <child.icon
                             className={`w-4 h-4 flex-shrink-0 transition-transform ${childActive
                                 ? "text-white scale-110"
-                                : `${child.color ?? "text-green-500"} group-hover:scale-110`
+                                : `${child.color ?? "text-muted-foreground"} group-hover:scale-110`
                               }`}
                           />
                           <span className="text-[11px] font-black uppercase tracking-widest">
