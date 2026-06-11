@@ -276,15 +276,11 @@ export default function UserHeader({ title }: { title?: string }) {
               className="w-10 h-10 rounded-xl border-2 border-border hover:border-green-500 transition-colors overflow-hidden flex items-center justify-center bg-muted"
               title="Go to Profile"
             >
-              {userData?.avatarUrl ? (
-                <img
-                  src={userData.avatarUrl}
-                  alt={displayName}
-                  className="w-full h-full object-cover"
-                />
-              ) : (
-                <User className="w-5 h-5 text-green-500" />
-              )}
+              <img
+                src={userData?.avatarUrl || "https://github.com/shadcn.png"}
+                alt={displayName}
+                className="w-full h-full object-cover"
+              />
             </button>
           </div>
         </div>
@@ -296,15 +292,11 @@ export default function UserHeader({ title }: { title?: string }) {
             className="w-10 h-10 rounded-xl border-2 border-border hover:border-green-500 transition-colors overflow-hidden flex items-center justify-center bg-muted"
             title="Go to Profile"
           >
-            {userData?.avatarUrl ? (
-              <img
-                src={userData.avatarUrl}
-                alt={displayName}
-                className="w-full h-full object-cover"
-              />
-            ) : (
-              <User className="w-5 h-5 text-green-500" />
-            )}
+            <img
+              src={userData?.avatarUrl || "https://github.com/shadcn.png"}
+              alt={displayName}
+              className="w-full h-full object-cover"
+            />
           </button>
         </div>
       </div>

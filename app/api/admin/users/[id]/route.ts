@@ -81,15 +81,6 @@ export async function DELETE(
 
     console.log('Delete API - Found user:', user.email, 'Role:', user.role);
 
-    // Prevent deletion of admin users (optional safety check)
-    if (user.role === 'admin') {
-      console.log('Delete API - Attempted to delete admin user');
-      return NextResponse.json(
-        { error: 'Cannot delete admin users' },
-        { status: 403 }
-      );
-    }
-
     // Delete the user
     await User.findByIdAndDelete(id);
     console.log('Delete API - User deleted successfully');

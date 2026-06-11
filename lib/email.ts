@@ -81,6 +81,21 @@ const createTransporter = () => {
 // Permanent send email function - unified sender architecture
 export async function sendEmail({ to, subject, html, text, from, replyTo, forceReplyTo = false }: EmailOptions): Promise<boolean> {
   try {
+    // Development mode: Log emails to console instead of sending
+    const isDevelopment = process.env.NODE_ENV === 'development' || process.env.NEXT_PUBLIC_NODE_ENV === 'development';
+    
+    if (isDevelopment) {
+      console.log('📧 [DEV MODE] Email would be sent:');
+      console.log('To:', to);
+      console.log('Subject:', subject);
+      console.log('From:', `"${ACTUAL_FROM_NAME}" <${ACTUAL_FROM_EMAIL}>`);
+      console.log('ReplyTo:', replyTo || 'None');
+      console.log('--- Email Content ---');
+      console.log(html);
+      console.log('--- End Email ---');
+      return true;
+    }
+
     const transporter = createTransporter();
     
     // UNIFIED SENDER: Always use the real support mailbox
@@ -104,7 +119,12 @@ export async function sendEmail({ to, subject, html, text, from, replyTo, forceR
     console.log('✅ Email sent successfully to:', to);
     return true;
   } catch (error) {
-    // Silent failure - don't log errors to avoid terminal spam
+    // Log error for debugging
+    console.error('❌ Email sending failed:', error);
+    if (error instanceof Error) {
+      console.error('Error message:', error.message);
+      console.error('Error stack:', error.stack);
+    }
     return false;
   }
 }

@@ -16,6 +16,7 @@ import {
   DollarSign,
   Edit,
   Shield,
+  ShieldOff,
   Mail,
 } from "lucide-react";
 import AdminHeader from "../../../components/admin-dashboard/AdminHeader";
@@ -315,6 +316,39 @@ export default function AdminUsersPage() {
     });
   };
 
+  const removeAdmin = async (u: User) => {
+    await confirmToast({
+      title: 'Remove Admin',
+      message: `Are you sure you want to remove admin privileges from ${u.name}?`,
+      confirmText: 'Remove Admin',
+      confirmButtonVariant: 'destructive',
+      onConfirm: async () => {
+        setLoadingActions(prev => ({ ...prev, [u._id]: true }));
+        
+        try {
+          const response = await fetch(`/api/admin/users/${u._id}/role`, {
+            method: 'PATCH',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ role: 'user' })
+          });
+
+          if (!response.ok) {
+            throw new Error('Failed to remove admin');
+          }
+
+          // Refresh user list
+          await fetchUsers();
+        } finally {
+          setLoadingActions(prev => {
+            const p = { ...prev };
+            delete p[u._id];
+            return p;
+          });
+        }
+      }
+    });
+  };
+
   const deleteUser = async (u: User) => {
     await confirmToast({
       title: 'Delete User',
@@ -592,7 +626,7 @@ export default function AdminUsersPage() {
                             </button>
 
                             {/* Make Admin (only for non-admins) */}
-                            {u.role !== "admin" && (
+                            {u.role !== "admin" ? (
                               <button
                                 onClick={() => makeAdmin(u)}
                                 disabled={loadingActions[u._id]}
@@ -603,6 +637,19 @@ export default function AdminUsersPage() {
                                   <Loader2 className="w-4 h-4 animate-spin" />
                                 ) : (
                                   <Shield className="w-5 h-5" />
+                                )}
+                              </button>
+                            ) : (
+                              <button
+                                onClick={() => removeAdmin(u)}
+                                disabled={loadingActions[u._id]}
+                                className="p-3 bg-purple-500/10 text-purple-500 cursor-pointer hover:bg-purple-500/20 rounded-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                                title="Remove Admin"
+                              >
+                                {loadingActions[u._id] ? (
+                                  <Loader2 className="w-4 h-4 animate-spin" />
+                                ) : (
+                                  <ShieldOff className="w-5 h-5" />
                                 )}
                               </button>
                             )}
