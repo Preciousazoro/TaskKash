@@ -240,6 +240,7 @@ const CampaignPage = () => {
   const [thumbnailUrl, setThumbnailUrl]   = useState("");
   const [creatorName, setCreatorName]     = useState("");
   const [creatorAvatar, setCreatorAvatar] = useState("");
+  const [creatorAvatarFile, setCreatorAvatarFile] = useState<File | null>(null);
 
   /* Reward */
   const [rewardAmount, setRewardAmount] = useState(100);
@@ -305,7 +306,11 @@ const CampaignPage = () => {
       formData.append('repeatLimit', repeatLimit.toString());
       formData.append('status', status);
       if (thumbnailUrl) formData.append('thumbnailUrl', thumbnailUrl);
-      if (creatorAvatar) formData.append('creatorAvatar', creatorAvatar);
+      if (creatorAvatarFile) {
+        formData.append('avatarFile', creatorAvatarFile);
+      } else if (creatorAvatar) {
+        formData.append('creatorAvatar', creatorAvatar);
+      }
 
       const response = await fetch('/api/admin/campaigns', {
         method: 'POST',
@@ -541,7 +546,27 @@ const CampaignPage = () => {
 
                     <div>
                       <Label>Creator Avatar <span className="text-muted-foreground font-normal normal-case">(Optional)</span></Label>
-                      <div className="border-2 border-dashed border-border rounded-xl p-4 flex items-center gap-3 cursor-pointer hover:border-primary/40 transition-colors">
+                      <input
+                        type="file"
+                        accept="image/*"
+                        onChange={(e) => {
+                          const file = e.target.files?.[0];
+                          if (file) {
+                            setCreatorAvatarFile(file);
+                            const reader = new FileReader();
+                            reader.onloadend = () => {
+                              setCreatorAvatar(reader.result as string);
+                            };
+                            reader.readAsDataURL(file);
+                          }
+                        }}
+                        className="hidden"
+                        id="creator-avatar-input"
+                      />
+                      <div
+                        className="border-2 border-dashed border-border rounded-xl p-4 flex items-center gap-3 cursor-pointer hover:border-primary/40 transition-colors"
+                        onClick={() => document.getElementById('creator-avatar-input')?.click()}
+                      >
                         {creatorAvatar ? (
                           <img src={creatorAvatar} className="w-9 h-9 rounded-full object-cover" alt="avatar" />
                         ) : (

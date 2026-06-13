@@ -102,99 +102,6 @@ const VerificationStep = ({ done, active, label }: { done: boolean; active: bool
   </div>
 );
 
-/* ─── Spotify-style Audio Player Bar ─────────────────────── */
-const AudioPlayerBar = ({
-  task,
-  isPlaying,
-  secondsElapsed,
-  progress,
-  onToggle,
-  muted,
-  onToggleMute,
-}: {
-  task: TaskData;
-  isPlaying: boolean;
-  secondsElapsed: number;
-  progress: number;
-  onToggle: () => void;
-  muted: boolean;
-  onToggleMute: () => void;
-}) => {
-  const total = task.totalDuration ?? task.requiredDuration ?? 180;
-
-  return (
-    <div className="fixed bottom-0 left-0 right-0 z-50 bg-[#0f1117] border-t border-white/10 px-4 py-3 flex items-center gap-4 select-none"
-      style={{ backdropFilter: "blur(20px)" }}>
-      {/* Track info */}
-      <div className="flex items-center gap-3 w-56 shrink-0">
-        <div className="w-12 h-12 rounded-lg bg-gradient-to-br from-purple-600 to-blue-600 flex items-center justify-center text-white font-black text-lg shrink-0 overflow-hidden">
-          {task.coverArt ? (
-            <img src={task.coverArt} alt={task.title} className="w-full h-full object-cover" />
-          ) : (
-            task.creatorName[0]
-          )}
-        </div>
-        <div className="min-w-0">
-          <p className="text-xs font-bold text-white truncate leading-snug">{task.title}</p>
-          <p className="text-[10px] text-white/50 truncate mt-0.5">{task.creatorName}</p>
-        </div>
-      </div>
-
-      {/* Controls + Seek */}
-      <div className="flex-1 flex flex-col items-center gap-1.5 min-w-0">
-        {/* Buttons */}
-        <div className="flex items-center gap-5">
-          <button className="text-white/40 hover:text-white/70 transition-colors">
-            <SkipBack className="w-4 h-4" />
-          </button>
-          <button
-            onClick={onToggle}
-            className="w-9 h-9 rounded-full bg-white flex items-center justify-center hover:scale-105 transition-transform"
-          >
-            {isPlaying
-              ? <Pause className="w-4 h-4 text-black" />
-              : <Play className="w-4 h-4 text-black ml-0.5" />}
-          </button>
-          <button className="text-white/40 hover:text-white/70 transition-colors">
-            <SkipForward className="w-4 h-4" />
-          </button>
-        </div>
-
-        {/* Seek bar */}
-        <div className="w-full flex items-center gap-2 max-w-lg">
-          <span className="text-[10px] text-white/40 tabular-nums w-8 text-right shrink-0">
-            {formatTime(secondsElapsed)}
-          </span>
-          <div className="flex-1 h-1 bg-white/10 rounded-full overflow-hidden relative group/seek">
-            {/* filled */}
-            <div
-              className="h-full rounded-full transition-all duration-300"
-              style={{
-                width: `${(secondsElapsed / total) * 100}%`,
-                background: "linear-gradient(90deg, #22c55e, #4ade80)",
-              }}
-            />
-          </div>
-          <span className="text-[10px] text-white/40 tabular-nums w-8 shrink-0">
-            {formatTime(total)}
-          </span>
-        </div>
-      </div>
-
-      {/* Volume + reward */}
-      <div className="flex items-center gap-3 w-40 shrink-0 justify-end">
-        <button onClick={onToggleMute} className="text-white/40 hover:text-white/70 transition-colors">
-          {muted ? <VolumeX className="w-4 h-4" /> : <Volume2 className="w-4 h-4" />}
-        </button>
-        <div className="flex items-center gap-1.5 bg-yellow-500/10 border border-yellow-500/20 px-2.5 py-1.5 rounded-full">
-          <Coins className="w-3.5 h-3.5 text-yellow-400" />
-          <span className="text-xs font-black text-yellow-400">+{task.reward}</span>
-        </div>
-      </div>
-    </div>
-  );
-};
-
 /* ─── Main Component ─────────────────────────────────────── */
 const TaskPlayerPage = () => {
   const router = useRouter();
@@ -465,7 +372,7 @@ const TaskPlayerPage = () => {
 
   /* ─── MAIN PLAYER ─── */
   return (
-    <div className={`min-h-screen flex bg-background text-foreground overflow-hidden ${isAudio ? "pb-24" : ""}`}>
+    <div className="min-h-screen flex bg-background text-foreground overflow-hidden">
       <UserSidebar />
       <div className="flex-1 flex flex-col h-screen overflow-hidden">
         <UserHeader />
@@ -752,19 +659,6 @@ const TaskPlayerPage = () => {
           </div>
         </main>
       </div>
-
-      {/* ── Spotify-style bottom bar (audio only) ── */}
-      {isAudio && (
-        <AudioPlayerBar
-          task={task}
-          isPlaying={isPlaying}
-          secondsElapsed={secondsElapsed}
-          progress={progress}
-          onToggle={handleTogglePlay}
-          muted={muted}
-          onToggleMute={() => setMuted((m) => !m)}
-        />
-      )}
     </div>
   );
 };

@@ -39,6 +39,7 @@ interface Campaign {
   platform: Platform;
   campaignType: CampaignType;
   thumbnail?: string;
+  thumbnailUrl?: string;
   reward: number;
   requiredDuration?: number;
   requiredPercentage?: number;
@@ -183,8 +184,8 @@ const CampaignCard = ({ campaign, onStart }: { campaign: Campaign; onStart: (id:
     <div className="bg-card border border-border rounded-2xl overflow-hidden hover:shadow-lg hover:border-primary/30 transition-all group flex flex-col">
       {/* Thumbnail */}
       <div className="relative aspect-video bg-gradient-to-br from-purple-900/60 to-blue-900/60 flex items-center justify-center overflow-hidden">
-        {campaign.thumbnail ? (
-          <img src={campaign.thumbnail} alt={campaign.title} className="w-full h-full object-cover" />
+        {campaign.thumbnailUrl ? (
+          <img src={campaign.thumbnailUrl} alt={campaign.title} className="w-full h-full object-cover" />
         ) : (
           <div className="flex flex-col items-center gap-2 text-white/20">
             <TypeIcon className="w-10 h-10" />
@@ -246,25 +247,19 @@ const CampaignCard = ({ campaign, onStart }: { campaign: Campaign; onStart: (id:
         </div>
 
         {/* CTA */}
-        {/* CTA */}
-{campaign.status === "completed" ? (
-  <div className="flex items-center justify-center gap-2 py-2.5 rounded-lg bg-yellow-500 text-white text-xs font-bold uppercase tracking-wider">
-    <CheckCircle className="w-4 h-4" />
-    Completed — {campaign.reward} pts earned
-  </div>
-) : (
-  <button
-    onClick={() => onStart(campaign.id)}
-    className={`w-full flex items-center justify-center gap-2 py-2.5 rounded-lg text-sm font-bold uppercase tracking-wider transition-all ${
-      campaign.status === "in_progress"
-        ? "bg-blue-500 hover:bg-blue-600 text-white"
-        : "bg-green-500 hover:bg-green-600 text-white"
-    }`}
-  >
-    <Play className="w-4 h-4" />
-    {campaign.status === "in_progress" ? "Resume Task" : "Start Task"}
-  </button>
-)}
+        <button
+          onClick={() => onStart(campaign.id)}
+          className={`w-full flex items-center justify-center gap-2 py-2.5 rounded-lg text-sm font-bold uppercase tracking-wider transition-all ${
+            campaign.status === "completed"
+              ? "bg-yellow-500 hover:bg-yellow-600 text-white"
+              : campaign.status === "in_progress"
+              ? "bg-blue-500 hover:bg-blue-600 text-white"
+              : "bg-green-500 hover:bg-green-600 text-white"
+          }`}
+        >
+          <Play className="w-4 h-4" />
+          {campaign.status === "completed" ? "Play Again" : campaign.status === "in_progress" ? "Resume Task" : "Start Task"}
+        </button>
       </div>
     </div>
   );
@@ -310,9 +305,9 @@ const UserTasksPage = () => {
 
   const stats = [
     { label: "Total Tasks", value: campaigns.length, icon: ListTodo, color: "text-primary", bg: "bg-primary/10" },
-    { label: "Expired Tasks", value: 0, icon: Clock, color: "text-red-500", bg: "bg-red-500/10" },
-    { label: "Pending", value: campaigns.filter(c => c.status === "in_progress").length, icon: Clock, color: "text-amber-500", bg: "bg-amber-500/10" },
-    { label: "Approved", value: campaigns.filter(c => c.status === "completed").length, icon: CheckCircle2, color: "text-green-500", bg: "bg-green-500/10" },
+    { label: "Total % Watched", value: `${campaigns.reduce((acc, c) => acc + (c.progress || 0), 0).toFixed(0)}%`, icon: TrendingUp, color: "text-blue-500", bg: "bg-blue-500/10" },
+    { label: "Total Seconds", value: campaigns.reduce((acc, c) => acc + (c.secondsCompleted || 0), 0), icon: Clock, color: "text-purple-500", bg: "bg-purple-500/10" },
+    { label: "Completed", value: campaigns.filter(c => c.status === "completed").length, icon: CheckCircle2, color: "text-green-500", bg: "bg-green-500/10" },
   ];
 
   return (

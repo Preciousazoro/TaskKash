@@ -8,6 +8,7 @@ import {
   Megaphone,
   CheckCircle,
   Users,
+  Edit2,
   FileText,
   Wallet,
   BadgeCheck,
@@ -200,16 +201,21 @@ function SidebarNavItems({
           href: `${basePath}/active-tasks`,
         },
         {
+          name: "campaigns Hub",
+          icon: Megaphone,
+          href: `${basePath}/campaigns-hub`,
+        },
+        {
+          name: "Edit campaigns",
+          icon: Edit2,
+          href: `${basePath}/edit-campaigns`,
+        },
+        {
           name: "Task History",
           icon: History,
           href: `${basePath}/task-history`,
         },
       ],
-    },
-    {
-      name: "campaigns Hub",
-      icon: Megaphone,
-      href: `${basePath}/campaigns-hub`,
     },
     {
       name: "User Management",

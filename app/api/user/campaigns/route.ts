@@ -40,6 +40,18 @@ export async function GET(request: NextRequest) {
     // Transform campaigns to match the frontend interface
     const transformedCampaigns = campaigns.map(campaign => {
       const completion = completionMap.get(campaign._id.toString());
+
+      // Fallback to YouTube thumbnail if thumbnailUrl is null
+      let thumbnailUrl = campaign.thumbnailUrl;
+      if (!thumbnailUrl && campaign.platform === 'youtube' && campaign.mediaUrl) {
+        const videoId = campaign.mediaUrl.includes('youtu.be')
+          ? campaign.mediaUrl.split('/').pop()
+          : new URL(campaign.mediaUrl).searchParams.get('v');
+        if (videoId) {
+          thumbnailUrl = `https://img.youtube.com/vi/${videoId}/hqdefault.jpg`;
+        }
+      }
+
       return {
         id: campaign._id.toString(),
         title: campaign.title,
@@ -50,7 +62,7 @@ export async function GET(request: NextRequest) {
         campaignType: campaign.campaignType,
         mediaUrl: campaign.mediaUrl,
         embedUrl: campaign.embedUrl,
-        thumbnailUrl: campaign.thumbnailUrl,
+        thumbnailUrl,
         reward: campaign.reward,
         completionType: campaign.completionType,
         requiredDuration: campaign.requiredDuration,

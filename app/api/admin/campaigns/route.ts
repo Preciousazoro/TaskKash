@@ -121,11 +121,15 @@ export async function POST(request: NextRequest) {
     let embedUrl: string | undefined;
     if (mediaUrl) {
       if (platform === 'youtube' && mediaUrl.includes('youtube.com') || mediaUrl.includes('youtu.be')) {
-        const videoId = mediaUrl.includes('youtu.be') 
-          ? mediaUrl.split('/').pop() 
+        const videoId = mediaUrl.includes('youtu.be')
+          ? mediaUrl.split('/').pop()
           : new URL(mediaUrl).searchParams.get('v');
         if (videoId) {
           embedUrl = `https://www.youtube.com/embed/${videoId}`;
+          // Auto-extract YouTube thumbnail if no thumbnail uploaded
+          if (!thumbnailUrl) {
+            thumbnailUrl = `https://img.youtube.com/vi/${videoId}/hqdefault.jpg`;
+          }
         }
       } else if (platform === 'spotify' && mediaUrl.includes('spotify.com')) {
         embedUrl = mediaUrl.replace('open.spotify.com', 'open.spotify.com/embed');
