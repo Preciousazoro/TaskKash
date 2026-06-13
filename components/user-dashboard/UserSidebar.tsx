@@ -7,7 +7,7 @@ import { toast } from "react-toastify";
 import {
   Home,
   Users,
-  ListTodo,
+  Megaphone,
   Settings,
   PieChart,
   ArrowUpRight,
@@ -17,7 +17,7 @@ import {
   Wallet,
   LayoutDashboard,
   History,
-  Gift, 
+  Gift,
   ClipboardList,
   X,
   LogOut,
@@ -38,11 +38,11 @@ import { useSession } from "next-auth/react";
 type NavItem =
   | { name: string; icon: React.ElementType; href: string; color?: string }
   | {
-      name: string;
-      icon: React.ElementType;
-      color?: string;
-      children: { name: string; icon: React.ElementType; href: string; color?: string }[];
-    };
+    name: string;
+    icon: React.ElementType;
+    color?: string;
+    children: { name: string; icon: React.ElementType; href: string; color?: string }[];
+  };
 
 export default function UserSidebar() {
   const [menuOpen, setMenuOpen] = useState(false);
@@ -111,7 +111,7 @@ export default function UserSidebar() {
           <SidebarNavItems
             userData={userData}
             isAdmin={isAdmin}
-            onLinkClick={() => {}}
+            onLinkClick={() => { }}
           />
         </nav>
 
@@ -224,7 +224,7 @@ export default function UserSidebar() {
               </div>
               <div className="w-full bg-secondary rounded-full h-2">
                 <div
-                  className="bg-green-500 h-2 rounded-full transition-all duration-1000 ease-linear"
+                  className="bg-red-500 h-2 rounded-full transition-all duration-1000 ease-linear"
                   style={{ width: `${(countdown / 10) * 100}%` }}
                 />
               </div>
@@ -247,7 +247,7 @@ export default function UserSidebar() {
                   setShowLogoutConfirm(false);
                   setCountdown(10);
                 }}
-                className="flex-1 px-6 py-3 rounded-lg bg-red-400 cursor-pointer text-white font-bold text-xs uppercase tracking-widest hover:bg-red-500 transition-colors"
+                className="flex-1 px-6 py-3 rounded-lg bg-red-500 cursor-pointer text-white font-bold text-xs uppercase tracking-widest hover:bg-red-600 transition-colors"
               >
                 Exit
               </button>
@@ -274,6 +274,7 @@ function SidebarNavItems({
   const [withdrawalVisible, setWithdrawalVisible] = useState(true);
 
   const [openGroups, setOpenGroups] = useState<Record<string, boolean>>({
+    "Tasks/Campaigns": true,
     Community: true,
     Account: true,
   });
@@ -303,14 +304,25 @@ function SidebarNavItems({
       href: `${basePath}/dashboard`,
     },
     {
-      name: "Overall Tasks",
-      icon: ClipboardList,
-      href: `${basePath}/overall-tasks`,
-    },
-    {
-      name: "Commerce Tasks",
-      icon: BarChart3,
-      href: "#",
+      name: "Tasks/Campaigns",
+      icon: Megaphone,
+      children: [
+        {
+          name: "Overall Tasks",
+          icon: ClipboardList,
+          href: `${basePath}/overall-tasks`,
+        },
+        {
+          name: "Campaign Center",
+          icon: Megaphone,
+          href: `${basePath}/campaign-center`,
+        },
+        {
+          name: "Tasks Analytics",
+          icon: BarChart3,
+          href: `#`,
+        },
+      ],
     },
     {
       name: "Gift Member",
@@ -344,7 +356,7 @@ function SidebarNavItems({
         {
           name: "Achievements",
           icon: Gem,
-          href: `#`,
+          href: `${basePath}/achievements`,
         },
         {
           name: "Testimonials",
@@ -370,17 +382,17 @@ function SidebarNavItems({
         {
           name: "KYC Verification",
           icon: BadgeCheck,
-          href: "#",
+          href: `${basePath}/kyc`,
         },
         ...(isAdmin
           ? [
-              {
-                name: "Switch to Admin",
-                icon: Lock,
-                href: "/admin-dashboard/dashboard",
-                color: "text-green-500",
-              },
-            ]
+            {
+              name: "Switch to Admin",
+              icon: Lock,
+              href: "/admin-dashboard/dashboard",
+              color: "text-green-500",
+            },
+          ]
           : []),
       ],
     },
@@ -417,9 +429,8 @@ function SidebarNavItems({
             {Array.from({ length: 7 }, (_, i) => (
               <div
                 key={i}
-                className={`flex-1 h-1.5 rounded-full transition-colors duration-300 ${
-                  i < streak ? "bg-green-500" : "bg-muted"
-                }`}
+                className={`flex-1 h-1.5 rounded-full transition-colors duration-300 ${i < streak ? "bg-green-500" : "bg-muted"
+                  }`}
               />
             ))}
           </div>
@@ -436,18 +447,16 @@ function SidebarNavItems({
                 key={item.name}
                 href={item.href}
                 onClick={onLinkClick}
-                className={`group flex items-center px-4 py-2.5 rounded-sm transition-all duration-200 ${
-                  active
+                className={`group flex items-center px-4 py-2.5 rounded-sm transition-all duration-200 ${active
                     ? "bg-gradient-to-r from-green-500 to-emerald-500 text-white"
                     : "text-muted-foreground hover:bg-muted hover:text-foreground"
-                }`}
+                  }`}
               >
                 <item.icon
-                  className={`w-5 h-5 mr-5 transition-transform flex-shrink-0 ${
-                    active
+                  className={`w-5 h-5 mr-5 transition-transform flex-shrink-0 ${active
                       ? "text-white scale-110"
                       : `${item.color ?? "text-muted-foreground"} group-hover:scale-110`
-                  }`}
+                    }`}
                 />
                 <span className="text-[12px] font-black uppercase tracking-widest">
                   {item.name}
@@ -465,26 +474,23 @@ function SidebarNavItems({
             <div key={item.name} className="flex flex-col">
               <button
                 onClick={() => toggleGroup(item.name)}
-                className={`group w-full flex items-center px-4 py-2.5 rounded-sm transition-all duration-200 cursor-pointer ${
-                  hasActiveChild
+                className={`group w-full flex items-center px-4 py-2.5 rounded-sm transition-all duration-200 cursor-pointer ${hasActiveChild
                     ? "text-foreground"
                     : "text-muted-foreground hover:bg-muted hover:text-foreground"
-                }`}
+                  }`}
               >
                 <item.icon
-                  className={`w-5 h-5 mr-5 flex-shrink-0 transition-transform ${
-                    hasActiveChild
+                  className={`w-5 h-5 mr-5 flex-shrink-0 transition-transform ${hasActiveChild
                       ? `scale-110 ${item.color ?? "text-foreground"}`
                       : `${item.color ?? "text-muted-foreground"} group-hover:scale-110`
-                  }`}
+                    }`}
                 />
                 <span className="flex-1 text-left text-[12px] font-black uppercase tracking-widest">
                   {item.name}
                 </span>
                 <ChevronDown
-                  className={`w-4 h-4 transition-transform duration-300 ${
-                    isOpen ? "rotate-180" : ""
-                  }`}
+                  className={`w-4 h-4 transition-transform duration-300 ${isOpen ? "rotate-180" : ""
+                    }`}
                 />
               </button>
 
@@ -500,18 +506,16 @@ function SidebarNavItems({
                           key={child.name}
                           href={child.href}
                           onClick={onLinkClick}
-                          className={`group flex items-center gap-3 px-3 py-2 rounded-sm transition-all duration-200 ${
-                            childActive
+                          className={`group flex items-center gap-3 px-3 py-2 rounded-sm transition-all duration-200 ${childActive
                               ? "bg-gradient-to-r from-green-500 to-emerald-500 text-white shadow-lg shadow-green-500/20"
                               : "text-muted-foreground hover:bg-muted hover:text-foreground"
-                          }`}
+                            }`}
                         >
                           <child.icon
-                            className={`w-4 h-4 flex-shrink-0 transition-transform ${
-                              childActive
+                            className={`w-4 h-4 flex-shrink-0 transition-transform ${childActive
                                 ? "text-white scale-110"
                                 : `${child.color ?? "text-muted-foreground"} group-hover:scale-110`
-                            }`}
+                              }`}
                           />
                           <span className="text-[11px] font-black uppercase tracking-widest">
                             {child.name}

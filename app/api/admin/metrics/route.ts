@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import mongoose from 'mongoose';
+import { MongoClient } from 'mongodb';
 import connectDB from '@/lib/mongodb';
 import User from '@/models/User';
 import Task from '@/models/Task';
@@ -32,6 +33,11 @@ export async function GET(request: NextRequest) {
     // Connect to database
     await connectDB();
 
+    // Connect to MongoDB for KYC stats
+    const mongoClient = new MongoClient(process.env.MONGODB_URI!);
+    await mongoClient.connect();
+    const kycCollection = mongoClient.db().collection('kyc');
+
     // Calculate weekly users (users registered this week)
     const oneWeekAgo = new Date();
     oneWeekAgo.setDate(oneWeekAgo.getDate() - 7);
@@ -57,6 +63,10 @@ export async function GET(request: NextRequest) {
       totalGifts,
       completedGifts,
       pendingGifts,
+      totalKYC,
+      approvedKYC,
+      rejectedKYC,
+      pendingKYC,
       totalContactMessages,
       newContactMessages,
       respondedContactMessages,
@@ -94,6 +104,12 @@ export async function GET(request: NextRequest) {
       withTimeout(Gift.countDocuments(), 3000),
       withTimeout(Gift.countDocuments({ status: 'completed' }), 3000),
       withTimeout(Gift.countDocuments({ status: 'pending' }), 3000),
+
+      // KYC stats
+      withTimeout(kycCollection.countDocuments(), 3000),
+      withTimeout(kycCollection.countDocuments({ status: 'approved' }), 3000),
+      withTimeout(kycCollection.countDocuments({ status: 'rejected' }), 3000),
+      withTimeout(kycCollection.countDocuments({ status: 'pending' }), 3000),
       
       // Contact message stats
       withTimeout(ContactMessage.countDocuments(), 3000),
@@ -135,6 +151,9 @@ export async function GET(request: NextRequest) {
     // Extract values from aggregation results
     const totalTasksCompleted = tasksCompletedAggregate[0]?.total || 0;
     const totalTaskPoints = totalTaskPointsAggregate[0]?.total || 0;
+
+    // Close MongoDB connection
+    await mongoClient.close();
 
     // Calculate total withdrawal amount (in USD)
     const totalWithdrawalAmount = await Withdrawal.aggregate([
@@ -208,9 +227,10 @@ export async function GET(request: NextRequest) {
       { label: "Pending Withdrawals", value: pendingWithdrawals, icon: "ArrowUpRight", color: "text-red-500", bg: "bg-red-500/10" },
       { label: "Approved Withdrawals", value: approvedWithdrawals, icon: "CheckCircle", color: "text-green-500", bg: "bg-green-500/10" },
       { label: "Rejected Withdrawals", value: rejectedWithdrawals, icon: "XCircle", color: "text-red-500", bg: "bg-red-500/10" },
-      { label: "Total Gifts", value: totalGifts, icon: "Gift", color: "text-pink-500", bg: "bg-pink-500/10" },
-      { label: "Completed Gifts", value: completedGifts, icon: "Trophy", color: "text-yellow-500", bg: "bg-yellow-500/10" },
-      { label: "Pending Gifts", value: pendingGifts, icon: "Clock", color: "text-orange-500", bg: "bg-orange-500/10" },
+      { label: "Total KYC", value: totalKYC, icon: "Shield", color: "text-blue-500", bg: "bg-blue-500/10" },
+      { label: "Approved KYC", value: approvedKYC, icon: "CheckCircle", color: "text-green-500", bg: "bg-green-500/10" },
+      { label: "Rejected KYC", value: rejectedKYC, icon: "XCircle", color: "text-red-500", bg: "bg-red-500/10" },
+      { label: "Pending KYC", value: pendingKYC, icon: "Clock", color: "text-orange-500", bg: "bg-orange-500/10" },
       { label: "Contact Messages", value: totalContactMessages, icon: "MessageSquare", color: "text-cyan-500", bg: "bg-cyan-500/10" },
       { label: "New Messages", value: newContactMessages, icon: "Mail", color: "text-blue-500", bg: "bg-blue-500/10" },
     ];

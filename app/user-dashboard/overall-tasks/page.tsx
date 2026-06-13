@@ -36,7 +36,7 @@ export default function OverallTasksPage() {
   const [activeFilter, setActiveFilter] = useState<'All' | 'Active' | 'Approved' | 'Rejected' | 'Expired' | 'Pending' | 'TaskStarted'>('All');
   const [currentPage, setCurrentPage] = useState(1);
   const isNavigating = useRef(false);
-  const pageSize = 20;
+  const pageSize = 50;
 
   // Fetch all tasks with user status
   useEffect(() => {

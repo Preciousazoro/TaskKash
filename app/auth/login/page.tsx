@@ -85,7 +85,7 @@ export default function LoginPage() {
                       id="email"
                       name="email"
                       type="email"
-                      placeholder="secure@example.com"
+                      placeholder="taskkash@example.com"
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
                       className="p-5 text-[15px]"

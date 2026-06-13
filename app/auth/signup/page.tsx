@@ -124,7 +124,7 @@ export default function RegisterPage() {
                       id="email"
                       name="email"
                       type="email"
-                      placeholder="your@email.com"
+                      placeholder="taskkash@email.com"
                       value={form.email}
                       onChange={(e) => handleChange("email", e.target.value)}
                       className="p-5 text-[15px]"

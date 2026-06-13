@@ -47,7 +47,7 @@ interface ActivitiesResponse {
 }
 
 export function RecentActivity() {
-  const limit = 20;
+  const limit =15;
   const [activities, setActivities] = useState<ActivityItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -134,7 +134,7 @@ export function RecentActivity() {
   if (loading) {
     return (
       <section className="pt-10 border-t border-border relative">
-        <div className="flex justify-between mb-8 gap-4">
+        <div className="flex justify-between mb-5 gap-4">
           <div>
             <h2 className="text-2xl font-black uppercase tracking-tighter flex items-center gap-2">
               <Activity className="w-6 h-6 text-primary" />
@@ -196,7 +196,7 @@ export function RecentActivity() {
   if (error) {
     return (
       <section className="pt-10 border-t border-border relative">
-        <div className="flex justify-between mb-8 gap-4">
+        <div className="flex justify-between mb-5 gap-4">
           <div>
             <h2 className="text-2xl font-black uppercase tracking-tighter flex items-center gap-2">
               <Activity className="w-6 h-6 text-primary" />
@@ -219,7 +219,7 @@ export function RecentActivity() {
   if (activities.length === 0) {
     return (
       <section className="pt-10 border-t border-border relative">
-        <div className="flex justify-between mb-8 gap-4">
+        <div className="flex justify-between mb-5 gap-4">
           <div>
             <h2 className="text-2xl font-black uppercase tracking-tighter flex items-center gap-2">
               <Activity className="w-6 h-6 text-primary" />
@@ -257,7 +257,7 @@ export function RecentActivity() {
   return (
     <section className="pt-5 border-t border-border relative">
       {/* Header Section */}
-      <div className="flex justify-between mb-8 gap-4">
+      <div className="flex justify-between mb-5 gap-4">
         <div>
           <h2 className="text-2xl font-black uppercase tracking-tighter flex items-center gap-2">
             <Activity className="w-6 h-6 text-primary" />

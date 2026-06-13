@@ -5,11 +5,12 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import {
-  Layout,
+  Megaphone,
   CheckCircle,
   Users,
   FileText,
   Wallet,
+  BadgeCheck,
   Award,
   Settings,
   User as UserIcon,
@@ -17,7 +18,7 @@ import {
   X,
   Calendar,
   MessageSquare,
-  ArrowDown,
+  ClipboardList,
   Send,
   History,
   ChevronDown,
@@ -186,7 +187,7 @@ function SidebarNavItems({
     },
     {
       name: "Manage Tasks",
-      icon: CheckCircle,
+      icon: ClipboardList,
       children: [
         {
           name: "Create Task",
@@ -205,7 +206,11 @@ function SidebarNavItems({
         },
       ],
     },
-
+    {
+      name: "campaigns Hub",
+      icon: Megaphone,
+      href: `${basePath}/campaigns-hub`,
+    },
     {
       name: "User Management",
       icon: Users,
@@ -221,26 +226,39 @@ function SidebarNavItems({
       icon: Wallet,
       href: `${basePath}/withdrawals`,
     },
+
     {
-      name: "Contact Messages",
-      icon: MessageSquare,
-      href: `${basePath}/contact-messages`,
-    },
-    {
-      name: "Bookings",
-      icon: Calendar,
-      href: `${basePath}/bookings`,
-    },
-    {
-      name: "Broadcast",
-      icon: Send,
-      href: `${basePath}/broadcast`,
+      name: "Interactions",
+      icon: ClipboardList,
+      children: [
+        {
+          name: "Bookings",
+          icon: Calendar,
+          href: `${basePath}/bookings`,
+        },
+        {
+          name: "Broadcast",
+          icon: Send,
+          href: `${basePath}/broadcast`,
+        },
+        {
+          name: "Contact DM",
+          icon: MessageSquare,
+          href: `${basePath}/contact-messages`,
+        },
+      ],
     },
     {
       name: "Rewards",
       icon: Award,
       href: `${basePath}/rewards`,
     },
+    {
+      name: "KYC Verification",
+      icon: BadgeCheck,
+      href: `${basePath}/kyc-verification`,
+    },
+
     {
       name: "Settings",
       icon: Settings,
@@ -268,6 +286,7 @@ function SidebarNavItems({
   const [openGroups, setOpenGroups] = useState<Record<string, boolean>>({
     "Manage Tasks": true,
     "Settings": true,
+    "Interactions": true,
   });
 
   useEffect(() => {
@@ -330,14 +349,14 @@ function SidebarNavItems({
                 href={item.href}
                 onClick={onLinkClick}
                 className={`group flex items-center px-4 py-2.5 rounded-sm transition-all duration-200 ${active
-                    ? "bg-gradient-to-r from-green-500 to-emerald-500 text-white"
-                    : "text-muted-foreground hover:bg-muted hover:text-foreground"
+                  ? "bg-gradient-to-r from-green-500 to-emerald-500 text-white"
+                  : "text-muted-foreground hover:bg-muted hover:text-foreground"
                   }`}
               >
                 <item.icon
                   className={`w-5 h-5 mr-5 transition-transform flex-shrink-0 ${active
-                      ? "text-white scale-110"
-                      : `${item.color ?? "text-muted-foreground"} group-hover:scale-110`
+                    ? "text-white scale-110"
+                    : `${item.color ?? "text-muted-foreground"} group-hover:scale-110`
                     }`}
                 />
                 <span className="text-[12px] font-black uppercase tracking-widest">
@@ -357,14 +376,14 @@ function SidebarNavItems({
               <button
                 onClick={() => toggleGroup(item.name)}
                 className={`group w-full flex items-center px-4 py-2.5 rounded-sm transition-all duration-200 cursor-pointer ${hasActiveChild
-                    ? "text-foreground"
-                    : "text-muted-foreground hover:bg-muted hover:text-foreground"
+                  ? "text-foreground"
+                  : "text-muted-foreground hover:bg-muted hover:text-foreground"
                   }`}
               >
                 <item.icon
                   className={`w-5 h-5 mr-5 flex-shrink-0 transition-transform ${hasActiveChild
-                      ? `scale-110 ${item.color ?? "text-green-500"}`
-                      : `${item.color ?? "text-muted-foreground"} group-hover:scale-110`
+                    ? `scale-110 ${item.color ?? "text-green-500"}`
+                    : `${item.color ?? "text-muted-foreground"} group-hover:scale-110`
                     }`}
                 />
                 <span className="flex-1 text-left text-[12px] font-black uppercase tracking-widest">
@@ -387,14 +406,14 @@ function SidebarNavItems({
                           href={child.href}
                           onClick={onLinkClick}
                           className={`group flex items-center gap-3 px-3 py-2 rounded-sm transition-all duration-200 ${childActive
-                              ? "bg-gradient-to-r from-green-500 to-emerald-500 text-white shadow-lg shadow-green-500/20"
-                              : "text-muted-foreground hover:bg-muted hover:text-foreground"
+                            ? "bg-gradient-to-r from-green-500 to-emerald-500 text-white shadow-lg shadow-green-500/20"
+                            : "text-muted-foreground hover:bg-muted hover:text-foreground"
                             }`}
                         >
                           <child.icon
                             className={`w-4 h-4 flex-shrink-0 transition-transform ${childActive
-                                ? "text-white scale-110"
-                                : `${child.color ?? "text-muted-foreground"} group-hover:scale-110`
+                              ? "text-white scale-110"
+                              : `${child.color ?? "text-muted-foreground"} group-hover:scale-110`
                               }`}
                           />
                           <span className="text-[11px] font-black uppercase tracking-widest">

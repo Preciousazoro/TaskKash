@@ -31,6 +31,7 @@ export function TaskCard({ task, onClick, onStartTask }: TaskCardProps) {
   const isApproved = task.userTaskStatus === 'approved';
   const isRejected = task.userTaskStatus === 'rejected';
   const isAvailable = task.userTaskStatus === 'available';
+  const isExpired = task.status === 'expired';
   const isStarted = TaskStateManager.isTaskStarted(task._id) && !isPending && !isApproved && !isRejected;
 
   const handleStartTask = async (e: React.MouseEvent) => {
@@ -70,7 +71,7 @@ export function TaskCard({ task, onClick, onStartTask }: TaskCardProps) {
   };
 
   const handleCardClick = () => {
-    if (isClicking.current || isPending || isApproved) return;
+    if (isClicking.current || isPending || isApproved || isExpired) return;
     isClicking.current = true;
     onClick(task);
     setTimeout(() => { isClicking.current = false; }, 300);
@@ -82,7 +83,7 @@ export function TaskCard({ task, onClick, onStartTask }: TaskCardProps) {
       whileTap={{ scale: 0.98 }}
       onClick={handleCardClick}
       className={`relative rounded-2xl border border-border bg-card shadow-sm hover:shadow-lg hover:border-primary transition-all overflow-hidden flex flex-col h-[230px] ${
-        isPending || isApproved ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'
+        isPending || isApproved || isExpired ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'
       }`}
     >
       {/* Left border accent — white in dark mode, dark in light mode */}
@@ -140,7 +141,7 @@ export function TaskCard({ task, onClick, onStartTask }: TaskCardProps) {
           {/* Action buttons */}
           <div className="flex gap-2">
 
-            {isAvailable && (
+            {isAvailable && !isExpired && (
               <button
                 onClick={handleViewTask}
                 className="h-8 px-3 rounded-lg border border-border text-[10px] font-black uppercase tracking-widest text-muted-foreground hover:text-foreground hover:border-primary transition-all"
@@ -149,7 +150,7 @@ export function TaskCard({ task, onClick, onStartTask }: TaskCardProps) {
               </button>
             )}
 
-            {isAvailable && !isStarted && (
+            {isAvailable && !isStarted && !isExpired && (
               <button
                 onClick={handleStartTask}
                 disabled={isStarting}
@@ -166,7 +167,7 @@ export function TaskCard({ task, onClick, onStartTask }: TaskCardProps) {
               </button>
             )}
 
-            {isStarted && (
+            {isStarted && !isExpired && (
               <button
                 onClick={handleViewTask}
                 className="h-8 px-3 rounded-lg bg-blue-600 hover:bg-blue-500 text-white text-[10px] font-black uppercase tracking-widest transition-all"
@@ -193,6 +194,12 @@ export function TaskCard({ task, onClick, onStartTask }: TaskCardProps) {
             {isApproved && (
               <span className="text-[10px] font-black uppercase tracking-widest text-green-500 px-2">
                 Completed
+              </span>
+            )}
+
+            {isExpired && (
+              <span className="text-[10px] font-black uppercase tracking-widest text-red-500 px-2">
+                Expired
               </span>
             )}
 

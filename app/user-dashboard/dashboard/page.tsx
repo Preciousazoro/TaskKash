@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
-import { Link as LinkIcon, ExternalLink, Trophy, CheckCircle2, ListTodo, Loader2, ChevronLeft, ChevronRight, Wallet, Upload, ShieldCheck } from "lucide-react";
+import { Link as LinkIcon, ExternalLink, CheckCircle, Coins, Trophy, CheckCircle2, ListTodo, Loader2, ChevronLeft, ChevronRight, Wallet, Upload, ShieldCheck } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { TaskDocument, TaskCard, transformTaskToCard } from "@/types/shared-task";
@@ -16,6 +16,7 @@ import { getGreeting } from "@/lib/utils";
 // Directly import the Sidebar and Header here
 import UserSidebar from "@/components/user-dashboard/UserSidebar";
 import UserHeader from "@/components/user-dashboard/UserHeader";
+import ProfileCompletionTracker from "@/components/user-dashboard/ProfileCompletionTracker";
 
 export default function DashboardPage() {
   const [isLoading, setIsLoading] = useState(true);
@@ -30,9 +31,32 @@ export default function DashboardPage() {
   const [activeTab, setActiveTab] = useState<'All' | 'Pending' | 'Approved' | 'Rejected'>('All');
   const [currentPage, setCurrentPage] = useState(1);
   const [userName, setUserName] = useState<string>("");
-  const pageSize = 9;
+  const [topTaskers, setTopTaskers] = useState<any[]>([]);
+  const [leaderboardLoading, setLeaderboardLoading] = useState(true);
+  const pageSize = 6;
   const router = useRouter();
   const isNavigating = useRef(false);
+
+  const formatPoints = (num: number) => {
+    if (num >= 1_000_000) {
+      return `${(num / 1_000_000).toFixed(1).replace(".0", "")}M`;
+    }
+
+    if (num >= 1_000) {
+      return `${(num / 1_000).toFixed(1).replace(".0", "")}K`;
+    }
+
+    return num.toString();
+  };
+
+  const maskEmail = (email: string) => {
+    if (!email) return "";
+    const [localPart, domain] = email.split("@");
+    if (!localPart || !domain) return email;
+    const visibleChars = Math.min(5, localPart.length);
+    const maskedPart = localPart.slice(0, visibleChars) + "********";
+    return `${maskedPart}@${domain}`;
+  };
 
   // Fetch user data
   useEffect(() => {
@@ -126,6 +150,26 @@ export default function DashboardPage() {
     fetchUserStats();
   }, []);
 
+  // Fetch top 20 taskers leaderboard
+  useEffect(() => {
+    const fetchLeaderboard = async () => {
+      try {
+        const response = await fetch('/api/leaderboard/dashboard?limit=50');
+        if (response.ok) {
+          const data = await response.json();
+          setTopTaskers(data.data.leaderboard.slice(0, 50));
+        }
+      } catch (error) {
+        console.error('Error fetching leaderboard:', error);
+        setTopTaskers([]);
+      } finally {
+        setLeaderboardLoading(false);
+      }
+    };
+
+    fetchLeaderboard();
+  }, []);
+
 
   const handleTaskClick = (task: TaskDocument) => {
     // Prevent multiple rapid clicks
@@ -198,7 +242,7 @@ export default function DashboardPage() {
     return sorted;
   };
 
-  const filteredAndSortedTasks = getFilteredAndSortedTasks();
+  const filteredAndSortedTasks = getFilteredAndSortedTasks().slice(0, 18);
   const totalPages = Math.ceil(filteredAndSortedTasks.length / pageSize);
   const startIndex = (currentPage - 1) * pageSize;
   const paginatedTasks = filteredAndSortedTasks.slice(startIndex, startIndex + pageSize);
@@ -224,10 +268,12 @@ export default function DashboardPage() {
         {/* 2. Header */}
         <UserHeader />
 
-        {/* 3. Page Content */}
+
+
+        {/* Page Content */}
         <main className="flex-1 overflow-y-auto pb-32 p-4 md:p-8">
           <div className="max-w-7xl mx-auto space-y-8 animate-in fade-in duration-500">
-            
+
             {/* Welcome & Investment Snapshot */}
             <section className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
               <div>
@@ -246,10 +292,10 @@ export default function DashboardPage() {
                 </div>
               </div>
               <Link
-                href="#"
-                className="hidden md:block bg-primary text-primary-foreground px-4 py-3 rounded-lg text-xs font-black uppercase tracking-widest hover:scale-105 transition-all shadow-xl w-full md:w-auto text-center"
+                href="/user-dashboard/gift-user"
+                className="hidden md:block bg-green-500 text-white px-3 py-3 rounded-lg text-xs font-black uppercase tracking-widest hover:scale-105 transition-all shadow-xl w-full md:w-auto text-center"
               >
-                View Achievements
+                Gift a Member
               </Link>
             </section>
 
@@ -272,7 +318,7 @@ export default function DashboardPage() {
                   <div className="h-8 w-16 bg-muted rounded animate-pulse mb-1"></div>
                 ) : (
                   <p className="text-xl sm:text-2xl md:text-2xl font-black tracking-tighter mb-1">
-                    {taskPoints.toLocaleString()} TP
+                    {formatPoints(taskPoints)} TP
                   </p>
                 )}
                 <p className="text-[10px] font-black uppercase text-muted-foreground tracking-widest">
@@ -294,7 +340,7 @@ export default function DashboardPage() {
                   <div className="h-8 w-16 bg-muted rounded animate-pulse mb-1"></div>
                 ) : (
                   <p className="text-xl sm:text-2xl md:text-2xl font-black tracking-tighter mb-1">
-                    {tasksCompleted}
+                    {formatPoints(tasksCompleted)}
                   </p>
                 )}
                 <p className="text-[10px] font-black uppercase text-muted-foreground tracking-widest">
@@ -316,7 +362,7 @@ export default function DashboardPage() {
                   <div className="h-8 w-16 bg-muted rounded animate-pulse mb-1"></div>
                 ) : (
                   <p className="text-xl sm:text-2xl md:text-2xl font-black tracking-tighter mb-1">
-                    {totalWithdrawn.toLocaleString()} TP
+                    {formatPoints(totalWithdrawn)} TP
                   </p>
                 )}
                 <p className="text-[10px] font-black uppercase text-muted-foreground tracking-widest">
@@ -338,7 +384,7 @@ export default function DashboardPage() {
                   <div className="h-8 w-16 bg-muted rounded animate-pulse mb-1"></div>
                 ) : (
                   <p className="text-xl sm:text-2xl md:text-2xl font-black tracking-tighter mb-1">
-                    {activeTasksCount}
+                    {formatPoints(activeTasksCount)}
                   </p>
                 )}
                 <p className="text-[10px] font-black uppercase text-muted-foreground tracking-widest">
@@ -349,109 +395,262 @@ export default function DashboardPage() {
 
 
 
+ 
+            {/* Profile Completion Tracker */}
+            <div className="block lg:hidden w-full">
+              <ProfileCompletionTracker />
+            </div>
 
 
-<section className="space-y-6 py-5">
 
-  {/* Tasks Section Header */}
-  <div className="flex items-center justify-between">
-    <h2 className="text-xl font-black uppercase tracking-tighter leading-none">
-      Recent Tasks
-    </h2>
-    {filteredAndSortedTasks.length > 0 && (
-      <span className="text-[10px] font-black uppercase text-muted-foreground tracking-widest">
-        {filteredAndSortedTasks.length} tasks found
-      </span>
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 py-5">
+  {/* Recent Tasks Section - Takes 2 columns */}
+  <div className="lg:col-span-2 space-y-6">
+    {/* Tasks Section Header */}
+    <div className="flex items-center justify-between">
+      <h2 className="text-xl font-black uppercase tracking-tighter leading-none">
+        Recent Tasks
+      </h2>
+      {filteredAndSortedTasks.length > 0 && (
+        <span className="text-[10px] font-black uppercase text-muted-foreground tracking-widest">
+          {filteredAndSortedTasks.length} tasks found
+        </span>
+      )}
+    </div>
+
+    {/* Filter Tabs */}
+    <div className="flex gap-2 p-1 bg-muted/50 rounded-lg overflow-x-auto w-full sm:w-fit">
+      {tabs.map((tab) => (
+        <button
+          key={tab}
+          onClick={() => handleTabChange(tab)}
+          className={`px-4 py-2 rounded-md text-[11px] font-black uppercase tracking-widest transition-all whitespace-nowrap ${
+            activeTab === tab
+              ? 'bg-background text-foreground shadow-sm'
+              : 'text-muted-foreground hover:text-foreground hover:bg-background/50'
+          }`}
+        >
+          {tab}
+        </button>
+      ))}
+    </div>
+
+    {/* Task Cards Grid */}
+    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      {paginatedTasks.length > 0 ? (
+        paginatedTasks.map((task) => (
+          <TaskCardComponent
+            key={task._id}
+            task={task}
+            onClick={handleTaskClick}
+            onStartTask={handleStartTask}
+          />
+        ))
+      ) : (
+        <div className="col-span-full text-center py-16">
+          <div className="max-w-md mx-auto">
+            <div className="w-20 h-20 bg-muted rounded-xl flex items-center justify-center mx-auto mb-4">
+              <ListTodo className="w-10 h-10 text-muted-foreground" />
+            </div>
+            <h3 className="text-base font-black uppercase tracking-tighter mb-2">
+              {activeTab === 'All' ? 'No tasks available yet' : `No ${activeTab.toLowerCase()} tasks`}
+            </h3>
+            <p className="text-sm text-muted-foreground">
+              {activeTab === 'All'
+                ? 'Check back later! New tasks are added regularly by administrators.'
+                : `You don't have any ${activeTab.toLowerCase()} tasks.`}
+            </p>
+          </div>
+        </div>
+      )}
+    </div>
+
+    {/* Pagination */}
+    {totalPages > 1 && (
+      <div className="flex items-center justify-center gap-3 mt-8">
+        <button
+          onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+          disabled={currentPage === 1}
+          className="flex items-center gap-1 px-3 py-3 rounded-lg border border-border text-[10px] font-black uppercase tracking-widest text-muted-foreground hover:text-foreground hover:border-primary transition-all disabled:opacity-30 disabled:cursor-not-allowed"
+        >
+          <ChevronLeft className="w-3.5 h-3.5" />
+          Prev
+        </button>
+
+        <div className="flex items-center gap-2">
+          {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+            <button
+              key={page}
+              onClick={() => setCurrentPage(page)}
+              className={`w-9 h-9  rounded-lg text-[11px] font-black uppercase tracking-widest transition-all ${
+                currentPage === page
+                  ? 'bg-primary text-primary-foreground shadow-md scale-105'
+                  : 'text-muted-foreground hover:text-foreground hover:bg-muted border border-border'
+              }`}
+            >
+              {page}
+            </button>
+          ))}
+        </div>
+
+        <button
+          onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
+          disabled={currentPage === totalPages}
+          className="flex items-center gap-1 px-3 py-3 rounded-lg border border-border text-[10px] font-black uppercase tracking-widest text-muted-foreground hover:text-foreground hover:border-primary transition-all disabled:opacity-30 disabled:cursor-not-allowed"
+        >
+          Next
+          <ChevronRight className="w-3.5 h-3.5" />
+        </button>
+      </div>
     )}
   </div>
 
-  {/* Filter Tabs */}
-  <div className="flex gap-2 p-1 bg-muted/50 rounded-lg overflow-x-auto w-full sm:w-fit">
-    {tabs.map((tab) => (
-      <button
-        key={tab}
-        onClick={() => handleTabChange(tab)}
-        className={`px-4 py-2 rounded-md text-[11px] font-black uppercase tracking-widest transition-all whitespace-nowrap ${
-          activeTab === tab
-            ? 'bg-background text-foreground shadow-sm'
-            : 'text-muted-foreground hover:text-foreground hover:bg-background/50'
-        }`}
-      >
-        {tab}
-      </button>
-    ))}
-  </div>
+  {/* Top 50 Live Taskers Section - Takes 1 column */}
+  <div className="lg:col-span-1 space-y-6">
+    <div className="flex items-center justify-between">
+      <h2 className="text-sm font-black uppercase tracking-tighter leading-none">
+        Top 50 Live Taskers
+      </h2>
+      <span className="text-[10px] font-black uppercase text-muted-foreground tracking-widest">
+        {topTaskers.length} taskers
+      </span>
+    </div>
 
-  {/* Task Cards Grid */}
-  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-    {paginatedTasks.length > 0 ? (
-      paginatedTasks.map((task) => (
-        <TaskCardComponent
-          key={task._id}
-          task={task}
-          onClick={handleTaskClick}
-          onStartTask={handleStartTask}
+    <div className="bg-card border border-border rounded-2xl overflow-hidden">
+      {leaderboardLoading ? (
+        <div className="p-8 text-center">
+          <Loader2 className="w-8 h-8 animate-spin mx-auto text-muted-foreground mb-3" />
+          <p className="text-xs text-muted-foreground">Loading leaderboard...</p>
+        </div>
+      ) : topTaskers.length === 0 ? (
+        <div className="p-8 text-center">
+          <Trophy className="w-12 h-12 text-muted-foreground mx-auto mb-3" />
+          <p className="text-xs text-muted-foreground">No taskers found</p>
+        </div>
+      ) : (
+        <div className="divide-y divide-border max-h-[525px] overflow-y-auto">
+          {topTaskers.map((tasker, index) => (
+            <div
+              key={tasker.rank}
+              className="flex items-center cursor-pointer gap-2 p-4 hover:bg-muted/50 transition-colors"
+            >
+              {/* Rank */}
+              <div className="flex-shrink-0 w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">
+                <span className="text-xs font-black text-primary">{tasker.rank}</span>
+              </div>
+
+              {/* Profile Image */}
+              <div className="flex-shrink-0">
+                <img
+                  src={tasker.avatar || "https://github.com/shadcn.png"}
+                  alt={tasker.username}
+                  className="w-10 h-10 rounded-xl object-cover border-2 border-border"
+                />
+              </div>
+
+              {/* Name and Email */}
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-bold text-foreground truncate">{tasker.username}</p>
+                <p className="text-[10px] text-muted-foreground truncate">{maskEmail(tasker.email)}</p>
+              </div>
+
+              {/* Tasks Completed */}
+              <div className="flex-shrink-0 text-right">
+                <p className="text-sm font-black text-foreground">{tasker.tasksCompleted}</p>
+                <p className="text-[10px] text-muted-foreground uppercase tracking-wider">Tasks</p>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+
+    {/* Top Tasker Spotlight Card */}
+{!leaderboardLoading && topTaskers.length > 0 && (
+  <div className="relative overflow-hidden bg-gradient-to-br from-green-500/50 via-emerald-500/5 to-background border border-green-500/50 rounded-2xl p-6 shadow-lg shadow-green-500/[0.02]">
+    
+    {/* Subtle Background Decorative Glow Element */}
+    <div className="absolute top-0 right-0 -mt-4 -mr-4 w-32 h-32 bg-green-500/10 rounded-full blur-2xl pointer-events-none" />
+
+    {/* Section Header */}
+    <div className="flex items-center gap-2 mb-2 relative z-10">
+      <div className="p-1.5 bg-green-500/10 rounded-lg text-green-500">
+        <Trophy className="w-4 h-4 text-green-500 fill-green-500/20" />
+      </div>
+      <h3 className="text-xs font-black uppercase tracking-[0.15em] text-green-500">
+        Top Tasker Spotlight
+      </h3>
+    </div>
+    
+    {/* Core Identity Panel */}
+    <div className="flex flex-col sm:flex-row items-center sm:items-start gap-5 relative z-10">
+      
+      {/* Profile Image with Dynamic Dual Rings */}
+      <div className="flex-shrink-0 relative mx-auto sm:mx-0">
+        <img
+          src={topTaskers[0].avatar || "https://github.com/shadcn.png"}
+          alt={topTaskers[0].username}
+          className="w-30 h-30 rounded-full object-cover border-2 border-green-500/40 p-1 bg-background relative z-10"
         />
-      ))
-    ) : (
-      <div className="col-span-full text-center py-16">
-        <div className="max-w-md mx-auto">
-          <div className="w-20 h-20 bg-muted rounded-xl flex items-center justify-center mx-auto mb-4">
-            <ListTodo className="w-10 h-10 text-muted-foreground" />
+        <span className="absolute -bottom-0 -right-0 flex h-6 w-6 items-center justify-center rounded-full bg-green-500 font-mono text-xs font-black text-white shadow-md border-2 border-background z-20">
+          1
+        </span>
+      </div>
+
+      {/* User Info & Statistics */}
+      <div className="flex-1 min-w-0 w-full text-center sm:text-left">
+        <div className="mb-1">
+          <span className="text-xl font-black text-foreground tracking-tight block sm:inline-block mr-2">
+            {topTaskers[0].username}
+          </span>
+          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 bg-green-500/10 text-green-400 text-[10px] font-bold uppercase rounded-md border border-green-500/20 mt-1 sm:mt-0">
+            <span className="w-1 h-1 rounded-full bg-green-400 animate-pulse" />
+            Top Ranked
+          </span>
+        </div>
+        <p className="text-xs text-muted-foreground font-medium mb-4">{maskEmail(topTaskers[0].email)}</p>
+        
+        {/* Performance Metric Blocks — Structured to fill exactly 50% / 50% across large displays */}
+        <div className="grid grid-cols-2 gap-3 w-full">
+          
+          {/* Card: Tasks Done */}
+          <div className="bg-background/40 backdrop-blur-sm border border-border rounded-xl p-3 flex items-center justify-center sm:justify-start gap-3 w-full">
+            <div className="p-2 bg-green-500/10 rounded-lg text-green-500 shrink-0 hidden xs:block">
+              <CheckCircle className="w-4 h-4" />
+            </div>
+            <div className="text-left">
+              <p className="text-base font-black text-foreground leading-tight">
+                {topTaskers[0].tasksCompleted}
+              </p>
+              <p className="text-[9px] font-bold text-muted-foreground uppercase tracking-wider mt-0.5">
+                Tasks Done
+              </p>
+            </div>
           </div>
-          <h3 className="text-base font-black uppercase tracking-tighter mb-2">
-            {activeTab === 'All' ? 'No tasks available yet' : `No ${activeTab.toLowerCase()} tasks`}
-          </h3>
-          <p className="text-sm text-muted-foreground">
-            {activeTab === 'All'
-              ? 'Check back later! New tasks are added regularly by administrators.'
-              : `You don't have any ${activeTab.toLowerCase()} tasks.`}
-          </p>
+
+          {/* Card: Points Scored */}
+          <div className="bg-background/40 backdrop-blur-sm border border-border rounded-xl p-3 flex items-center justify-center sm:justify-start gap-3 w-full">
+            <div className="p-2 bg-green-500/10 rounded-lg text-green-500 shrink-0 hidden xs:block">
+              <Coins className="w-4 h-4 text-green-500" />
+            </div>
+            <div className="text-left">
+             <p className="text-base font-black text-foreground leading-tight">
+  {formatPoints(topTaskers[0].taskPoints)}
+</p>
+              <p className="text-[9px] font-bold text-muted-foreground uppercase tracking-wider mt-0.5">
+                TP Earned
+              </p>
+            </div>
+          </div>
+
         </div>
       </div>
-    )}
-  </div>
 
-  {/* Pagination */}
-  {totalPages > 1 && (
-    <div className="flex items-center justify-center gap-3 mt-8">
-      <button
-        onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
-        disabled={currentPage === 1}
-        className="flex items-center gap-1 px-3 py-3 rounded-lg border border-border text-[10px] font-black uppercase tracking-widest text-muted-foreground hover:text-foreground hover:border-primary transition-all disabled:opacity-30 disabled:cursor-not-allowed"
-      >
-        <ChevronLeft className="w-3.5 h-3.5" />
-        Prev
-      </button>
-
-      <div className="flex items-center gap-2">
-        {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
-          <button
-            key={page}
-            onClick={() => setCurrentPage(page)}
-            className={`w-9 h-9  rounded-lg text-[11px] font-black uppercase tracking-widest transition-all ${
-              currentPage === page
-                ? 'bg-primary text-primary-foreground shadow-md scale-105'
-                : 'text-muted-foreground hover:text-foreground hover:bg-muted border border-border'
-            }`}
-          >
-            {page}
-          </button>
-        ))}
-      </div>
-
-      <button
-        onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
-        disabled={currentPage === totalPages}
-        className="flex items-center gap-1 px-3 py-3 rounded-lg border border-border text-[10px] font-black uppercase tracking-widest text-muted-foreground hover:text-foreground hover:border-primary transition-all disabled:opacity-30 disabled:cursor-not-allowed"
-      >
-        Next
-        <ChevronRight className="w-3.5 h-3.5" />
-      </button>
     </div>
-  )}
-
-</section>
+  </div>
+)}
+  </div>
+</div>
 
 
 
