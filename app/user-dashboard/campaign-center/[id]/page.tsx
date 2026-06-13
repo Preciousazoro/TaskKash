@@ -155,9 +155,14 @@ const TaskPlayerPage = () => {
   // Initialize YouTube player
   useEffect(() => {
     if (task.platform === 'youtube' && taskStatus !== 'not_started' && window.YT) {
-      const videoId = task.mediaUrl.includes('youtu.be')
-        ? task.mediaUrl.split('/').pop()
-        : new URL(task.mediaUrl).searchParams.get('v');
+      let videoId = '';
+      if (task.mediaUrl.includes('youtu.be')) {
+        videoId = task.mediaUrl.split('/').pop()?.split('?')[0] || '';
+      } else {
+        videoId = new URL(task.mediaUrl).searchParams.get('v') || '';
+      }
+
+      console.log('Extracted video ID:', videoId);
 
       if (videoId && !playerRef.current) {
         playerRef.current = new window.YT.Player('youtube-player', {
