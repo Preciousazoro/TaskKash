@@ -47,94 +47,53 @@ export default function ProfileCompletionTracker({
   const isComplete = completionPercentage === 100;
 
   return (
-    <>
-      <style jsx global>{`
-        @property --border-angle {
-          syntax: '<angle>';
-          initial-value: 0deg;
-          inherits: false;
-        }
-        @keyframes spinBorder {
-          to { --border-angle: 360deg; }
-        }
-        @keyframes progressShimmer {
-          0%   { transform: translateX(-100%); }
-          100% { transform: translateX(300%); }
-        }
-        .animated-border-wrap {
-          padding: 2px;
-          border-radius: 14px;
-          animation: spinBorder 3s linear infinite;
-          background: conic-gradient(
-            from var(--border-angle),
-            #f59e0b,
-            #22c55e,
-            #3b82f6,
-            #a855f7,
-            #f59e0b
-          );
-        }
-        .progress-shimmer-effect {
-          animation: progressShimmer 2s linear infinite;
-        }
-      `}</style>
-
-      <div className="animated-border-wrap">
-        <div
-          className={`relative overflow-hidden rounded-xl p-2 px-4 transition-all bg-card ${
-            isComplete
-              ? "bg-green-500/[0.03]"
-              : "bg-amber-500/[0.03]"
-          }`}
-        >
-
-          <div className="relative z-10 space-y-3">
-            <div className="flex items-center justify-between gap-3">
-              <div className="flex items-center gap-2">
-                <div className="hidden md:flex lg:flex">
-                  {isComplete ? (
-                    <CheckCircle2 className="h-5 w-5 text-green-500" />
-                  ) : (
-                    <AlertCircle className="h-5 w-5 text-amber-500" />
-                  )}
-                </div>
-                <h3 className="text-sm font-bold text-foreground">
-                  {isComplete
-                    ? "Profile complete"
-                    : "Complete your profile to withdraw"}
-                </h3>
-              </div>
-              <span className="text-[11px] font-black text-green-500">
-                {completionPercentage}%
-              </span>
-            </div>
-
-            <div className="relative w-full h-1.5 bg-muted rounded-full overflow-hidden">
-              <div
-                className="relative h-full bg-green-500 rounded-full transition-all duration-1000 ease-out"
-                style={{ width: `${completionPercentage}%` }}
-              >
-                {!isComplete && (
-                  <div className="progress-shimmer-effect absolute inset-0 w-1/3 bg-gradient-to-r from-transparent via-white/40 to-transparent" />
-                )}
-              </div>
-            </div>
-
-            <div className="flex items-center justify-between">
+    <div className="bg-card border border-border rounded-xl p-4 w-full">
+      <div className="space-y-3">
+        
+        {/* Header Text & Percentage */}
+        <div className="flex items-center justify-between gap-3">
+          <div className="flex items-center gap-2">
+            <div className="hidden md:flex">
               {isComplete ? (
-                <div className="flex items-center gap-1 text-xs font-semibold text-green-500">
-                  <ShieldCheck className="w-4 h-4" />
-                  <span>Eligible for payouts</span>
-                </div>
+                <CheckCircle2 className="h-5 w-5 text-green-500" />
               ) : (
-                <p className="text-xs text-muted-foreground">
-                  Complete all required profile sections to unlock withdrawals.
-                </p>
+                <AlertCircle className="h-5 w-5 text-amber-500" />
               )}
             </div>
+            <h3 className="text-sm font-bold text-foreground">
+              {isComplete
+                ? "Profile complete"
+                : "Complete your profile to withdraw"}
+            </h3>
           </div>
+          <span className="text-[11px] font-black text-green-500">
+            {completionPercentage}%
+          </span>
         </div>
+
+        {/* Clean Static Progress Bar */}
+        <div className="w-full h-1.5 bg-muted rounded-full overflow-hidden">
+          <div
+            className="h-full bg-green-500 rounded-full transition-all duration-1000 ease-out"
+            style={{ width: `${completionPercentage}%` }}
+          />
+        </div>
+
+        {/* Subtitle / Descriptive Status Text */}
+        <div className="flex items-center justify-between">
+          {isComplete ? (
+            <div className="flex items-center gap-1 text-xs font-semibold text-green-500">
+              <ShieldCheck className="w-4 h-4" />
+              <span>Eligible for payouts</span>
+            </div>
+          ) : (
+            <p className="text-xs text-muted-foreground">
+              Complete all required profile sections to unlock withdrawals.
+            </p>
+          )}
+        </div>
+
       </div>
-    </>
+    </div>
   );
 }

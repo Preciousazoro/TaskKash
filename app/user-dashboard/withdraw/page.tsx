@@ -99,11 +99,7 @@ export default function WithdrawPage() {
   const [loading, setLoading] = useState(true);
   const [withdrawalHistory, setWithdrawalHistory] = useState<WithdrawalHistory[]>([]);
   const [withdrawalVisible, setWithdrawalVisible] = useState(true);
-
-  useEffect(() => {
-    fetchVisibility();
-    fetchUserData();
-  }, []);
+  const [profileCompletion, setProfileCompletion] = useState(0);
 
   const fetchVisibility = async () => {
     try {
@@ -140,6 +136,24 @@ export default function WithdrawPage() {
     }
   };
 
+  const fetchProfileCompletion = async () => {
+    try {
+      const response = await fetch("/api/user/profile-completion");
+      if (response.ok) {
+        const data = await response.json();
+        setProfileCompletion(data.completionPercentage);
+      }
+    } catch (error) {
+      console.error("Error fetching profile completion:", error);
+    }
+  };
+
+  useEffect(() => {
+    fetchVisibility();
+    fetchUserData();
+    fetchProfileCompletion();
+  }, []);
+
   const getUserAddressForCrypto = (cryptoSymbol: string) => {
     if (!userData?.cryptoAddresses) return "";
     const address = userData.cryptoAddresses.find(
@@ -149,6 +163,12 @@ export default function WithdrawPage() {
   };
 
   const handleSendOtp = async () => {
+    // Check profile completion (80% required)
+    if (profileCompletion < 80) {
+      toast.error("Complete your profile to 80% before requesting withdrawal");
+      return;
+    }
+
     if (!amount || parseFloat(amount) < 500) {
       toast.error("Minimum withdrawal amount is 500 TP");
       return;
@@ -195,6 +215,12 @@ export default function WithdrawPage() {
 
   const handleWithdraw = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    // Check profile completion (80% required)
+    if (profileCompletion < 80) {
+      toast.error("Complete your profile to 80% before requesting withdrawal");
+      return;
+    }
 
     if (!amount || parseFloat(amount) < 500) {
       toast.error("Minimum withdrawal amount is 500 TP");
@@ -306,7 +332,60 @@ export default function WithdrawPage() {
   </div>
 )}
 
-            {withdrawalVisible && (
+            {/* Profile Completion Warning */}
+{withdrawalVisible && profileCompletion < 80 && (
+  <div className="relative overflow-hidden rounded-[1.2rem] border-2 border-amber-500/30 bg-amber-500/[0.03] dark:bg-gradient-to-br dark:from-amber-500/15 dark:via-orange-500/10 dark:to-amber-500/15 p-6 md:p-8 backdrop-blur-sm">
+    {/* Background Glow Ring */}
+    <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(245,158,11,0.05),transparent_45%)] dark:bg-[radial-gradient(circle_at_top_right,rgba(255,255,255,0.08),transparent_35%)]" />
+    <AlertTriangle className="absolute -right-5 -top-5 h-28 w-28 text-amber-500/10 dark:text-amber-400 dark:opacity-10 pointer-events-none" />
+    
+    {/* Header Section */}
+    <div className="relative z-10 flex items-center gap-4 mb-4">
+      <div className="flex h-12 w-12 items-center justify-center rounded-full bg-amber-500/10 dark:bg-amber-500/20 border border-amber-500/20 dark:border-amber-500/30">
+        <AlertTriangle className="h-5 w-5 text-amber-600 dark:text-amber-400" />
+      </div>
+      <div>
+        <p className="text-[12px] font-black uppercase tracking-[0.25em] text-amber-600 dark:text-amber-300">
+          PROFILE COMPLETION REQUIRED
+        </p>
+        <p className="mt-1 text-[11px] font-bold uppercase tracking-tight text-amber-700/80 dark:text-amber-100/70">
+          Complete your profile to unlock withdrawals
+        </p>
+      </div>
+    </div>
+    
+    {/* Meta Data Panel */}
+    <div className="relative z-10 space-y-3">
+      <div className="flex items-center justify-between rounded-xl border border-amber-500/10 bg-amber-500/5 dark:bg-black/20 px-4 py-3">
+        <span className="text-[11px] font-black uppercase tracking-tight text-amber-700/80 dark:text-amber-100/80">
+          Current Progress
+        </span>
+        <span className="text-xs font-black tracking-wider text-amber-600 dark:text-amber-300">
+          {profileCompletion}%
+        </span>
+      </div>
+      <div className="flex items-center justify-between rounded-xl border border-amber-500/10 bg-amber-500/5 dark:bg-black/20 px-4 py-3">
+        <span className="text-[11px] font-black uppercase tracking-tight text-amber-700/80 dark:text-amber-100/80">
+          Required
+        </span>
+        <span className="text-xs font-black tracking-wider text-amber-600 dark:text-amber-300">
+          80%
+        </span>
+      </div>
+      <p className="text-[11px] font-medium text-muted-foreground dark:text-amber-100/60 leading-relaxed">
+        Please complete your profile to at least 80% to be eligible for withdrawals. Go to your profile settings to add missing information such as phone number, country, and other required details.
+      </p>
+      <Link
+        href="/user-dashboard/settings"
+        className="inline-flex items-center gap-2 bg-amber-500 text-white px-6 py-3 rounded-xl font-bold text-xs uppercase tracking-widest hover:bg-amber-600 transition-colors cursor-pointer"
+      >
+        Complete Profile <ArrowUpRight className="w-4 h-4" />
+      </Link>
+    </div>
+  </div>
+)}
+
+            {withdrawalVisible && profileCompletion >= 80 && (
               <div className="flex flex-col lg:flex-row gap-8">
                 {/* Left: Withdrawal Form */}
                 <div className="flex-1">
