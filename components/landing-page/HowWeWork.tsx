@@ -41,7 +41,7 @@ export default function HowWeWork() {
   return (
     <section
       id="how"
-      className="mx-auto max-w-[1400px] px-4 lg:px-8 py-16 lg:py-10 w-full"
+      className="mx-auto max-w-[1400px] px-4 lg:px-8 py-16 lg:py-10 lg:pt-0 w-full"
     >
       {/* Header */}
       <div className="mb-14">

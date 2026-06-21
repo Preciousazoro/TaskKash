@@ -58,20 +58,24 @@ export default function Hero() {
     fetchRandomUsers();
   }, []);
 
-  const fetchRandomUsers = async () => {
-    try {
-      const response = await fetch("/api/users/random?count=4");
-      const data = await response.json();
-      if (data.success && data.users) {
-        const avatarUrls = data.users.map((user: any) => 
-          user.avatarUrl || "https://github.com/shadcn.png"
-        );
-        setUserAvatars(avatarUrls);
-      }
-    } catch (error) {
-      console.error("Failed to fetch random users:", error);
+ const fetchRandomUsers = async () => {
+  try {
+    const count = window.innerWidth >= 768 ? 7 : 4;
+
+    const response = await fetch(`/api/users/random?count=${count}`);
+    const data = await response.json();
+
+    if (data.success && data.users) {
+      const avatarUrls = data.users.map(
+        (user: any) => user.avatarUrl || "https://github.com/shadcn.png"
+      );
+
+      setUserAvatars(avatarUrls);
     }
-  };
+  } catch (error) {
+    console.error("Failed to fetch random users:", error);
+  }
+};
 
   if (!isMounted) return <div className="min-h-screen bg-background" />;
 
