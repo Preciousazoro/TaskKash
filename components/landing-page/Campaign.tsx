@@ -59,7 +59,7 @@ export default function BookCampaign() {
           <div 
             className="absolute inset-0 z-0 bg-cover bg-center transition-transform duration-700 group-hover:scale-105"
             style={{
-              backgroundImage: `url("https://i.postimg.cc/W3LLqfCP/Chat-GPT-Image-Jun-21-2026-05-17-42-PM.png")`
+              backgroundImage: `url("https://i.postimg.cc/zXCTWLcc/Whats-App-Image-2026-06-21-at-5-43-10-PM.jpg")`
             }}
           />
 
