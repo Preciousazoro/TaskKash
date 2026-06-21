@@ -243,8 +243,8 @@ export function RecentActivity() {
               </p>
             </div>
             <button
-              onClick={() => window.location.href = '/user-dashboard/tasks'}
-              className="px-6 py-3 bg-primary text-primary-foreground font-bold rounded-xl hover:bg-primary/90 transition-colors"
+              onClick={() => window.location.href = '/user-dashboard/overall-tasks'}
+              className="w-full lg:w-auto px-10 py-3 bg-primary cursor-pointer text-primary-foreground font-bold rounded-xl hover:bg-primary/90 transition-colors"
             >
               Browse Tasks
             </button>

@@ -82,8 +82,8 @@ export async function POST(request: NextRequest) {
       postalCode: formData.get('postalCode'),
       idType: formData.get('idType'),
       idNumber: formData.get('idNumber'),
-      frontImage: formData.get('frontImage') instanceof File ? 'File present' : 'No file',
-      backImage: formData.get('backImage') instanceof File ? 'File present' : 'No file',
+      frontImage: frontImage ? 'File present' : 'No file',
+      backImage: backImage ? 'File present' : 'No file',
     });
 
     // Validate required fields
