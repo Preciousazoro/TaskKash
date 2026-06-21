@@ -105,7 +105,7 @@ export default function FAQ() {
   const [openFaq, setOpenFaq] = useState<number | null>(0);
 
   return (
-    <section className="mx-auto max-w-[1400px] px-4 lg:px-8 py-20 w-full">
+    <section className="mx-auto max-w-[1400px] px-4 lg:px-8 pt-12 pb-20 w-full">
       <div className="text-center mb-10 relative z-10">
         {/* Badge */}
         <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-[10px] font-bold uppercase tracking-[.2em] mb-4 text-emerald-600 dark:text-emerald-400">

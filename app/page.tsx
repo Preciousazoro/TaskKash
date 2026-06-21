@@ -9,6 +9,7 @@ import Payout from "@/components/landing-page/Payout";
 import Participation from "@/components/landing-page/Participation";
 import Engagement from "@/components/landing-page/Engagement";
 import NumbersThatSpeaks from "@/components/landing-page/NumbersThatSpeaks";
+import Campaign from "@/components/landing-page/Campaign";
 import FAQ from "@/components/landing-page/FAQ";
 import LaunchCampaign from "@/components/landing-page/LaunchCampaign";
 
@@ -23,6 +24,7 @@ export default function HomePage() {
       <Participation />
       <Engagement />
       {/* <NumbersThatSpeaks /> */}
+      <Campaign />
       <FAQ />
       <LaunchCampaign />
       <TaskKashFooter />
