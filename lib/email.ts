@@ -1,4 +1,8 @@
 import nodemailer from 'nodemailer';
+import dns from 'node:dns/promises';
+
+// Force IPv4 DNS resolution to avoid IPv6 connection issues
+dns.setServers(['8.8.8.8', '1.1.1.1']);
 
 // Permanent email sending configuration for TaskKash
 // All outbound email uses support@taskkash.xyz as the real sender
@@ -63,8 +67,8 @@ const createTransporter = () => {
   const port = parseInt(smtpPort);
   const secure = port === 465; // true for port 465, false for 587
 
-  // Create transporter with hosting SMTP
-  return nodemailer.createTransport({
+  // Create transporter with hosting SMTP and timeout settings
+  const options: any = {
     host: smtpHost,
     port: port,
     secure: secure, // MUST be false for port 587, true for 465
@@ -75,27 +79,20 @@ const createTransporter = () => {
     tls: {
       rejectUnauthorized: false, // Required for some hosting providers
     },
-  });
+    // Force IPv4 by disabling IPv6 resolution
+    dns: {
+      lookup: (hostname: string, options: any, callback: any) => {
+        require('dns').lookup(hostname, { family: 4 }, callback);
+      }
+    }
+  };
+
+  return nodemailer.createTransport(options);
 };
 
 // Permanent send email function - unified sender architecture
 export async function sendEmail({ to, subject, html, text, from, replyTo, forceReplyTo = false }: EmailOptions): Promise<boolean> {
   try {
-    // Development mode: Log emails to console instead of sending
-    const isDevelopment = process.env.NODE_ENV === 'development' || process.env.NEXT_PUBLIC_NODE_ENV === 'development';
-    
-    if (isDevelopment) {
-      console.log('📧 [DEV MODE] Email would be sent:');
-      console.log('To:', to);
-      console.log('Subject:', subject);
-      console.log('From:', `"${ACTUAL_FROM_NAME}" <${ACTUAL_FROM_EMAIL}>`);
-      console.log('ReplyTo:', replyTo || 'None');
-      console.log('--- Email Content ---');
-      console.log(html);
-      console.log('--- End Email ---');
-      return true;
-    }
-
     const transporter = createTransporter();
     
     // UNIFIED SENDER: Always use the real support mailbox

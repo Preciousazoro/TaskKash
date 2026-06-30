@@ -289,8 +289,7 @@ const UserSchema = new Schema<IUser>({
 });
 
 // Create indexes for better query performance
-UserSchema.index({ email: 1 }); // Unique email index
-UserSchema.index({ username: 1 }); // Unique username index  
+// Note: email and username already have unique indexes from schema definition
 UserSchema.index({ role: 1 }); // Role-based queries
 UserSchema.index({ status: 1 }); // Status-based queries
 UserSchema.index({ createdAt: -1 }); // Sort by creation date
