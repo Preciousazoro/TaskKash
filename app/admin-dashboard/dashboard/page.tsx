@@ -236,7 +236,7 @@ const Dashboard = () => {
               <h1 className="text-xl md:text-2xl font-black uppercase tracking-tighter leading-none flex items-center gap-4">Dashboard Overview</h1>
               <p className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground flex items-center gap-2 mt-1">
                 <Layers className="w-3 h-3 text-primary" />
-                Platform Analytics
+                TaskKash Platform Analytics
               </p>
             </div>
             <button
