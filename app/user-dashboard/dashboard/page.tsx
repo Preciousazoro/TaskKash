@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
-import { Link as LinkIcon, ExternalLink, CheckCircle, Coins, Trophy, CheckCircle2, ListTodo, Loader2, ChevronLeft, ChevronRight, Wallet, Upload, ShieldCheck } from "lucide-react";
+import { Link as LinkIcon, ExternalLink, CheckCircle, Coins, Trophy, CheckCircle2, Flame, ListTodo, Loader2, ChevronLeft, ChevronRight, Wallet, Upload, ShieldCheck, Folder, Share2, FileText, Users, Music, ArrowRight, Plus } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { TaskDocument, TaskCard, transformTaskToCard } from "@/types/shared-task";
@@ -31,8 +31,8 @@ export default function DashboardPage() {
   const [activeTab, setActiveTab] = useState<'All' | 'Pending' | 'Approved' | 'Rejected'>('All');
   const [currentPage, setCurrentPage] = useState(1);
   const [userName, setUserName] = useState<string>("");
-  const [topTaskers, setTopTaskers] = useState<any[]>([]);
-  const [leaderboardLoading, setLeaderboardLoading] = useState(true);
+  const [featuredTasks, setFeaturedTasks] = useState<TaskDocument[]>([]);
+  const [featuredLoading, setFeaturedLoading] = useState(true);
   const pageSize = 6;
   const router = useRouter();
   const isNavigating = useRef(false);
@@ -150,26 +150,25 @@ export default function DashboardPage() {
     fetchUserStats();
   }, []);
 
-  // Fetch top 20 taskers leaderboard
+  // Fetch featured tasks (random pending tasks)
   useEffect(() => {
-    const fetchLeaderboard = async () => {
+    const fetchFeaturedTasks = async () => {
       try {
-        const response = await fetch('/api/leaderboard/dashboard?limit=50');
+        const response = await fetch('/api/tasks/featured');
         if (response.ok) {
           const data = await response.json();
-          setTopTaskers(data.data.leaderboard.slice(0, 50));
+          setFeaturedTasks(data.tasks || []);
         }
       } catch (error) {
-        console.error('Error fetching leaderboard:', error);
-        setTopTaskers([]);
+        console.error('Error fetching featured tasks:', error);
+        setFeaturedTasks([]);
       } finally {
-        setLeaderboardLoading(false);
+        setFeaturedLoading(false);
       }
     };
 
-    fetchLeaderboard();
+    fetchFeaturedTasks();
   }, []);
-
 
   const handleTaskClick = (task: TaskDocument) => {
     // Prevent multiple rapid clicks
@@ -393,8 +392,6 @@ export default function DashboardPage() {
               </Link>
             </section>
 
-
-
  
             {/* Profile Completion Tracker */}
             <div className="block lg:hidden w-full">
@@ -403,254 +400,136 @@ export default function DashboardPage() {
 
 
 
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 py-5">
-  {/* Recent Tasks Section - Takes 2 columns */}
-  <div className="lg:col-span-2 space-y-6">
-    {/* Tasks Section Header */}
-    <div className="flex items-center justify-between">
-      <h2 className="text-xl font-black uppercase tracking-tighter leading-none">
-        Recent Tasks
-      </h2>
-      {filteredAndSortedTasks.length > 0 && (
-        <span className="text-[10px] font-black uppercase text-muted-foreground tracking-widest">
-          {filteredAndSortedTasks.length} tasks found
-        </span>
-      )}
+{/* Featured Tasks */}
+<section className="mb-14">
+    <div className="flex items-center gap-2 mb-6">
+        <Flame className="w-5 h-5 text-orange-500 animate-pulse" />
+        <h2 className="text-xs font-black uppercase tracking-[0.2em]">Featured Tasks</h2>
+        <div className="h-[1px] flex-1 bg-border ml-4"></div>
     </div>
 
-    {/* Filter Tabs */}
-    <div className="flex gap-2 p-1 bg-muted/50 rounded-lg overflow-x-auto w-full sm:w-fit">
-      {tabs.map((tab) => (
-        <button
-          key={tab}
-          onClick={() => handleTabChange(tab)}
-          className={`px-4 py-2 rounded-md text-[11px] font-black uppercase tracking-widest transition-all whitespace-nowrap ${
-            activeTab === tab
-              ? 'bg-background text-foreground shadow-sm'
-              : 'text-muted-foreground hover:text-foreground hover:bg-background/50'
-          }`}
-        >
-          {tab}
-        </button>
-      ))}
-    </div>
-
-    {/* Task Cards Grid */}
-    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-      {paginatedTasks.length > 0 ? (
-        paginatedTasks.map((task) => (
-          <TaskCardComponent
-            key={task._id}
-            task={task}
-            onClick={handleTaskClick}
-            onStartTask={handleStartTask}
-          />
-        ))
-      ) : (
-        <div className="col-span-full text-center py-16">
-          <div className="max-w-md mx-auto">
-            <div className="w-20 h-20 bg-muted rounded-xl flex items-center justify-center mx-auto mb-4">
-              <ListTodo className="w-10 h-10 text-muted-foreground" />
+    <div className="flex gap-5 overflow-x-auto pb-3 no-scrollbar">
+        {featuredLoading ? (
+            <div className="flex gap-5">
+                {[1, 2, 3].map((i) => (
+                    <div key={i} className="min-w-[300px] bg-card border border-border px-6 py-2 rounded-2xl animate-pulse">
+                        <div className="h-4 w-20 bg-muted rounded mb-4"></div>
+                        <div className="h-6 w-40 bg-muted rounded mb-4"></div>
+                        <div className="h-5 w-16 bg-muted rounded"></div>
+                    </div>
+                ))}
             </div>
-            <h3 className="text-base font-black uppercase tracking-tighter mb-2">
-              {activeTab === 'All' ? 'No tasks available yet' : `No ${activeTab.toLowerCase()} tasks`}
-            </h3>
-            <p className="text-sm text-muted-foreground">
-              {activeTab === 'All'
-                ? 'Check back later! New tasks are added regularly by administrators.'
-                : `You don't have any ${activeTab.toLowerCase()} tasks.`}
-            </p>
-          </div>
-        </div>
-      )}
+        ) : featuredTasks.length > 0 ? (
+            featuredTasks.slice(0, 20).map((task) => {
+                const categoryColors: Record<string, { from: string; to: string; border: string; text: string; bg: string; hover: string }> = {
+                    social: { from: 'from-blue-500/10', to: 'to-blue-600/5', border: 'border-blue-500/20', text: 'text-blue-400', bg: 'bg-blue-500/10', hover: 'hover:bg-blue-500' },
+                    content: { from: 'from-purple-500/10', to: 'to-purple-600/5', border: 'border-purple-500/20', text: 'text-purple-400', bg: 'bg-purple-500/10', hover: 'hover:bg-purple-500' },
+                    community: { from: 'from-green-500/10', to: 'to-green-600/5', border: 'border-green-500/20', text: 'text-green-400', bg: 'bg-green-500/10', hover: 'hover:bg-green-500' },
+                    music: { from: 'from-pink-500/10', to: 'to-pink-600/5', border: 'border-pink-500/20', text: 'text-pink-400', bg: 'bg-pink-500/10', hover: 'hover:bg-pink-500' },
+                };
+                
+                const colors = categoryColors[task.category] || categoryColors.social;
+                const isHot = Math.random() > 0.5;
+
+                return (
+                    <div 
+                        key={task._id}
+                        onClick={() => handleTaskClick(task)}
+                        className={`min-w-[300px] bg-gradient-to-br ${colors.from} ${colors.to} border ${colors.border} p-6 rounded-2xl relative overflow-hidden group transition-all shadow-md hover:border-current cursor-pointer`}
+                    >
+                        {isHot && (
+                            <div className={`absolute top-4 right-4 ${colors.text.replace('400', '500')} text-white text-[10px] font-black px-2 py-0.5 rounded-full z-10`}>HOT</div>
+                        )}
+                        <span className={`text-[10px] font-bold ${colors.text} uppercase tracking-widest`}>{task.category}</span>
+                        <h3 className="text-lg font-bold mt-2 leading-snug">{task.title.slice(0, 20)}.....</h3>
+                        <div className="flex items-center justify-between">
+                            <span className={`font-black ${colors.text}`}>{task.rewardPoints} TP</span>
+                            <button className={`w-10 h-10 rounded-lg ${colors.bg} ${colors.hover} hover:text-white transition-all flex items-center justify-center`}>
+                                <Plus className="w-5 h-5" />
+                            </button>
+                        </div>
+                    </div>
+                );
+            })
+        ) : (
+            <div className="w-full text-center py-5">
+                <p className="text-muted-foreground text-sm">No active tasks to feature</p>
+            </div>
+        )}
+    </div>
+</section>
+
+
+
+
+
+
+{/* Task Categories */}
+<section>
+    <div className="flex items-center gap-2 mb-5">
+        <Folder className="w-5 h-5 text-primary" />
+        <h2 className="text-xm font-black uppercase tracking-[0.2em]">Task Categories</h2>
     </div>
 
-    {/* Pagination */}
-    {totalPages > 1 && (
-      <div className="flex items-center justify-center gap-3 mt-8">
-        <button
-          onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
-          disabled={currentPage === 1}
-          className="flex items-center gap-1 px-3 py-3 rounded-lg border border-border text-[10px] font-black uppercase tracking-widest text-muted-foreground hover:text-foreground hover:border-primary transition-all disabled:opacity-30 disabled:cursor-not-allowed"
-        >
-          <ChevronLeft className="w-3.5 h-3.5" />
-          Prev
-        </button>
+    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+        {/* Social */}
+        <Link href="/user-dashboard/task-category/social" className="relative group cursor-pointer h-full transition-all">
+            <div className="relative bg-card border border-border p-6 rounded-2xl flex flex-col h-full hover:border-primary/50 transition-all">
+                <div className="w-12 h-12 rounded-xl bg-blue-500/10 flex items-center justify-center mb-4 shadow-md transition-transform duration-300 group-hover:scale-105 group-hover:rotate-3">
+                    <Share2 className="w-6 h-6 text-blue-500" />
+                </div>
+                <h3 className="text-lg font-bold mb-1">Social Tasks</h3>
+                <p className="text-muted-foreground text-sm flex-grow">Engage, follow, repost & interact on social platforms.</p>
+                <div className="mt-2 flex items-center text-xs font-bold text-muted-foreground group-hover:text-foreground transition-colors">
+                    VIEW TASKS <ArrowRight className="ml-1 w-4 h-4" />
+                </div>
+            </div>
+        </Link>
 
-        <div className="flex items-center gap-2">
-          {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
-            <button
-              key={page}
-              onClick={() => setCurrentPage(page)}
-              className={`w-9 h-9  rounded-lg text-[11px] font-black uppercase tracking-widest transition-all ${
-                currentPage === page
-                  ? 'bg-primary text-primary-foreground shadow-md scale-105'
-                  : 'text-muted-foreground hover:text-foreground hover:bg-muted border border-border'
-              }`}
-            >
-              {page}
-            </button>
-          ))}
-        </div>
+        {/* Content */}
+        <Link href="/user-dashboard/task-category/content" className="relative group cursor-pointer h-full transition-all">
+            <div className="relative bg-card border border-border p-6 rounded-2xl flex flex-col h-full hover:border-primary/50 transition-all">
+                <div className="w-12 h-12 rounded-xl bg-purple-500/10 flex items-center justify-center mb-4 shadow-md transition-transform duration-300 group-hover:scale-105 group-hover:rotate-3">
+                    <FileText className="w-6 h-6 text-purple-500" />
+                </div>
+                <h3 className="text-lg font-bold mb-1">Content Tasks</h3>
+                <p className="text-muted-foreground text-sm flex-grow">Create threads, videos, and original content.</p>
+                <div className="mt-2 flex items-center text-xs font-bold text-muted-foreground group-hover:text-foreground transition-colors">
+                    VIEW TASKS <ArrowRight className="ml-1 w-4 h-4" />
+                </div>
+            </div>
+        </Link>
 
-        <button
-          onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
-          disabled={currentPage === totalPages}
-          className="flex items-center gap-1 px-3 py-3 rounded-lg border border-border text-[10px] font-black uppercase tracking-widest text-muted-foreground hover:text-foreground hover:border-primary transition-all disabled:opacity-30 disabled:cursor-not-allowed"
-        >
-          Next
-          <ChevronRight className="w-3.5 h-3.5" />
-        </button>
-      </div>
-    )}
-  </div>
+        {/* Community */}
+        <Link href="/user-dashboard/task-category/community" className="relative group cursor-pointer h-full transition-all">
+            <div className="relative bg-card border border-border p-6 rounded-2xl flex flex-col h-full hover:border-primary/50 transition-all">
+                <div className="w-12 h-12 rounded-xl bg-green-500/10 flex items-center justify-center mb-4 shadow-md transition-transform duration-300 group-hover:scale-105 group-hover:rotate-3">
+                    <Users className="w-6 h-6 text-green-500" />
+                </div>
+                <h3 className="text-lg font-bold mb-1">Community</h3>
+                <p className="text-muted-foreground text-sm flex-grow">Join Discord, Telegram, invite users, and engage.</p>
+                <div className="mt-2 flex items-center text-xs font-bold text-muted-foreground group-hover:text-foreground transition-colors">
+                    VIEW TASKS <ArrowRight className="ml-1 w-4 h-4" />
+                </div>
+            </div>
+        </Link>
 
-  {/* Top 50 Live Taskers Section - Takes 1 column */}
-  <div className="lg:col-span-1 space-y-6">
-    <div className="flex items-center justify-between">
-      <h2 className="text-sm font-black uppercase tracking-tighter leading-none">
-        Top 50 Live Taskers
-      </h2>
-      <span className="text-[10px] font-black uppercase text-muted-foreground tracking-widest">
-        {topTaskers.length} taskers
-      </span>
+        {/* Music */}
+        <Link href="/user-dashboard/campaign-center" className="relative group cursor-pointer h-full transition-all">
+            <div className="relative bg-card border border-border p-6 rounded-2xl flex flex-col h-full hover:border-primary/50 transition-all">
+                <div className="w-12 h-12 rounded-xl bg-pink-500/10 flex items-center justify-center mb-4 shadow-md transition-transform duration-300 group-hover:scale-105 group-hover:rotate-3">
+                    <Music className="w-6 h-6 text-pink-500" />
+                </div>
+                <h3 className="text-lg font-bold mb-1">Music Tasks</h3>
+                <p className="text-muted-foreground text-sm flex-grow">Listen, stream and earn rewards via partner protocols.</p>
+                <div className="mt-4 flex items-center text-xs font-bold text-muted-foreground group-hover:text-foreground transition-colors">
+                    VIEW TASKS <ArrowRight className="ml-1 w-4 h-4" />
+                </div>
+            </div>
+        </Link>
     </div>
+</section>
 
-    <div className="bg-card border border-border rounded-2xl overflow-hidden">
-      {leaderboardLoading ? (
-        <div className="p-8 text-center">
-          <Loader2 className="w-8 h-8 animate-spin mx-auto text-muted-foreground mb-3" />
-          <p className="text-xs text-muted-foreground">Loading leaderboard...</p>
-        </div>
-      ) : topTaskers.length === 0 ? (
-        <div className="p-8 text-center">
-          <Trophy className="w-12 h-12 text-muted-foreground mx-auto mb-3" />
-          <p className="text-xs text-muted-foreground">No taskers found</p>
-        </div>
-      ) : (
-        <div className="divide-y divide-border max-h-[525px] overflow-y-auto">
-          {topTaskers.map((tasker, index) => (
-            <div
-              key={tasker.rank}
-              className="flex items-center cursor-pointer gap-2 p-4 hover:bg-muted/50 transition-colors"
-            >
-              {/* Rank */}
-              <div className="flex-shrink-0 w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">
-                <span className="text-xs font-black text-primary">{tasker.rank}</span>
-              </div>
-
-              {/* Profile Image */}
-              <div className="flex-shrink-0">
-                <img
-                  src={tasker.avatar || "https://github.com/shadcn.png"}
-                  alt={tasker.username}
-                  className="w-10 h-10 rounded-xl object-cover border-2 border-border"
-                />
-              </div>
-
-              {/* Name and Email */}
-              <div className="flex-1 min-w-0">
-                <p className="text-sm font-bold text-foreground truncate">{tasker.username}</p>
-                <p className="text-[10px] text-muted-foreground truncate">{maskEmail(tasker.email)}</p>
-              </div>
-
-              {/* Tasks Completed */}
-              <div className="flex-shrink-0 text-right">
-                <p className="text-sm font-black text-foreground">{tasker.tasksCompleted}</p>
-                <p className="text-[10px] text-muted-foreground uppercase tracking-wider">Tasks</p>
-              </div>
-            </div>
-          ))}
-        </div>
-      )}
-    </div>
-
-    {/* Top Tasker Spotlight Card */}
-{!leaderboardLoading && topTaskers.length > 0 && (
-  <div className="relative overflow-hidden bg-gradient-to-br from-green-500/50 via-emerald-500/5 to-background border border-green-500/50 rounded-2xl p-6 shadow-lg shadow-green-500/[0.02]">
-    
-    {/* Subtle Background Decorative Glow Element */}
-    <div className="absolute top-0 right-0 -mt-4 -mr-4 w-32 h-32 bg-green-500/10 rounded-full blur-2xl pointer-events-none" />
-
-    {/* Section Header */}
-    <div className="flex items-center gap-2 mb-2 relative z-10">
-      <div className="p-1.5 bg-green-500/10 rounded-lg text-green-500">
-        <Trophy className="w-4 h-4 text-green-500 fill-green-500/20" />
-      </div>
-      <h3 className="text-xs font-black uppercase tracking-[0.15em] text-green-500">
-        Top Tasker Spotlight
-      </h3>
-    </div>
-    
-    {/* Core Identity Panel */}
-    <div className="flex flex-col sm:flex-row items-center sm:items-start gap-5 relative z-10">
-      
-      {/* Profile Image with Dynamic Dual Rings */}
-      <div className="flex-shrink-0 relative mx-auto sm:mx-0">
-        <img
-          src={topTaskers[0].avatar || "https://github.com/shadcn.png"}
-          alt={topTaskers[0].username}
-          className="w-30 h-30 rounded-full object-cover border-2 border-green-500/40 p-1 bg-background relative z-10"
-        />
-        <span className="absolute -bottom-0 -right-0 flex h-6 w-6 items-center justify-center rounded-full bg-green-500 font-mono text-xs font-black text-white shadow-md border-2 border-background z-20">
-          1
-        </span>
-      </div>
-
-      {/* User Info & Statistics */}
-      <div className="flex-1 min-w-0 w-full text-center sm:text-left">
-        <div className="mb-1">
-          <span className="text-xl font-black text-foreground tracking-tight block sm:inline-block mr-2">
-            {topTaskers[0].username}
-          </span>
-          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 bg-green-500/10 text-green-400 text-[10px] font-bold uppercase rounded-md border border-green-500/20 mt-1 sm:mt-0">
-            <span className="w-1 h-1 rounded-full bg-green-400 animate-pulse" />
-            Top Ranked
-          </span>
-        </div>
-        <p className="text-xs text-muted-foreground font-medium mb-4">{maskEmail(topTaskers[0].email)}</p>
-        
-        {/* Performance Metric Blocks — Structured to fill exactly 50% / 50% across large displays */}
-        <div className="grid grid-cols-2 gap-3 w-full">
-          
-          {/* Card: Tasks Done */}
-          <div className="bg-background/40 backdrop-blur-sm border border-border rounded-xl p-3 flex items-center justify-center sm:justify-start gap-3 w-full">
-            <div className="p-2 bg-green-500/10 rounded-lg text-green-500 shrink-0 hidden xs:block">
-              <CheckCircle className="w-4 h-4" />
-            </div>
-            <div className="text-left">
-              <p className="text-base font-black text-foreground leading-tight">
-                {topTaskers[0].tasksCompleted}
-              </p>
-              <p className="text-[9px] font-bold text-muted-foreground uppercase tracking-wider mt-0.5">
-                Tasks Done
-              </p>
-            </div>
-          </div>
-
-          {/* Card: Points Scored */}
-          <div className="bg-background/40 backdrop-blur-sm border border-border rounded-xl p-3 flex items-center justify-center sm:justify-start gap-3 w-full">
-            <div className="p-2 bg-green-500/10 rounded-lg text-green-500 shrink-0 hidden xs:block">
-              <Coins className="w-4 h-4 text-green-500" />
-            </div>
-            <div className="text-left">
-             <p className="text-base font-black text-foreground leading-tight">
-  {formatPoints(topTaskers[0].taskPoints)}
-</p>
-              <p className="text-[9px] font-bold text-muted-foreground uppercase tracking-wider mt-0.5">
-                TP Earned
-              </p>
-            </div>
-          </div>
-
-        </div>
-      </div>
-
-    </div>
-  </div>
-)}
-  </div>
-</div>
 
 
 

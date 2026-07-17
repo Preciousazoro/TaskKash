@@ -317,11 +317,6 @@ function SidebarNavItems({
           icon: Megaphone,
           href: `${basePath}/campaign-center`,
         },
-        {
-          name: "Tasks Analytics",
-          icon: BarChart3,
-          href: `#`,
-        },
       ],
     },
     {
