@@ -4,6 +4,7 @@ import Task from '@/models/Task';
 import Submission from '@/models/Submission';
 import mongoose from 'mongoose';
 import { withTimeout, aggregateWithTimeout } from '@/lib/timeout';
+import TaskExpiryHandler from '@/lib/taskExpiryHandler';
 
 // GET /api/tasks/category/[category] - Return tasks filtered by category with user's latest submission and status
 export async function GET(
@@ -24,6 +25,14 @@ export async function GET(
     // Connect to database
     if (!mongoose.connection.readyState) {
       await mongoose.connect(process.env.MONGODB_URI!);
+    }
+
+    // Automatically update expired tasks before fetching
+    try {
+      await TaskExpiryHandler.handleExpiredTasks();
+    } catch (error) {
+      console.error('Error updating expired tasks:', error);
+      // Continue with request even if expiry update fails
     }
 
     // Fetch tasks by category with lean query and timeout

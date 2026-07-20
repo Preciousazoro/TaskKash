@@ -37,10 +37,13 @@ export function TaskCard({ task, onClick, onStartTask }: TaskCardProps) {
   const handleStartTask = async (e: React.MouseEvent) => {
     e.stopPropagation();
     if (isStarting || isClicking.current) return;
+    
+    // Check localStorage first
     if (TaskStateManager.isTaskStarted(task._id)) {
       toast.info("Task already started!");
       return;
     }
+    
     isClicking.current = true;
     setIsStarting(true);
     try {
@@ -49,13 +52,24 @@ export function TaskCard({ task, onClick, onStartTask }: TaskCardProps) {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ taskId: task._id }),
       });
-      if (!response.ok) throw new Error('Failed to start task');
-      TaskStateManager.updateTaskState(task._id, 'started');
-      toast.success("Task started! Complete it and submit your proof.", { autoClose: 3000 });
-      if (onStartTask) onStartTask(task);
-    } catch (error) {
+      
+      if (!response.ok) {
+        const errorData = await response.json();
+        // If the API says already started, sync localStorage
+        if (errorData.error === 'You have already started this task') {
+          TaskStateManager.updateTaskState(task._id, 'started');
+          toast.info("Task was already started. You can submit your proof now.");
+        } else {
+          throw new Error(errorData.error || 'Failed to start task');
+        }
+      } else {
+        TaskStateManager.updateTaskState(task._id, 'started');
+        toast.success("Task started! Complete it and submit your proof.", { autoClose: 3000 });
+        if (onStartTask) onStartTask(task);
+      }
+    } catch (error: any) {
       console.error('Error starting task:', error);
-      toast.error("Failed to start task. Please try again.");
+      toast.error(error.message || "Failed to start task. Please try again.");
     } finally {
       setIsStarting(false);
       isClicking.current = false;

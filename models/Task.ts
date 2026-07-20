@@ -3,7 +3,8 @@ import mongoose, { Document, Schema } from 'mongoose';
 export interface ITask extends Document {
   title: string;
   description: string;
-  category: 'social' | 'content' | 'commerce';
+  category: 'social' | 'content' | 'commerce' | 'project';
+  project?: string;
   rewardPoints: number;
   validationType: string;
   instructions: string;
@@ -34,10 +35,17 @@ const TaskSchema: Schema<ITask> = new Schema({
     required: [true, 'Please provide a category'],
     trim: true,
     enum: {
-      values: ['social', 'content', 'commerce'],
-      message: 'Category must be one of: social, content, commerce'
+      values: ['social', 'content', 'commerce', 'project'],
+      message: 'Category must be one of: social, content, commerce, project'
     },
     default: 'social'
+  },
+  project: {
+    type: String,
+    required: false,
+    trim: true,
+    maxlength: [100, 'Project name cannot be more than 100 characters'],
+    default: ''
   },
   rewardPoints: {
     type: Number,

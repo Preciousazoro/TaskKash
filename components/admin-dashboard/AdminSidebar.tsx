@@ -12,6 +12,7 @@ import {
   FileText,
   Wallet,
   BadgeCheck,
+  TrendingUp,
   Award,
   Settings,
   User as UserIcon,
@@ -258,6 +259,11 @@ function SidebarNavItems({
       name: "Rewards",
       icon: Award,
       href: `${basePath}/rewards`,
+    },
+    {
+      name: "Prj Analytics",
+      icon: TrendingUp,
+      href: `${basePath}/project-analytics`,
     },
     {
       name: "KYC Verification",

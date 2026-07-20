@@ -40,6 +40,29 @@ export function TaskPreviewModal({
   const handleStartTask = async () => {
     setIsLoading(true);
     try {
+      const response = await fetch('/api/tasks/start', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ taskId: task._id }),
+      });
+      
+      if (!response.ok) {
+        const errorData = await response.json();
+        // If the API says already started, sync localStorage and proceed
+        if (errorData.error === 'You have already started this task') {
+          TaskStateManager.updateTaskState(task._id, "started");
+          toast.info("Task was already started. You can submit your proof now.", {
+            autoClose: 3000,
+          });
+          setTimeout(() => {
+            window.open(task.taskLink || task.alternateUrl || "", "_blank");
+            setIsLoading(false);
+          }, 500);
+          return;
+        }
+        throw new Error(errorData.error || 'Failed to start task');
+      }
+      
       TaskStateManager.updateTaskState(task._id, "started");
       toast.success("Task started! Complete it and submit your proof.", {
         autoClose: 3000,
@@ -48,9 +71,9 @@ export function TaskPreviewModal({
         window.open(task.taskLink || task.alternateUrl || "", "_blank");
         setIsLoading(false);
       }, 500);
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error starting task:", error);
-      toast.error("Failed to start task. Please try again.");
+      toast.error(error.message || "Failed to start task. Please try again.");
       setIsLoading(false);
     }
   };

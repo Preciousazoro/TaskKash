@@ -5,6 +5,7 @@ import Task from '@/models/Task';
 import User from '@/models/User';
 import { validateTaskData } from '@/lib/validation';
 import { UserNotifications } from '@/lib/userNotifications';
+import TaskExpiryHandler from '@/lib/taskExpiryHandler';
 
 // GET /api/admin/tasks - Fetch all tasks for admin panel
 export const runtime = "nodejs";
@@ -20,6 +21,14 @@ export async function GET(request: NextRequest) {
 
     // Connect to database
     await connectDB();
+
+    // Automatically update expired tasks before fetching
+    try {
+      await TaskExpiryHandler.handleExpiredTasks();
+    } catch (error) {
+      console.error('Error updating expired tasks:', error);
+      // Continue with request even if expiry update fails
+    }
 
     // Check if user is admin - for development, allow any authenticated user
     // In production, uncomment the admin email check
@@ -157,6 +166,7 @@ export async function POST(request: NextRequest) {
       title, 
       description, 
       category, 
+      project,
       rewardPoints, 
       validationType, 
       instructions, 
@@ -218,7 +228,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Validate enum values
-    const validCategories = ['social', 'content', 'commerce'];
+    const validCategories = ['social', 'content', 'commerce', 'project'];
     const validStatuses = ['active', 'expired', 'disabled'];
     
     if (!validCategories.includes(category)) {
@@ -250,6 +260,7 @@ export async function POST(request: NextRequest) {
       title: title.trim(),
       description: description.trim(),
       category,
+      project: project?.trim() || '',
       rewardPoints,
       validationType: validationType.trim(),
       instructions: instructions.trim(),

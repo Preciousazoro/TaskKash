@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import connectDB from '@/lib/mongodb';
 import Task from '@/models/Task';
+import TaskExpiryHandler from '@/lib/taskExpiryHandler';
 
 // GET /api/tasks - Return only active tasks for users
 export const runtime = "nodejs";
@@ -9,6 +10,14 @@ export async function GET() {
   try {
     // Connect to database
     await connectDB();
+
+    // Automatically update expired tasks before fetching
+    try {
+      await TaskExpiryHandler.handleExpiredTasks();
+    } catch (error) {
+      console.error('Error updating expired tasks:', error);
+      // Continue with request even if expiry update fails
+    }
 
     // Fetch only active tasks sorted by creation date
     const tasks = await Task.find({ 

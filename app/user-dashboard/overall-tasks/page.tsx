@@ -33,7 +33,7 @@ export default function OverallTasksPage() {
   });
   const [selectedTask, setSelectedTask] = useState<TaskDocument | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [activeFilter, setActiveFilter] = useState<'All' | 'Active' | 'Approved' | 'Rejected' | 'Expired' | 'Pending' | 'TaskStarted'>('All');
+  const [activeFilter, setActiveFilter] = useState<'All' | 'Active' | 'Approved' | 'Rejected' | 'Expired' | 'Pending' | 'TaskStarted' | 'Completed'>('All');
   const [currentPage, setCurrentPage] = useState(1);
   const isNavigating = useRef(false);
   const pageSize = 50;
@@ -96,11 +96,18 @@ export default function OverallTasksPage() {
       case 'Rejected':
         filtered = tasks.filter(task => task.userTaskStatus === 'rejected');
         break;
+      case 'Completed':
+        filtered = tasks.filter(task => task.userTaskStatus === 'approved');
+        break;
       case 'Expired':
         filtered = tasks.filter(task => task.status === 'expired');
         break;
       case 'Active':
-        filtered = tasks.filter(task => task.status === 'active');
+        filtered = tasks.filter(task => 
+          task.status === 'active' && 
+          task.userTaskStatus === 'available' && 
+          !TaskStateManager.isTaskStarted(task._id)
+        );
         break;
       case 'TaskStarted':
         filtered = tasks.filter(task => task.userTaskStatus === 'available' && TaskStateManager.isTaskStarted(task._id));
@@ -123,7 +130,7 @@ export default function OverallTasksPage() {
     setCurrentPage(1);
   };
 
-  const filters: Array<typeof activeFilter> = ['All', 'Pending', 'Approved', 'Rejected', 'Expired', 'Active', 'TaskStarted'];
+  const filters: Array<'All' | 'Active' | 'Approved' | 'Rejected' | 'Expired' | 'Pending' | 'TaskStarted' | 'Completed'> = ['All', 'Pending', 'Approved', 'Rejected', 'Completed', 'Expired', 'Active', 'TaskStarted'];
 
   if (isLoading) {
     return <OverallTasksSkeleton />;

@@ -13,11 +13,13 @@ const CATEGORY_LABELS: Record<string, string> = {
   social: "Social",
   content: "Content",
   commerce: "Commerce",
+  project: "Project",
 };
 const CATEGORY_STYLES: Record<string, string> = {
   social: "bg-blue-500/10 text-blue-500 border border-blue-500/20",
   content: "bg-green-500/10 text-green-500 border border-green-500/20",
   commerce: "bg-amber-500/10 text-amber-500 border border-amber-500/20",
+  project: "bg-purple-500/10 text-purple-500 border border-purple-500/20",
 };
 const STATUS_STYLES: Record<string, string> = {
   active: "bg-green-500/10 text-green-500 border border-green-500/20",
@@ -42,7 +44,8 @@ const CreateTaskPage = () => {
   /* ---------- FORM STATE ---------- */
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
-  const [category, setCategory] = useState<'social' | 'content' | 'commerce'>('social');
+  const [category, setCategory] = useState<'social' | 'content' | 'commerce' | 'project'>('social');
+  const [project, setProject] = useState("");
   const [rewardPoints, setRewardPoints] = useState<number | "">("");
   const [validationType, setValidationType] = useState("");
   const [instructions, setInstructions] = useState("");
@@ -78,11 +81,18 @@ const CreateTaskPage = () => {
       return;
     }
 
+    if (category === 'project' && !project.trim()) {
+      toast.error('Project name is required when category is Project');
+      setIsSubmitting(false);
+      return;
+    }
+
     try {
       const requestData = {
         title: title.trim(),
         description: description.trim(),
         category,
+        project: project.trim(),
         rewardPoints: Number(rewardPoints),
         validationType: validationType.trim(),
         instructions: instructions.trim(),
@@ -165,12 +175,13 @@ const CreateTaskPage = () => {
                       <select
                         className={selectClass}
                         value={category}
-                        onChange={(e) => setCategory(e.target.value as 'social' | 'content' | 'commerce')}
+                        onChange={(e) => setCategory(e.target.value as 'social' | 'content' | 'commerce' | 'project')}
                         required
                       >
                         <option value="social" className="bg-popover text-popover-foreground py-2">Social</option>
                         <option value="content" className="bg-popover text-popover-foreground py-2">Content</option>
                         <option value="commerce" className="bg-popover text-popover-foreground py-2">Commerce</option>
+                        <option value="project" className="bg-popover text-popover-foreground py-2">Project</option>
                       </select>
                       <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-muted-foreground/70">
                         <ChevronDown size={16} />
@@ -178,6 +189,21 @@ const CreateTaskPage = () => {
                     </div>
                   </div>
                 </div>
+
+                {/* Project Name - Only show when category is project */}
+                {category === 'project' && (
+                  <div>
+                    <label className="block text-sm font-medium mb-2 text-foreground">Project Name</label>
+                    <input
+                      className={inputBaseClass}
+                      placeholder="Enter project name"
+                      value={project}
+                      onChange={(e) => setProject(e.target.value)}
+                      maxLength={100}
+                      required
+                    />
+                  </div>
+                )}
 
                 {/* Description */}
                 <div>
