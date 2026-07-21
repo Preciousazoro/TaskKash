@@ -14,6 +14,7 @@ import {
   Smile,
   BarChart3,
   Award,
+  FolderOpenDot,
   Wallet,
   LayoutDashboard,
   History,
@@ -311,6 +312,11 @@ function SidebarNavItems({
           name: "Overall Tasks",
           icon: ClipboardList,
           href: `${basePath}/overall-tasks`,
+        },
+        {
+          name: "Projects Task",
+          icon: FolderOpenDot,
+          href: `#`,
         },
         {
           name: "Campaign Center",
