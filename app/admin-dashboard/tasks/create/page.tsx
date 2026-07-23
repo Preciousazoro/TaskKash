@@ -4,7 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import AdminHeader from "@/components/admin-dashboard/AdminHeader";
 import AdminSidebar from "@/components/admin-dashboard/AdminSidebar";
-import { Plus, Loader2, Star, ShieldCheck, Calendar, ExternalLink, Link2, ChevronDown } from "lucide-react";
+import { Plus, Loader2, Star, ShieldCheck, Calendar, ExternalLink, Link2, ChevronDown, Folder } from "lucide-react";
 import { toast } from "react-toastify";
 import { RichTextEditor } from "@/components/ui/RichTextEditor";
 
@@ -77,12 +77,6 @@ const CreateTaskPage = () => {
 
     if (!taskLink.trim() && !alternateUrl.trim()) {
       toast.error('At least one link is required (Task Link or Alternate URL)');
-      setIsSubmitting(false);
-      return;
-    }
-
-    if (category === 'project' && !project.trim()) {
-      toast.error('Project name is required when category is Project');
       setIsSubmitting(false);
       return;
     }
@@ -190,20 +184,17 @@ const CreateTaskPage = () => {
                   </div>
                 </div>
 
-                {/* Project Name - Only show when category is project */}
-                {category === 'project' && (
-                  <div>
-                    <label className="block text-sm font-medium mb-2 text-foreground">Project Name</label>
-                    <input
-                      className={inputBaseClass}
-                      placeholder="Enter project name"
-                      value={project}
-                      onChange={(e) => setProject(e.target.value)}
-                      maxLength={100}
-                      required
-                    />
-                  </div>
-                )}
+                {/* Project Name */}
+                <div>
+                  <label className="block text-sm font-medium mb-2 text-foreground">Project Name</label>
+                  <input
+                    className={inputBaseClass}
+                    placeholder="Enter project name (optional)"
+                    value={project}
+                    onChange={(e) => setProject(e.target.value)}
+                    maxLength={100}
+                  />
+                </div>
 
                 {/* Description */}
                 <div>
@@ -409,6 +400,13 @@ const CreateTaskPage = () => {
 
                       {/* Info Metadata Items */}
                       <div className="space-y-2 pt-1">
+                        {project && (
+                          <div className="flex items-center gap-2 text-xs text-muted-foreground font-medium">
+                            <Folder className="w-4 h-4 text-purple-500 flex-shrink-0" />
+                            <span>Project: {project}</span>
+                          </div>
+                        )}
+
                         {validationType && (
                           <div className="flex items-center gap-2 text-xs text-muted-foreground font-medium">
                             <ShieldCheck className="w-4 h-4 text-green-500 flex-shrink-0" />
@@ -429,6 +427,17 @@ const CreateTaskPage = () => {
                           </span>
                         </div>
                       </div>
+
+                      {/* Instructions */}
+                      {instructions && (
+                        <div className="pt-2 border-t border-border/60">
+                          <p className="text-xs font-semibold text-foreground mb-1">Instructions:</p>
+                          <div
+                            className="text-xs text-muted-foreground break-words leading-relaxed"
+                            dangerouslySetInnerHTML={{ __html: instructions }}
+                          />
+                        </div>
+                      )}
 
                       {/* Render Links If Added */}
                       {(taskLink || alternateUrl) && (
