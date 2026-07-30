@@ -10,7 +10,7 @@ import {
   Megaphone,
   Settings,
   PieChart,
-  ArrowUpRight,
+  ShoppingCart,
   Smile,
   BarChart3,
   Award,
@@ -314,9 +314,9 @@ function SidebarNavItems({
           href: `${basePath}/overall-tasks`,
         },
         {
-          name: "Projects Task",
-          icon: FolderOpenDot,
-          href: `#`,
+          name: "Kash Marketplace",
+          icon: ShoppingCart,
+          href: `${basePath}/kash-marketplace`,
         },
         {
           name: "Campaign Center",

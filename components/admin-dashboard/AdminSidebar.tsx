@@ -10,6 +10,7 @@ import {
   Users,
   Edit2,
   FileText,
+  ShoppingCart,
   Wallet,
   BadgeCheck,
   TrendingUp,
@@ -27,6 +28,11 @@ import {
   LayoutDashboard,
   Lock,
   Plus,
+  Gift,
+  LayoutTemplate,
+  ClipboardCheck,
+  Clock,
+  ArrowUpRight,
 } from "lucide-react";
 import { useAdminData } from "@/components/providers/AdminDataProvider";
 
@@ -56,7 +62,7 @@ const AdminSidebar = () => {
   return (
     <>
       {/* Desktop Sidebar */}
-      <aside className="hidden md:flex w-65 border-r h-screen sticky top-0 bg-background flex-col shadow-xl">
+      <aside className="hidden md:flex w-71 border-r h-screen sticky top-0 bg-background flex-col shadow-xl">
         {/* Header */}
         <div className="flex-shrink-0 flex items-center justify-between h-15 px-6 border-b border-border">
           <div className="flex flex-col">
@@ -219,6 +225,53 @@ function SidebarNavItems({
       ],
     },
     {
+      name: "Our Marketplace",
+      icon: Gift,
+      children: [
+        {
+          name: "Reward Marketplace",
+          icon: ShoppingCart,
+          href: `${basePath}/our-marketplace/reward-marketplace`,
+        },
+        {
+          name: "Create Campaign",
+          icon: Plus,
+          href: `${basePath}/our-marketplace/create-campaign`,
+        },
+        {
+          name: "Campaign Templates",
+          icon: LayoutTemplate,
+          href: `#`,
+        },
+        {
+          name: "Campaign Analytics",
+          icon: TrendingUp,
+          href: `${basePath}/our-marketplace/campaign-analytics`,
+        },
+      ],
+    },
+    {
+      name: "Submission/Check",
+      icon: ClipboardCheck,
+      children: [
+        {
+          name: "Submission Center",
+          icon: FileText,
+          href: `${basePath}/submission-verification/submission-center`,
+        },
+        {
+          name: "Waiting Queue",
+          icon: Clock,
+          href: `${basePath}/submission-verification/waiting-period-queue`,
+        },
+        {
+          name: "Reward Distribution",
+          icon: ArrowUpRight,
+          href: `${basePath}/submission-verification/reward-distribution`,
+        },
+      ],
+    },
+    {
       name: "User Management",
       icon: Users,
       href: `${basePath}/users`,
@@ -286,6 +339,11 @@ function SidebarNavItems({
           href: `${basePath}/settings`,
         },
         {
+          name: "Audit Logs",
+          icon: FileText,
+          href: `${basePath}/audit-logs`,
+        },
+        {
           name: "Switch To User",
           icon: Lock,
           href: "/user-dashboard/dashboard",
@@ -295,11 +353,8 @@ function SidebarNavItems({
     },
   ];
 
-  const [openGroups, setOpenGroups] = useState<Record<string, boolean>>({
-    "Manage Tasks": true,
-    "Settings": true,
-    "Interactions": true,
-  });
+  const [openGroups, setOpenGroups] = useState<Record<string, boolean>>({});
+
 
   useEffect(() => {
     navItems.forEach((item) => {

@@ -12,7 +12,7 @@ import { RichTextEditor } from "@/components/ui/RichTextEditor";
 const CATEGORY_LABELS: Record<string, string> = {
   social: "Social",
   content: "Content",
-  commerce: "Commerce",
+  commerce: "Community",
   project: "Project",
 };
 const CATEGORY_STYLES: Record<string, string> = {
@@ -172,10 +172,10 @@ const CreateTaskPage = () => {
                         onChange={(e) => setCategory(e.target.value as 'social' | 'content' | 'commerce' | 'project')}
                         required
                       >
-                        <option value="social" className="bg-popover text-popover-foreground py-2">Social</option>
-                        <option value="content" className="bg-popover text-popover-foreground py-2">Content</option>
-                        <option value="commerce" className="bg-popover text-popover-foreground py-2">Commerce</option>
-                        <option value="project" className="bg-popover text-popover-foreground py-2">Project</option>
+                        <option value="social" className="bg-popover text-popover-foreground py-2">Social Task</option>
+                        <option value="content" className="bg-popover text-popover-foreground py-2">Content Task</option>
+                        <option value="commerce" className="bg-popover text-popover-foreground py-2">Community Task</option>
+                        <option value="project" className="bg-popover text-popover-foreground py-2">Project Task</option>
                       </select>
                       <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-muted-foreground/70">
                         <ChevronDown size={16} />
