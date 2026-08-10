@@ -1,133 +1,102 @@
 'use client';
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
+import { createPortal } from "react-dom";
 import { useRouter } from "next/navigation";
 import AdminHeader from "@/components/admin-dashboard/AdminHeader";
 import AdminSidebar from "@/components/admin-dashboard/AdminSidebar";
-import { Search, ArrowUpDown, Plus, Coins, Users, MoreVertical, Eye, Edit, Copy, Archive, Trash2, Play, Pause } from "lucide-react";
+import { Search, ArrowUpDown, Plus, Coins, MoreVertical, Edit, Trash2 } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Pagination } from "@/components/ui/Pagination";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
 import { toast } from "react-toastify";
 
 const PAGE_SIZE = 8;
 
-// Mock data - replace with actual API calls
-const INITIAL_CAMPAIGNS = [
-  {
-    id: "1",
-    name: "Summer Brand Campaign",
-    brand: "Nike",
-    brandLogo: "👟",
-    reward: 5000,
-    participants: 1250,
-    type: "social",
-    status: "active",
-    createdAt: "2024-01-15",
-    endsAt: "2024-12-31"
-  },
-  {
-    id: "2", 
-    name: "Product Launch Boost",
-    brand: "Apple",
-    brandLogo: "🍎",
-    reward: 10000,
-    participants: 3420,
-    type: "content",
-    status: "active",
-    createdAt: "2024-02-01",
-    endsAt: "2024-11-30"
-  },
-  {
-    id: "3",
-    name: "Community Growth",
-    brand: "Discord",
-    brandLogo: "🎮",
-    reward: 2500,
-    participants: 890,
-    type: "community",
-    status: "paused",
-    createdAt: "2024-03-10",
-    endsAt: "2024-10-15"
-  },
-  {
-    id: "4",
-    name: "Brand Awareness",
-    brand: "Coca-Cola",
-    brandLogo: "🥤",
-    reward: 7500,
-    participants: 2100,
-    type: "social",
-    status: "draft",
-    createdAt: "2024-04-05",
-    endsAt: "2024-12-01"
-  },
-  {
-    id: "5",
-    name: "Holiday Special",
-    brand: "Amazon",
-    brandLogo: "📦",
-    reward: 15000,
-    participants: 5600,
-    type: "commerce",
-    status: "completed",
-    createdAt: "2023-12-01",
-    endsAt: "2024-01-15"
-  },
-  {
-    id: "6",
-    name: "Tech Review",
-    brand: "Samsung",
-    brandLogo: "📱",
-    reward: 8000,
-    participants: 1800,
-    type: "content",
-    status: "archived",
-    createdAt: "2023-11-20",
-    endsAt: "2024-02-28"
-  }
-];
-
 const CAMPAIGN_STATUS: Record<string, { label: string; color: string }> = {
-  active: { label: "Active", color: "default" },
-  draft: { label: "Draft", color: "secondary" },
-  paused: { label: "Paused", color: "outline" },
-  completed: { label: "Completed", color: "default" },
-  archived: { label: "Archived", color: "destructive" }
+  published: { label: "Published", color: "default" },
+  draft: { label: "Draft", color: "secondary" }
 };
-
-const CAMPAIGN_TYPES = [
-  { id: "social", label: "Social Media", icon: Users },
-  { id: "content", label: "Content Creation", icon: Edit },
-  { id: "commerce", label: "E-commerce", icon: Coins },
-  { id: "community", label: "Community", icon: Users }
-];
 
 export default function RewardMarketplacePage() {
   const router = useRouter();
-  const [campaigns, setCampaigns] = useState(INITIAL_CAMPAIGNS);
+  const [campaigns, setCampaigns] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
   const [sortKey, setSortKey] = useState("createdAt");
   const [sortDir, setSortDir] = useState("desc");
   const [page, setPage] = useState(1);
-  const [confirmAction, setConfirmAction] = useState<{ type: 'delete' | 'archive'; campaign: typeof INITIAL_CAMPAIGNS[0] } | null>(null);
+  const [confirmDelete, setConfirmDelete] = useState<any>(null);
+  
+  // State for dropdown floating menu
+  const [openDropdown, setOpenDropdown] = useState<string | null>(null);
+  const [dropdownPos, setDropdownPos] = useState<{ top: number; left: number } | null>(null);
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  useEffect(() => {
+    const handleClose = () => {
+      setOpenDropdown(null);
+      setDropdownPos(null);
+    };
+
+    if (openDropdown) {
+      document.addEventListener('click', handleClose);
+      window.addEventListener('scroll', handleClose, true);
+      return () => {
+        document.removeEventListener('click', handleClose);
+        window.removeEventListener('scroll', handleClose, true);
+      };
+    }
+  }, [openDropdown]);
+
+  const handleToggleDropdown = (e: React.MouseEvent<HTMLButtonElement>, campaignId: string) => {
+    e.stopPropagation();
+    if (openDropdown === campaignId) {
+      setOpenDropdown(null);
+      setDropdownPos(null);
+    } else {
+      const rect = e.currentTarget.getBoundingClientRect();
+      setDropdownPos({
+        top: rect.bottom + 4,
+        left: rect.right - 128, // 128px width (w-32)
+      });
+      setOpenDropdown(campaignId);
+    }
+  };
+
+  useEffect(() => {
+    fetchCampaigns();
+  }, []);
+
+  const fetchCampaigns = async () => {
+    try {
+      setLoading(true);
+      const response = await fetch('/api/admin/marketplace-campaigns');
+      const data = await response.json();
+      if (data.success) {
+        setCampaigns(data.campaigns);
+      }
+    } catch (error) {
+      console.error('Error fetching campaigns:', error);
+      toast('Failed to load campaigns', { type: 'error' });
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const filtered = useMemo(() => {
     let list = campaigns.filter((c) => {
       const matchesSearch =
         !search ||
         c.name.toLowerCase().includes(search.toLowerCase()) ||
-        c.brand.toLowerCase().includes(search.toLowerCase());
-      const matchesStatus = statusFilter === "all" || c.status === statusFilter;
+        c.brandName.toLowerCase().includes(search.toLowerCase());
+      const matchesStatus = statusFilter === "all" || c.visibility === statusFilter;
       return matchesSearch && matchesStatus;
     });
     list = [...list].sort((a, b) => {
@@ -153,51 +122,35 @@ export default function RewardMarketplacePage() {
     else { setSortKey(key); setSortDir("desc"); }
   };
 
-  const handlePauseToggle = (c: typeof INITIAL_CAMPAIGNS[0]) => {
-    setCampaigns((prev) => prev.map((x) => 
-      x.id === c.id ? { ...x, status: x.status === "paused" ? "active" : "paused" } : x
-    ));
-    toast(`${c.name} ${c.status === "paused" ? "resumed" : "paused"}.`, { type: "success" });
-  };
+  const handleDelete = (campaign: any) => setConfirmDelete(campaign);
 
-  const handleDuplicate = (c: typeof INITIAL_CAMPAIGNS[0]) => {
-    const copy = { 
-      ...c, 
-      id: `${c.id}_copy${Date.now()}`, 
-      name: `${c.name} (Copy)`, 
-      status: "draft" as const, 
-      participants: 0 
-    };
-    setCampaigns((prev) => [copy, ...prev]);
-    toast(`Duplicated "${c.name}".`, { type: "success" });
-  };
-
-  const handleArchive = (c: typeof INITIAL_CAMPAIGNS[0]) => setConfirmAction({ type: "archive", campaign: c });
-  const handleDelete = (c: typeof INITIAL_CAMPAIGNS[0]) => setConfirmAction({ type: "delete", campaign: c });
-
-  const confirmActionRun = () => {
-    if (!confirmAction) return;
-    const { type, campaign } = confirmAction;
-    if (type === "delete") {
-      setCampaigns((prev) => prev.filter((x) => x.id !== campaign.id));
-      toast(`"${campaign.name}" deleted.`, { type: "error" });
-    } else if (type === "archive") {
-      setCampaigns((prev) => prev.map((x) => 
-        x.id === campaign.id ? { ...x, status: "archived" as const } : x
-      ));
-      toast(`"${campaign.name}" archived.`, { type: "success" });
+  const confirmDeleteAction = async () => {
+    if (!confirmDelete) return;
+    try {
+      const response = await fetch(`/api/admin/marketplace-campaigns/${confirmDelete._id}`, {
+        method: 'DELETE',
+      });
+      const data = await response.json();
+      if (data.success) {
+        setCampaigns((prev) => prev.filter((c) => c._id !== confirmDelete._id));
+        toast(`"${confirmDelete.name}" deleted.`, { type: "success" });
+      } else {
+        toast(data.error || 'Failed to delete campaign', { type: 'error' });
+      }
+    } catch (error) {
+      console.error('Error deleting campaign:', error);
+      toast('Failed to delete campaign', { type: 'error' });
+    } finally {
+      setConfirmDelete(null);
     }
-    setConfirmAction(null);
   };
 
-  const getStatusBadge = (status: string) => {
-    const statusMeta = CAMPAIGN_STATUS[status];
-    const variant = status === "active" ? "default" : 
-                    status === "draft" ? "secondary" :
-                    status === "paused" ? "outline" :
-                    status === "completed" ? "default" : "destructive";
-    return <Badge variant={variant}>{statusMeta?.label || status}</Badge>;
+  const getStatusBadge = (visibility: string) => {
+    const variant = visibility === "published" ? "default" : "secondary";
+    return <Badge variant={variant}>{CAMPAIGN_STATUS[visibility]?.label || visibility}</Badge>;
   };
+
+  const activeCampaign = campaigns.find((c) => c._id === openDropdown);
 
   return (
     <div className="min-h-screen flex bg-background text-foreground overflow-hidden">
@@ -242,7 +195,7 @@ export default function RewardMarketplacePage() {
                     />
                   </div>
                   <div className="flex items-center gap-2 overflow-x-auto">
-                    {["all", "active", "draft", "paused", "completed", "archived"].map((s) => (
+                    {["all", "published", "draft"].map((s) => (
                       <button
                         key={s}
                         onClick={() => { setStatusFilter(s); setPage(1); }}
@@ -265,11 +218,8 @@ export default function RewardMarketplacePage() {
                       <tr className="text-left text-[11px] uppercase tracking-wide text-muted-foreground border-b border-border">
                         <th className="px-4 py-3 font-semibold">Campaign</th>
                         <th className="px-4 py-3 font-semibold">Brand</th>
-                        <th className="px-4 py-3 font-semibold cursor-pointer" onClick={() => toggleSort("reward")}>
+                        <th className="px-4 py-3 font-semibold cursor-pointer" onClick={() => toggleSort("rewardAmount")}>
                           <span className="inline-flex items-center gap-1">Reward <ArrowUpDown size={10} /></span>
-                        </th>
-                        <th className="px-4 py-3 font-semibold cursor-pointer" onClick={() => toggleSort("participants")}>
-                          <span className="inline-flex items-center gap-1">Participants <ArrowUpDown size={10} /></span>
                         </th>
                         <th className="px-4 py-3 font-semibold">Type</th>
                         <th className="px-4 py-3 font-semibold">Status</th>
@@ -282,98 +232,55 @@ export default function RewardMarketplacePage() {
                     </thead>
                     <tbody>
                       {pageItems.map((c) => {
-                        const typeMeta = CAMPAIGN_TYPES.find((t) => t.id === c.type);
                         return (
                           <tr
-                            key={c.id}
-                            className="border-b border-border/60 hover:bg-muted/20 transition-colors cursor-pointer"
-                            onClick={() => router.push(`/admin-dashboard/our-marketplace/reward-marketplace/${c.id}`)}
+                            key={c._id}
+                            className="border-b border-border/60 hover:bg-muted/20 transition-colors"
                           >
                             <td className="px-4 py-3">
                               <div className="flex items-center gap-3">
                                 <div className="w-9 h-9 rounded-lg bg-muted flex items-center justify-center text-base shrink-0">
-                                  {c.brandLogo}
+                                  {c.brandLogo || '📢'}
                                 </div>
                                 <span className="font-medium text-foreground line-clamp-1 max-w-[220px]">{c.name}</span>
                               </div>
                             </td>
-                            <td className="px-4 py-3 text-muted-foreground">{c.brand}</td>
+                            <td className="px-4 py-3 text-muted-foreground">{c.brandName}</td>
                             <td className="px-4 py-3">
                               <span className="inline-flex items-center gap-1 font-semibold text-green-500">
-                                <Coins size={12} /> {c.reward.toLocaleString()}
+                                <Coins size={12} /> {c.rewardAmount?.toLocaleString() || 0}
                               </span>
                             </td>
-                            <td className="px-4 py-3">
-                              <span className="inline-flex items-center gap-1 text-muted-foreground">
-                                <Users size={12} /> {c.participants.toLocaleString()}
-                              </span>
+                            <td className="px-4 py-3 text-muted-foreground text-xs capitalize">{c.type}</td>
+                            <td className="px-4 py-3">{getStatusBadge(c.visibility)}</td>
+                            <td className="px-4 py-3 text-muted-foreground text-xs">
+                              {new Date(c.createdAt).toLocaleDateString()}
                             </td>
-                            <td className="px-4 py-3">
-                              {typeMeta && (
-                                <span className="inline-flex items-center gap-1.5 text-muted-foreground text-xs">
-                                  <typeMeta.icon size={12} /> {typeMeta.label}
-                                </span>
-                              )}
+                            <td className="px-4 py-3 text-muted-foreground text-xs">
+                              {c.endsAt ? new Date(c.endsAt).toLocaleDateString() : '—'}
                             </td>
-                            <td className="px-4 py-3">{getStatusBadge(c.status)}</td>
-                            <td className="px-4 py-3 text-muted-foreground text-xs">{c.createdAt}</td>
-                            <td className="px-4 py-3 text-muted-foreground text-xs">{c.endsAt}</td>
-                            <td className="px-4 py-3 text-right" onClick={(e) => e.stopPropagation()}>
-                              <div className="flex justify-end">
-                                <DropdownMenu>
-                                  <DropdownMenuTrigger asChild>
-                                    <Button variant="ghost" size="icon-sm" className="h-8 w-8">
-                                      <MoreVertical className="h-4 w-4" />
-                                    </Button>
-                                  </DropdownMenuTrigger>
-                                  <DropdownMenuContent align="end">
-                                    <DropdownMenuItem onClick={() => router.push(`/admin-dashboard/our-marketplace/reward-marketplace/${c.id}`)}>
-                                      <Eye className="h-4 w-4 mr-2" />
-                                      View
-                                    </DropdownMenuItem>
-                                    <DropdownMenuItem onClick={() => router.push(`/admin-dashboard/our-marketplace/create-campaign/${c.id}`)}>
-                                      <Edit className="h-4 w-4 mr-2" />
-                                      Edit
-                                    </DropdownMenuItem>
-                                    <DropdownMenuItem onClick={() => handleDuplicate(c)}>
-                                      <Copy className="h-4 w-4 mr-2" />
-                                      Duplicate
-                                    </DropdownMenuItem>
-                                    <DropdownMenuSeparator />
-                                    <DropdownMenuItem onClick={() => handlePauseToggle(c)}>
-                                      {c.status === "paused" ? (
-                                        <>
-                                          <Play className="h-4 w-4 mr-2" />
-                                          Resume
-                                        </>
-                                      ) : (
-                                        <>
-                                          <Pause className="h-4 w-4 mr-2" />
-                                          Pause
-                                        </>
-                                      )}
-                                    </DropdownMenuItem>
-                                    <DropdownMenuItem onClick={() => handleArchive(c)}>
-                                      <Archive className="h-4 w-4 mr-2" />
-                                      Archive
-                                    </DropdownMenuItem>
-                                    <DropdownMenuSeparator />
-                                    <DropdownMenuItem onClick={() => handleDelete(c)} className="text-destructive">
-                                      <Trash2 className="h-4 w-4 mr-2" />
-                                      Delete
-                                    </DropdownMenuItem>
-                                  </DropdownMenuContent>
-                                </DropdownMenu>
-                              </div>
+                            <td className="px-4 py-3 text-right">
+                              <Button 
+                                variant="ghost" 
+                                size="sm"
+                                onClick={(e) => handleToggleDropdown(e, c._id)}
+                              >
+                                <MoreVertical className="h-4 w-4" />
+                              </Button>
                             </td>
                           </tr>
                         );
                       })}
                     </tbody>
                   </table>
-                  {pageItems.length === 0 && (
+                  {pageItems.length === 0 && !loading && (
                     <div className="text-center py-16 text-sm text-muted-foreground">
                       No campaigns match your filters.
+                    </div>
+                  )}
+                  {loading && (
+                    <div className="text-center py-16 text-sm text-muted-foreground">
+                      Loading campaigns...
                     </div>
                   )}
                 </div>
@@ -393,29 +300,58 @@ export default function RewardMarketplacePage() {
         </main>
       </div>
 
-      {/* CONFIRM DIALOG */}
-      {confirmAction && (
+      {/* PORTAL DROPDOWN MENU */}
+      {mounted && openDropdown && dropdownPos && activeCampaign && createPortal(
+        <div 
+          className="fixed w-32 bg-card border border-border rounded-md shadow-xl z-[9999] overflow-hidden"
+          style={{ top: `${dropdownPos.top}px`, left: `${dropdownPos.left}px` }}
+          onClick={(e) => e.stopPropagation()}
+        >
+          <div 
+            className="px-3 py-2 text-sm hover:bg-muted cursor-pointer flex items-center gap-2 transition-colors"
+            onClick={() => {
+              router.push(`/admin-dashboard/our-marketplace/create-campaign/${activeCampaign._id}`);
+              setOpenDropdown(null);
+            }}
+          >
+            <Edit className="h-4 w-4" />
+            Edit
+          </div>
+          <div className="border-t border-border" />
+          <div 
+            className="px-3 py-2 text-sm text-destructive hover:bg-muted cursor-pointer flex items-center gap-2 transition-colors"
+            onClick={() => {
+              handleDelete(activeCampaign);
+              setOpenDropdown(null);
+            }}
+          >
+            <Trash2 className="h-4 w-4" />
+            Delete
+          </div>
+        </div>,
+        document.body
+      )}
+
+      {/* CONFIRM DELETE DIALOG */}
+      {confirmDelete && (
         <div className="fixed inset-0 z-50 flex items-center justify-center">
-          <div className="fixed inset-0 bg-black/50 backdrop-blur-sm" onClick={() => setConfirmAction(null)} />
-          <div className="relative bg-card border border-border rounded-xl shadow-xl p-6 max-w-md w-full mx-4">
+          <div className="fixed inset-0 bg-black/50 backdrop-blur-sm" onClick={() => setConfirmDelete(null)} />
+          <div className="relative bg-card border border-border rounded-xl shadow-xl p-6 max-w-md w-full mx-4 z-50">
             <h2 className="text-lg font-semibold mb-2">
-              {confirmAction.type === "delete" ? "Delete Campaign" : "Archive Campaign"}
+              Delete Campaign
             </h2>
             <p className="text-sm text-muted-foreground mb-6">
-              {confirmAction.type === "delete"
-                ? `This will permanently delete "${confirmAction.campaign.name}". This action cannot be undone.`
-                : `"${confirmAction.campaign.name}" will be moved to archived and hidden from the public marketplace.`
-              }
+              This will permanently delete "{confirmDelete.name}". This action cannot be undone.
             </p>
             <div className="flex justify-end gap-3">
-              <Button variant="outline" onClick={() => setConfirmAction(null)}>
+              <Button variant="outline" onClick={() => setConfirmDelete(null)}>
                 Cancel
               </Button>
               <Button
-                variant={confirmAction.type === "delete" ? "destructive" : "default"}
-                onClick={confirmActionRun}
+                variant="destructive"
+                onClick={confirmDeleteAction}
               >
-                {confirmAction.type === "delete" ? "Delete" : "Archive"}
+                Delete
               </Button>
             </div>
           </div>
