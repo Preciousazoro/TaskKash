@@ -1,9 +1,12 @@
 import React from "react";
 import clsx from "clsx";
 
-export default function SectionNav({ sections, active }) {
+export default function SectionNav({ sections, active, onSectionClick }) {
   const scrollTo = (id) => {
     document.getElementById(id)?.scrollIntoView({ behavior: "smooth", block: "start" });
+    if (onSectionClick) {
+      onSectionClick(id);
+    }
   };
 
   return (

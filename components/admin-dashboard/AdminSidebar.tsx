@@ -62,7 +62,7 @@ const AdminSidebar = () => {
   return (
     <>
       {/* Desktop Sidebar */}
-      <aside className="hidden md:flex w-65 border-r h-screen sticky top-0 bg-background flex-col shadow-xl">
+      <aside className="hidden md:flex w-71 border-r h-screen sticky top-0 bg-background flex-col shadow-xl">
         {/* Header */}
         <div className="flex-shrink-0 flex items-center justify-between h-15 px-4 border-b border-border">
           <div className="flex flex-col">
@@ -76,7 +76,7 @@ const AdminSidebar = () => {
         </div>
 
         {/* Nav */}
-        <nav className="flex-1 min-h-0 overflow-y-auto px-3 py-5 space-y-1 scrollbar-thin scrollbar-thumb-border scrollbar-track-transparent">
+        <nav className="flex-1 min-h-0 overflow-y-auto px-2 py-5 space-y-1 scrollbar-thin scrollbar-thumb-border scrollbar-track-transparent">
           <SidebarNavItems
             admin={admin}
             loading={loading}
@@ -251,7 +251,7 @@ function SidebarNavItems({
       ],
     },
     {
-      name: "Submission/Check",
+      name: "Submission & Check",
       icon: ClipboardCheck,
       children: [
         {

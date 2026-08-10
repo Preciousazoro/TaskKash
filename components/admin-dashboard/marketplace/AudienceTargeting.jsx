@@ -1,10 +1,36 @@
 import React from "react";
-import { Field, Select, Toggle, TextArea } from "../ui/FormControls";
+import { Field, Select, Toggle, TextArea } from "../ui/FormControls.tsx";
 
-const COUNTRIES = ["All Countries", "Nigeria", "Ghana", "Kenya", "South Africa", "United States", "United Kingdom"];
-const LANGUAGES = ["All Languages", "English", "French", "Portuguese", "Swahili"];
-const WALLET_TYPES = ["Any Wallet", "Phantom", "Solflare", "Trust Wallet", "Backpack"];
-const USER_LEVELS = ["Level 1", "Level 2", "Level 3", "Level 4", "Level 5"];
+const COUNTRIES = [
+  { value: "all", label: "All Countries" },
+  { value: "nigeria", label: "Nigeria" },
+  { value: "ghana", label: "Ghana" },
+  { value: "kenya", label: "Kenya" },
+  { value: "south_africa", label: "South Africa" },
+  { value: "united_states", label: "United States" },
+  { value: "united_kingdom", label: "United Kingdom" }
+];
+const LANGUAGES = [
+  { value: "all", label: "All Languages" },
+  { value: "english", label: "English" },
+  { value: "french", label: "French" },
+  { value: "portuguese", label: "Portuguese" },
+  { value: "swahili", label: "Swahili" }
+];
+const WALLET_TYPES = [
+  { value: "any", label: "Any Wallet" },
+  { value: "phantom", label: "Phantom" },
+  { value: "solflare", label: "Solflare" },
+  { value: "trust_wallet", label: "Trust Wallet" },
+  { value: "backpack", label: "Backpack" }
+];
+const USER_LEVELS = [
+  { value: "1", label: "Level 1" },
+  { value: "2", label: "Level 2" },
+  { value: "3", label: "Level 3" },
+  { value: "4", label: "Level 4" },
+  { value: "5", label: "Level 5" }
+];
 
 export default function AudienceTargeting({ audience, setAudience }) {
   const update = (key, value) => setAudience((prev) => ({ ...prev, [key]: value }));
@@ -40,6 +66,8 @@ export default function AudienceTargeting({ audience, setAudience }) {
             rows={3}
             placeholder="8xY2...k9Fp&#10;user@email.com"
             className="font-mono"
+            value={audience.whitelist || ""}
+            onChange={(e) => update("whitelist", e.target.value)}
           />
         </Field>
         <Field label="Blacklist (wallet addresses / emails)" hint="One per line">
@@ -47,6 +75,8 @@ export default function AudienceTargeting({ audience, setAudience }) {
             rows={3}
             placeholder="3nR7...m2Lq"
             className="font-mono"
+            value={audience.blacklist || ""}
+            onChange={(e) => update("blacklist", e.target.value)}
           />
         </Field>
       </div>

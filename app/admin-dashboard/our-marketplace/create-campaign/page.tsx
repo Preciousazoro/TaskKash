@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useRouter, useParams } from "next/navigation";
 import AdminHeader from "@/components/admin-dashboard/AdminHeader";
 import AdminSidebar from "@/components/admin-dashboard/AdminSidebar";
@@ -24,25 +24,6 @@ import { Card } from "@/components/ui/card";
 import { toast } from "react-toastify";
 import { CAMPAIGN_TYPES, CATEGORIES } from "@/components/admin-dashboard/data/constants";
 
-// Mock data for editing - replace with actual API calls
-const MOCK_CAMPAIGNS = [
-  {
-    id: "1",
-    name: "Summer Brand Campaign",
-    brand: "Nike",
-    brandLogo: "👟",
-    reward: 5000,
-    participants: 1250,
-    type: "social",
-    category: "Web3",
-    featured: true,
-    trending: false,
-    website: "nike.com",
-    endsAt: "2024-12-31",
-    verificationMode: "manual"
-  }
-];
-
 const SECTIONS = [
   { id: "basic", label: "Basic Information", icon: Info },
   { id: "reward", label: "Reward Settings", icon: Coins },
@@ -60,66 +41,271 @@ export default function CreateCampaignPage() {
   const router = useRouter();
   const id = params?.id as string;
   const isEditing = Boolean(id);
-  const existing = isEditing ? MOCK_CAMPAIGNS.find((c) => c.id === id) : null;
+  const [loading, setLoading] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [existingCampaign, setExistingCampaign] = useState<any>(null);
 
   const [form, setForm] = useState({
-    name: existing?.name || "",
-    brandName: existing?.brand || "",
-    brandLogo: existing?.brandLogo || "",
+    name: "",
+    brandName: "",
+    brandLogo: "",
     banner: "",
-    website: existing?.website || "",
+    website: "",
     description: "",
-    shortDescription: existing?.name ? `Complete this campaign to earn ${existing.reward} TP.` : "",
-    type: existing?.type || "social",
-    category: existing?.category || "Web3",
+    shortDescription: "",
+    type: "social",
+    category: "Web3",
     subcategory: "",
     tags: "",
-    featured: existing?.featured || false,
-    trending: existing?.trending || false,
+    featured: false,
+    trending: false,
     visibility: "draft",
-    rewardAmount: existing?.reward || "",
+    rewardAmount: "",
     rewardPool: "",
     maxParticipants: "",
     maxClaimsPerUser: 1,
     rewardDelay: 0,
     rewardExpiration: 90,
     distributionMethod: "Automatic",
-    endsAt: existing?.endsAt || "",
+    endsAt: "",
   });
 
   const [requirements, setRequirements] = useState([emptyRequirement()]);
   const [steps, setSteps] = useState([emptyStep()]);
-  const [verificationMode, setVerificationMode] = useState(existing?.verificationMode || "manual");
+  const [verificationMode, setVerificationMode] = useState("manual");
   const [verificationFields, setVerificationFields] = useState([emptyField()]);
   const [faqs, setFaqs] = useState([emptyFaq()]);
   const [audience, setAudience] = useState({
-    country: "All Countries",
-    language: "All Languages",
-    walletType: "Any Wallet",
-    minLevel: "Level 1",
+    country: "all",
+    language: "all",
+    walletType: "any",
+    minLevel: "1",
     kycRequired: false,
     returningUsers: false,
     newUsers: false,
     vipUsers: false,
     referralRequired: false,
   });
-  const [media, setMedia] = useState({ logo: null, banner: null, gallery: null, video: null, whitepaper: null, attachments: null });
+  const [media, setMedia] = useState({ 
+    logo: null, 
+    banner: null, 
+    gallery: null, 
+    video: "", 
+    whitepaper: "", 
+    attachments: "" 
+  });
   const [activeSection, setActiveSection] = useState("basic");
+
+  // Load existing campaign data if editing
+  useEffect(() => {
+    if (isEditing && id) {
+      fetchExistingCampaign(id);
+    }
+  }, [isEditing, id]);
+
+  const fetchExistingCampaign = async (campaignId: string) => {
+    try {
+      setLoading(true);
+      const response = await fetch(`/api/admin/marketplace-campaigns/${campaignId}`);
+      const data = await response.json();
+      
+      if (data.success && data.campaign) {
+        const campaign = data.campaign;
+        setExistingCampaign(campaign);
+        setForm({
+          name: campaign.name || "",
+          brandName: campaign.brandName || "",
+          brandLogo: campaign.brandLogo || "",
+          banner: campaign.media?.banner || "",
+          website: campaign.website || "",
+          description: campaign.description || "",
+          shortDescription: campaign.shortDescription || "",
+          type: campaign.type || "social",
+          category: campaign.category || "Web3",
+          subcategory: campaign.subcategory || "",
+          tags: campaign.tags || "",
+          featured: campaign.featured || false,
+          trending: campaign.trending || false,
+          visibility: campaign.visibility || "draft",
+          rewardAmount: campaign.rewardAmount || "",
+          rewardPool: campaign.rewardPool || "",
+          maxParticipants: campaign.maxParticipants || "",
+          maxClaimsPerUser: campaign.maxClaimsPerUser || 1,
+          rewardDelay: campaign.rewardDelay || 0,
+          rewardExpiration: campaign.rewardExpiration || 90,
+          distributionMethod: campaign.distributionMethod || "Automatic",
+          endsAt: campaign.endsAt ? new Date(campaign.endsAt).toISOString().split('T')[0] : "",
+        });
+        
+        // Load complex fields
+        if (campaign.requirements && campaign.requirements.length > 0) {
+          setRequirements(campaign.requirements);
+        }
+        if (campaign.steps && campaign.steps.length > 0) {
+          setSteps(campaign.steps);
+        }
+        if (campaign.verificationMode) {
+          setVerificationMode(campaign.verificationMode);
+        }
+        if (campaign.verificationFields && campaign.verificationFields.length > 0) {
+          setVerificationFields(campaign.verificationFields);
+        }
+        if (campaign.faqs && campaign.faqs.length > 0) {
+          setFaqs(campaign.faqs);
+        }
+        if (campaign.audience) {
+          setAudience(campaign.audience);
+        }
+        if (campaign.media) {
+          setMedia({
+            logo: campaign.media.logo || null,
+            banner: campaign.media.banner || null,
+            gallery: campaign.media.gallery || null,
+            video: campaign.media.video || "",
+            whitepaper: campaign.media.whitepaper || "",
+            attachments: campaign.media.attachments || "",
+          });
+        }
+      }
+    } catch (error) {
+      console.error('Error fetching campaign:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const setField = (key: string, value: any) => setForm((f) => ({ ...f, [key]: value }));
 
-  const handleSaveDraft = () => {
-    toast("Campaign saved as draft.", { type: "success" });
-    router.push("/admin-dashboard/our-marketplace/reward-marketplace");
+  // Show loading state when fetching existing campaign
+  if (loading && isEditing) {
+    return (
+      <div className="min-h-screen flex bg-background text-foreground overflow-hidden">
+        <AdminSidebar />
+        <div className="flex-1 flex flex-col h-screen overflow-hidden">
+          <AdminHeader />
+          <main className="flex-1 overflow-y-auto p-4 md:p-8 pb-30">
+            <div className="flex items-center justify-center h-full">
+              <div className="text-center">
+                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-500 mx-auto mb-4"></div>
+                <p className="text-muted-foreground">Loading campaign data...</p>
+              </div>
+            </div>
+          </main>
+        </div>
+      </div>
+    );
+  }
+
+  const handleSaveDraft = async () => {
+    console.log('[handleSaveDraft] Called, loading:', loading, 'isSubmitting:', isSubmitting);
+    if (loading || isSubmitting) return; // Prevent double submission
+    
+    try {
+      setIsSubmitting(true);
+      setLoading(true);
+      console.log('[handleSaveDraft] Starting submission');
+      
+      const campaignData = {
+        ...form,
+        visibility: "draft",
+        requirements: requirements.filter(r => r.description && r.description.trim() !== ''),
+        steps: steps.filter(s => s.title && s.title.trim() !== '' && s.description && s.description.trim() !== ''),
+        verificationMode,
+        verificationFields: verificationFields.filter(f => f.label && f.label.trim() !== ''),
+        faqs: faqs.filter(f => f.question && f.question.trim() !== '' && f.answer && f.answer.trim() !== ''),
+        audience,
+        media,
+        endsAt: form.endsAt ? new Date(form.endsAt) : null,
+      };
+
+      let response;
+      if (isEditing && id) {
+        response = await fetch(`/api/admin/marketplace-campaigns/${id}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(campaignData),
+        });
+      } else {
+        response = await fetch('/api/admin/marketplace-campaigns', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(campaignData),
+        });
+      }
+
+      const data = await response.json();
+
+      if (data.success) {
+        toast("Campaign saved as draft.", { type: "success" });
+        router.push("/admin-dashboard/our-marketplace/reward-marketplace");
+      } else {
+        toast(data.error || "Failed to save campaign", { type: "error" });
+      }
+    } catch (error) {
+      console.error('Error saving draft:', error);
+      toast("Failed to save campaign", { type: "error" });
+    } finally {
+      setLoading(false);
+      setIsSubmitting(false);
+    }
   };
 
-  const handlePublish = () => {
+  const handlePublish = async () => {
+    console.log('[handlePublish] Called, loading:', loading, 'isSubmitting:', isSubmitting);
+    if (loading || isSubmitting) return; // Prevent double submission
+    
     if (!form.name || !form.brandName || !form.rewardAmount) {
       toast("Please fill in campaign name, brand and reward amount before publishing.", { type: "error" });
       return;
     }
-    toast(`"${form.name}" published to the marketplace.`, { type: "success" });
-    router.push("/admin-dashboard/our-marketplace/reward-marketplace");
+
+    try {
+      setIsSubmitting(true);
+      setLoading(true);
+      
+      const campaignData = {
+        ...form,
+        visibility: "published",
+        requirements: requirements.filter(r => r.description && r.description.trim() !== ''),
+        steps: steps.filter(s => s.title && s.title.trim() !== '' && s.description && s.description.trim() !== ''),
+        verificationMode,
+        verificationFields: verificationFields.filter(f => f.label && f.label.trim() !== ''),
+        faqs: faqs.filter(f => f.question && f.question.trim() !== '' && f.answer && f.answer.trim() !== ''),
+        audience,
+        media,
+        endsAt: form.endsAt ? new Date(form.endsAt) : null,
+      };
+
+      let response;
+      if (isEditing && id) {
+        response = await fetch(`/api/admin/marketplace-campaigns/${id}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(campaignData),
+        });
+      } else {
+        response = await fetch('/api/admin/marketplace-campaigns', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(campaignData),
+        });
+      }
+
+      const data = await response.json();
+
+      if (data.success) {
+        toast(`"${form.name}" published to the marketplace.`, { type: "success" });
+        router.push("/admin-dashboard/our-marketplace/reward-marketplace");
+      } else {
+        toast(data.error || "Failed to publish campaign", { type: "error" });
+      }
+    } catch (error) {
+      console.error('Error publishing campaign:', error);
+      toast("Failed to publish campaign", { type: "error" });
+    } finally {
+      setLoading(false);
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -148,13 +334,13 @@ export default function CreateCampaignPage() {
                 </p>
               </div>
               <div className="flex items-center gap-2.5">
-                <Button variant="outline" onClick={handleSaveDraft}>
+                <Button variant="outline" onClick={handleSaveDraft} disabled={loading || isSubmitting}>
                   <Save className="w-4 h-4 mr-2" />
-                  Save Draft
+                  {loading || isSubmitting ? "Saving..." : "Save Draft"}
                 </Button>
-                <Button className="bg-green-500 hover:bg-green-600" onClick={handlePublish}>
+                <Button className="bg-green-500 hover:bg-green-600" onClick={handlePublish} disabled={loading || isSubmitting}>
                   <Send className="w-4 h-4 mr-2" />
-                  {isEditing ? "Save Changes" : "Publish Campaign"}
+                  {loading || isSubmitting ? "Publishing..." : (isEditing ? "Save Changes" : "Publish Campaign")}
                 </Button>
               </div>
             </div>
@@ -163,7 +349,7 @@ export default function CreateCampaignPage() {
             <div className="grid grid-cols-1 lg:grid-cols-[220px_1fr] gap-6">
               {/* SECTION NAV */}
               <div className="hidden lg:block">
-                <SectionNav sections={SECTIONS} active={activeSection} />
+                <SectionNav sections={SECTIONS} active={activeSection} onSectionClick={setActiveSection} />
               </div>
 
               {/* FORM SECTIONS */}
@@ -251,7 +437,7 @@ export default function CreateCampaignPage() {
                     </Field>
                   </div>
 
-                  <div className="grid grid-cols-1 sm:grid-cols-3 px-4 gap-4 border-t border-border pt-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 px-4 gap-4 border-t border-border pt-4">
                     <Toggle 
                       checked={form.featured} 
                       onChange={(v) => setField("featured", v)} 
@@ -264,24 +450,6 @@ export default function CreateCampaignPage() {
                       label="Trending" 
                       hint="Tag as trending" 
                     />
-                    <div>
-                      <span className="text-xs font-semibold text-muted-foreground mb-2 block">Visibility</span>
-                      <div className="flex gap-2">
-                        {["draft", "published"].map((v) => (
-                          <button
-                            key={v}
-                            onClick={() => setField("visibility", v)}
-                            className={`flex-1 px-3 py-2 rounded-lg text-xs font-semibold border transition-colors capitalize ${
-                              form.visibility === v 
-                                ? "bg-green-500 text-white border-green-500" 
-                                : "border-border text-muted-foreground hover:text-foreground hover:bg-muted/50"
-                            }`}
-                          >
-                            {v}
-                          </button>
-                        ))}
-                      </div>
-                    </div>
                   </div>
                 </FormSection>
 
@@ -318,13 +486,13 @@ export default function CreateCampaignPage() {
                 </FormSection>
 
                 <div className="flex items-center justify-end gap-3 pt-2">
-                  <Button variant="outline" onClick={handleSaveDraft}>
+                  <Button variant="outline" onClick={handleSaveDraft} disabled={loading || isSubmitting}>
                     <Save className="w-4 h-4 mr-2" />
-                    Save Draft
+                    {loading || isSubmitting ? "Saving..." : "Save Draft"}
                   </Button>
-                  <Button className="bg-green-500 hover:bg-green-600" onClick={handlePublish}>
+                  <Button className="bg-green-500 hover:bg-green-600" onClick={handlePublish} disabled={loading || isSubmitting}>
                     <Send className="w-4 h-4 mr-2" />
-                    {isEditing ? "Save Changes" : "Publish Campaign"}
+                    {loading || isSubmitting ? "Publishing..." : (isEditing ? "Save Changes" : "Publish Campaign")}
                   </Button>
                 </div>
               </div>
