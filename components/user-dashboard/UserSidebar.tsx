@@ -345,10 +345,15 @@ function SidebarNavItems({
       icon: Users,
       children: [
         {
-          name: "Rewards",
-          icon: PartyPopper,
-          href: `#`,
+          name: "Refer & Earn",
+          icon: Users,
+          href: `${basePath}/referals`,
         },
+        // {
+        //   name: "Rewards",
+        //   icon: PartyPopper,
+        //   href: `#`,
+        // },
         {
           name: "Leaderboard",
           icon: Trophy,

@@ -282,10 +282,16 @@ function SidebarNavItems({
       href: `${basePath}/submissions`,
     },
     {
+          name: "User Referals",
+          icon: Users,
+          href: `${basePath}/user-referals`,
+        },
+    {
       name: "Payout Requests",
       icon: Wallet,
       href: `${basePath}/withdrawals`,
     },
+
 
     {
       name: "Interactions",
