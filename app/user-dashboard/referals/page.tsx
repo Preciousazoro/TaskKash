@@ -36,27 +36,17 @@ export default function ReferralsPage() {
   const [programActive, setProgramActive] = useState(true);
   const [copySuccess, setCopySuccess] = useState(false);
   const [shareModalOpen, setShareModalOpen] = useState(false);
-  const [referralLink, setReferralLink] = useState("taskkash.xyz/ref/alexdev");
+  const [referralLink, setReferralLink] = useState("");
+  const [isGenerating, setIsGenerating] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
   
-  // Mock data - replace with actual API calls
   const [referralStats, setReferralStats] = useState({
-    totalInvites: 18,
-    activeUsers: 12,
-    pending: 5,
-    qualified: 7,
-    unlockedRewards: 2450,
-    pendingRewards: 1200,
-  });
-
-  const [spotlightReferral] = useState({
-    username: "@johnsmith",
-    initials: "JS",
-    joinedDate: "Aug 7, 2026",
-    activeDays: 5,
-    tasksCompleted: 12,
-    requiredDays: 7,
-    requiredTasks: 15,
-    pendingReward: 500,
+    totalInvites: 0,
+    activeUsers: 0,
+    pending: 0,
+    qualified: 0,
+    unlockedRewards: 0,
+    pendingRewards: 0,
   });
 
   const copyReferralLink = async () => {
@@ -78,9 +68,54 @@ export default function ReferralsPage() {
     toast.info(programActive ? "Referral program paused" : "Referral program activated");
   };
 
+  const fetchReferralData = async () => {
+    try {
+      setIsLoading(true);
+      const response = await fetch('/api/user/referral/generate');
+      const data = await response.json();
+      
+      if (response.ok) {
+        setReferralLink(data.referralLink || '');
+        setReferralStats(data.referralStats || referralStats);
+      }
+    } catch (error) {
+      console.error('Error fetching referral data:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const generateReferralLink = async () => {
+    try {
+      setIsGenerating(true);
+      const response = await fetch('/api/user/referral/generate', {
+        method: 'POST',
+      });
+      const data = await response.json();
+      
+      if (response.ok) {
+        setReferralLink(data.referralLink);
+        toast.success('Referral link generated successfully!');
+        await fetchReferralData();
+      } else {
+        toast.error(data.error || 'Failed to generate referral link');
+      }
+    } catch (error) {
+      console.error('Error generating referral link:', error);
+      toast.error('Failed to generate referral link');
+    } finally {
+      setIsGenerating(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchReferralData();
+  }, []);
+
   const shareToSocial = (platform: string) => {
     const shareText = "Join TaskKash and earn rewards by completing tasks!";
-    const shareUrl = `https://${referralLink}`;
+    // Ensure the URL has proper protocol
+    const shareUrl = referralLink.startsWith('http') ? referralLink : `https://${referralLink}`;
     
     let url = "";
     switch (platform) {
@@ -197,23 +232,40 @@ export default function ReferralsPage() {
                 </div>
 
                 <div className="flex items-center gap-2">
-                  <button
-                    onClick={copyReferralLink}
-                    disabled={!programActive}
-                    className="flex-1 sm:flex-initial flex items-center justify-center gap-2 bg-green-500 hover:bg-green-500/90 text-background font-bold px-6 py-3.5 rounded-xl transition shadow-lg active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
-                  >
-                    <Copy className="w-4 h-4" />
-                    <span>{copySuccess ? "Copied!" : "Copy Link"}</span>
-                  </button>
+                  {!referralLink ? (
+                    <button
+                      onClick={generateReferralLink}
+                      disabled={!programActive || isGenerating || isLoading}
+                      className="flex-1 sm:flex-initial flex items-center justify-center gap-2 bg-purple-500 hover:bg-purple-500/90 text-background font-bold px-6 py-3.5 rounded-xl transition shadow-lg active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      {isGenerating ? (
+                        <Loader2 className="w-4 h-4 animate-spin" />
+                      ) : (
+                        <LinkIcon className="w-4 h-4" />
+                      )}
+                      <span>{isGenerating ? "Generating..." : "Generate Link"}</span>
+                    </button>
+                  ) : (
+                    <>
+                      <button
+                        onClick={copyReferralLink}
+                        disabled={!programActive}
+                        className="flex-1 sm:flex-initial flex items-center justify-center gap-2 bg-green-500 hover:bg-green-500/90 text-background font-bold px-6 py-3.5 rounded-xl transition shadow-lg active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
+                      >
+                        <Copy className="w-4 h-4" />
+                        <span>{copySuccess ? "Copied!" : "Copy Link"}</span>
+                      </button>
 
-                  <button
-                    onClick={openShareModal}
-                    disabled={!programActive}
-                    className="flex items-center justify-center gap-2 bg-card hover:bg-border border border-border text-foreground font-medium px-4 py-3.5 rounded-xl transition active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
-                  >
-                    <Share2 className="w-4 h-4" />
-                    <span className="hidden sm:inline">Share</span>
-                  </button>
+                      <button
+                        onClick={openShareModal}
+                        disabled={!programActive}
+                        className="flex items-center justify-center gap-2 bg-card hover:bg-border border border-border text-foreground font-medium px-4 py-3.5 rounded-xl transition active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
+                      >
+                        <Share2 className="w-4 h-4" />
+                        <span className="hidden sm:inline">Share</span>
+                      </button>
+                    </>
+                  )}
                 </div>
               </div>
 
@@ -342,81 +394,6 @@ export default function ReferralsPage() {
                 <p className="text-xs text-muted-foreground leading-relaxed">
                   Once requirements are met, pending TP instantly converts to unlocked balance.
                 </p>
-              </div>
-            </div>
-          </section>
-
-          {/* 4. HIGHLIGHTED QUALIFICATION PROGRESS (Spotlight Component) */}
-          <section className="bg-gradient-to-r from-card via-secondary/50 to-card border border-border rounded-2xl p-6">
-            <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 mb-6">
-              <div>
-                <div className="flex items-center gap-2">
-                  <span className="w-2.5 h-2.5 rounded-full bg-amber-400 animate-ping" />
-                  <h3 className="text-lg font-bold text-foreground">Active Qualification Spotlight</h3>
-                </div>
-                <p className="text-xs text-muted-foreground mt-0.5">
-                  Live tracking of your nearest pending referral towards reward unlock
-                </p>
-              </div>
-              <div className="px-3 py-1 bg-amber-500/10 border border-amber-500/30 rounded-lg text-amber-400 text-xs font-medium">
-                Reward Pending: {spotlightReferral.pendingReward} TP
-              </div>
-            </div>
-
-            {/* Spotlight Card */}
-            <div className="bg-background/60 border border-border rounded-xl p-5 grid grid-cols-1 md:grid-cols-12 gap-6 items-center">
-              <div className="md:col-span-4 flex items-center gap-3">
-                <div className="w-12 h-12 rounded-full bg-gradient-to-tr from-purple-600 to-indigo-600 flex items-center justify-center font-bold text-foreground text-lg shrink-0">
-                  {spotlightReferral.initials}
-                </div>
-                <div>
-                  <div className="font-bold text-foreground text-base">{spotlightReferral.username}</div>
-                  <div className="text-xs text-muted-foreground">Joined: {spotlightReferral.joinedDate}</div>
-                  <div className="inline-flex items-center gap-1 px-2 py-0.5 rounded bg-amber-400/10 text-amber-400 text-[11px] font-semibold mt-1">
-                    <Loader2 className="w-3 h-3 animate-spin" />
-                    Qualifying
-                  </div>
-                </div>
-              </div>
-
-              <div className="md:col-span-8 space-y-3">
-                {/* Progress Bar 1: Days */}
-                <div>
-                  <div className="flex justify-between text-xs mb-1">
-                    <span className="text-muted-foreground flex items-center gap-1">
-                      <Calendar className="w-3.5 h-3.5 text-purple-500" />
-                      Active Days
-                    </span>
-                    <span className="font-mono text-foreground">
-                      {spotlightReferral.activeDays}/{spotlightReferral.requiredDays}
-                    </span>
-                  </div>
-                  <div className="w-full bg-secondary rounded-full h-2">
-                    <div
-                      className="bg-purple-500 h-2 rounded-full transition-all duration-500"
-                      style={{ width: `${(spotlightReferral.activeDays / spotlightReferral.requiredDays) * 100}%` }}
-                    />
-                  </div>
-                </div>
-
-                {/* Progress Bar 2: Tasks */}
-                <div>
-                  <div className="flex justify-between text-xs mb-1">
-                    <span className="text-muted-foreground flex items-center gap-1">
-                      <CheckCircle2 className="w-3.5 h-3.5 text-green-500" />
-                      Tasks Completed
-                    </span>
-                    <span className="font-mono text-foreground">
-                      {spotlightReferral.tasksCompleted}/{spotlightReferral.requiredTasks}
-                    </span>
-                  </div>
-                  <div className="w-full bg-secondary rounded-full h-2">
-                    <div
-                      className="bg-green-500 h-2 rounded-full transition-all duration-500"
-                      style={{ width: `${(spotlightReferral.tasksCompleted / spotlightReferral.requiredTasks) * 100}%` }}
-                    />
-                  </div>
-                </div>
               </div>
             </div>
           </section>

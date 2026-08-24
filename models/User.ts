@@ -59,6 +59,17 @@ export interface IUser extends Document {
   phone?: string | null;
   country?: string | null;
   telegramUsername?: string | null;
+  referralToken?: string | null;
+  referralLink?: string | null;
+  referredBy?: string | null;
+  referralStats?: {
+    totalInvites: number;
+    activeUsers: number;
+    pending: number;
+    qualified: number;
+    unlockedRewards: number;
+    pendingRewards: number;
+  };
   createdAt: Date;
   updatedAt: Date;
   comparePassword(candidatePassword: string): Promise<boolean>;
@@ -283,6 +294,46 @@ const UserSchema = new Schema<IUser>({
     type: String,
     default: null,
     trim: true
+  },
+  referralToken: {
+    type: String,
+    default: null,
+    unique: true,
+    sparse: true
+  },
+  referralLink: {
+    type: String,
+    default: null
+  },
+  referredBy: {
+    type: String,
+    default: null
+  },
+  referralStats: {
+    totalInvites: {
+      type: Number,
+      default: 0
+    },
+    activeUsers: {
+      type: Number,
+      default: 0
+    },
+    pending: {
+      type: Number,
+      default: 0
+    },
+    qualified: {
+      type: Number,
+      default: 0
+    },
+    unlockedRewards: {
+      type: Number,
+      default: 0
+    },
+    pendingRewards: {
+      type: Number,
+      default: 0
+    }
   }
 }, {
   timestamps: true
@@ -301,6 +352,8 @@ UserSchema.index({ tasksCompleted: -1 }); // For user ranking
 UserSchema.index({ dailyStreak: -1 }); // For streak queries
 UserSchema.index({ emailVerified: 1 }); // For verification queries
 UserSchema.index({ welcomeBonusGranted: 1 }); // For bonus queries
+UserSchema.index({ referralToken: 1 }); // For referral token queries
+UserSchema.index({ referredBy: 1 }); // For tracking who referred whom
 
 // Hash password before saving
 UserSchema.pre('save', async function() {
@@ -319,4 +372,8 @@ UserSchema.methods.comparePassword = async function(candidatePassword: string): 
   return bcrypt.compare(candidatePassword, this.password);
 };
 
-export default mongoose.models.User || mongoose.model<IUser>('User', UserSchema);
+// Force model recompilation to pick up new schema fields
+delete (mongoose.models as any).User;
+delete (mongoose.connection.models as any).User;
+
+export default mongoose.model<IUser>('User', UserSchema);
