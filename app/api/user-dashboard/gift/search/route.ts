@@ -3,6 +3,8 @@ import { auth } from '@/lib/auth';
 import User from '@/models/User';
 import mongoose from 'mongoose';
 
+export const dynamic = 'force-dynamic';
+
 export async function GET(req: NextRequest) {
   try {
     const session = await auth();

@@ -4,6 +4,8 @@ import connectDB from '@/lib/mongodb';
 import Campaign from '@/models/Campaign';
 import { MongoClient, ObjectId } from 'mongodb';
 
+export const dynamic = 'force-dynamic';
+
 // GET - Fetch all active campaigns for users
 export async function GET(request: NextRequest) {
   try {

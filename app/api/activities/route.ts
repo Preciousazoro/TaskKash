@@ -4,6 +4,8 @@ import Activity from '@/models/Activity';
 import TaskHistory from '@/models/TaskHistory';
 import mongoose from 'mongoose';
 
+export const dynamic = 'force-dynamic';
+
 export async function GET(request: NextRequest) {
   try {
     // Check authentication

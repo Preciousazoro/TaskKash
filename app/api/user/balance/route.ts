@@ -3,6 +3,8 @@ import { auth } from '@/lib/auth';
 import connectDB from '@/lib/mongodb';
 import User from '@/models/User';
 
+export const dynamic = 'force-dynamic';
+
 // Simple in-memory cache for balance data (2 minutes TTL)
 const balanceCache = new Map<string, { data: any; timestamp: number }>();
 const CACHE_TTL = 2 * 60 * 1000; // 2 minutes

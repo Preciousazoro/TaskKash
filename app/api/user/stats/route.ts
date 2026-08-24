@@ -4,6 +4,8 @@ import connectDB from '@/lib/mongodb';
 import Withdrawal from '@/models/Withdrawal';
 import Task from '@/models/Task';
 
+export const dynamic = 'force-dynamic';
+
 export async function GET(request: NextRequest) {
   try {
     const session = await auth();

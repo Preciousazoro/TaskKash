@@ -5,6 +5,8 @@ import Submission from '@/models/Submission';
 import mongoose from 'mongoose';
 import { withTimeout, aggregateWithTimeout } from '@/lib/timeout';
 
+export const dynamic = 'force-dynamic';
+
 // GET /api/tasks/user-dashboard - Return tasks with user's latest submission and status
 export async function GET(request: NextRequest) {
   try {

@@ -4,6 +4,8 @@ import { isAdmin } from '@/lib/admin-auth';
 import Activity from '@/models/Activity';
 import mongoose from 'mongoose';
 
+export const dynamic = 'force-dynamic';
+
 // GET recent activities for admin dashboard
 export async function GET(request: NextRequest) {
   try {

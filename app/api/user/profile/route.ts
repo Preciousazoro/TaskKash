@@ -3,6 +3,8 @@ import { auth } from '@/lib/auth';
 import connectDB from '@/lib/mongodb';
 import User, { IUser } from '@/models/User';
 
+export const dynamic = 'force-dynamic';
+
 // GET /api/user/profile - Fetch user profile data
 export async function GET(request: NextRequest) {
   try {

@@ -6,6 +6,8 @@ import mongoose from 'mongoose';
 import { withTimeout, aggregateWithTimeout } from '@/lib/timeout';
 import TaskExpiryHandler from '@/lib/taskExpiryHandler';
 
+export const dynamic = 'force-dynamic';
+
 // GET /api/tasks/overall - Return all tasks with user's latest submission and status
 export async function GET(request: NextRequest) {
   try {

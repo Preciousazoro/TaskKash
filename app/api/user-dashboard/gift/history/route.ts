@@ -4,6 +4,8 @@ import Gift from "@/models/Gift";
 import User from "@/models/User";
 import mongoose from "mongoose";
 
+export const dynamic = 'force-dynamic';
+
 interface Receiver {
   _id: mongoose.Types.ObjectId;
   avatarUrl?: string | null;

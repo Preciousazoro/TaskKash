@@ -5,6 +5,8 @@ import Withdrawal, { WithdrawalStatus } from '@/models/Withdrawal';
 import User from '@/models/User';
 import Transaction, { TransactionType } from '@/models/Transaction';
 
+export const dynamic = 'force-dynamic';
+
 export async function GET(request: NextRequest) {
   try {
     const session = await auth();

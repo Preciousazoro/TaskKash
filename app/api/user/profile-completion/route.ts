@@ -4,6 +4,8 @@ import connectDB from '@/lib/mongodb';
 import User from '@/models/User';
 import { MongoClient, ObjectId } from 'mongodb';
 
+export const dynamic = 'force-dynamic';
+
 export async function GET(request: NextRequest) {
   try {
     const session = await auth();

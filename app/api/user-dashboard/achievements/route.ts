@@ -6,6 +6,8 @@ import Achievement from '@/models/Achievement';
 import { MongoClient, ObjectId } from 'mongodb';
 import { ACHIEVEMENT_DEFINITIONS, CATEGORY_CONFIG } from '@/lib/achievements-config';
 
+export const dynamic = 'force-dynamic';
+
 export async function GET(request: NextRequest) {
   try {
     const session = await auth();

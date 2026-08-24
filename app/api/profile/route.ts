@@ -5,6 +5,8 @@ import User, { IUser } from '@/models/User';
 import { deleteFromCloudinary } from '@/lib/cloudinary';
 import { getProfileCache, setProfileCache, clearProfileCache } from '@/lib/profileCache';
 
+export const dynamic = 'force-dynamic';
+
 export async function GET(request: NextRequest) {
   try {
     const session = await auth();

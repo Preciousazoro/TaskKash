@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import mongoose from 'mongoose';
 import User from '@/models/User';
 
+export const dynamic = 'force-dynamic';
+
 // Helper function to determine user level based on task points
 function getUserLevel(taskPoints: number): string {
   if (taskPoints >= 15000) return 'Expert';

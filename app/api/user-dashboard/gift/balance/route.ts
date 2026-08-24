@@ -4,6 +4,8 @@ import User from '@/models/User';
 import Gift from '@/models/Gift';
 import mongoose from 'mongoose';
 
+export const dynamic = 'force-dynamic';
+
 export async function GET(req: NextRequest) {
   try {
     const session = await auth();

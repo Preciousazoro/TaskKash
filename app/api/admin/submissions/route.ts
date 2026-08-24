@@ -3,12 +3,14 @@ import { auth } from '@/lib/auth';
 import { isAdmin } from '@/lib/admin-auth';
 import Activity from '@/models/Activity';
 import User from '@/models/User';
-import Task from '@/models/Task';
 import Submission from '@/models/Submission';
+import Task from '@/models/Task';
 import mongoose from 'mongoose';
 import { AdminNotifications } from '@/lib/adminNotifications';
 import { UserNotifications } from '@/lib/userNotifications';
 import { withTimeout, aggregateWithTimeout } from '@/lib/timeout';
+
+export const dynamic = 'force-dynamic';
 
 // GET all submissions for admin
 export async function GET(request: NextRequest) {

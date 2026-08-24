@@ -3,6 +3,8 @@ import { auth } from '@/lib/auth';
 import connectDB from '@/lib/mongodb';
 import Campaign from '@/models/Campaign';
 
+export const dynamic = 'force-dynamic';
+
 // GET - Fetch campaign stats for admin
 export async function GET(request: NextRequest) {
   try {
