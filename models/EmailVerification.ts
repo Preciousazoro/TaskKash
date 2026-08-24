@@ -7,6 +7,7 @@ export interface IEmailVerification extends Document {
   name?: string;
   password?: string;
   username?: string;
+  referralToken?: string;
   attempts: number;
   expiresAt: Date;
   createdAt: Date;
@@ -45,6 +46,10 @@ const EmailVerificationSchema = new Schema<IEmailVerification>({
     minlength: [3, 'Username should be at least 3 characters long'],
     maxlength: [20, 'Username cannot be more than 20 characters'],
     match: [/^[a-zA-Z0-9_]+$/, 'Username can only contain letters, numbers, and underscores']
+  },
+  referralToken: {
+    type: String,
+    trim: true
   },
   attempts: {
     type: Number,

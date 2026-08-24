@@ -7,6 +7,7 @@ import { createWelcomeBonus } from '@/lib/transactions';
 import { AdminNotifications } from '@/lib/adminNotifications';
 import { UserNotifications } from '@/lib/userNotifications';
 import { getClientIP, otpVerifyRateLimit } from '@/lib/rateLimit';
+import crypto from 'crypto';
 
 export async function POST(request: NextRequest) {
   try {
@@ -94,6 +95,35 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // Validate referral token if provided
+    let referrerId: string | null = null;
+    if (verification.referralToken) {
+      const referrer = await User.findOne({ referralToken: verification.referralToken });
+      if (referrer) {
+        referrerId = referrer._id.toString();
+      }
+    }
+
+    // Generate referral token and link for new user
+    let newUserReferralToken: string | null = null;
+    let newUserReferralLink: string | null = null;
+    
+    let isUnique = false;
+    let attempts = 0;
+    const maxAttempts = 10;
+
+    while (!isUnique && attempts < maxAttempts) {
+      newUserReferralToken = crypto.randomBytes(4).toString('hex').toLowerCase();
+      const existingUser = await User.findOne({ referralToken: newUserReferralToken });
+      
+      if (!existingUser) {
+        isUnique = true;
+        const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://taskkash.xyz';
+        newUserReferralLink = `${baseUrl}/ref/${newUserReferralToken}`;
+      }
+      attempts++;
+    }
+
     // Create the user account
     const user = await User.create({
       name: verification.name,
@@ -101,7 +131,32 @@ export async function POST(request: NextRequest) {
       password: verification.password,
       username: verification.username,
       emailVerified: true,
+      referredBy: referrerId,
+      referralToken: newUserReferralToken,
+      referralLink: newUserReferralLink,
+      referralStats: {
+        totalInvites: 0,
+        activeUsers: 0,
+        pending: 0,
+        qualified: 0,
+        unlockedRewards: 0,
+        pendingRewards: 0
+      }
     });
+
+    // Update referrer's totalInvites if referral was valid
+    if (referrerId) {
+      try {
+        await User.findByIdAndUpdate(
+          referrerId,
+          { $inc: { 'referralStats.totalInvites': 1 } },
+          { new: true }
+        );
+      } catch (error) {
+        console.error('Error updating referrer stats:', error);
+        // Don't fail registration if referrer update fails
+      }
+    }
 
     // Create welcome bonus transaction
     try {

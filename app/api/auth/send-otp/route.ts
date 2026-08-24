@@ -8,7 +8,7 @@ import { getClientIP, otpSendRateLimit } from '@/lib/rateLimit';
 
 export async function POST(request: NextRequest) {
   try {
-    const { name, email, password, username } = await request.json();
+    const { name, email, password, username, referralToken } = await request.json();
 
     // Rate limiting
     const clientIP = getClientIP(request);
@@ -72,6 +72,7 @@ export async function POST(request: NextRequest) {
       name,
       password,
       username,
+      referralToken,
       expiresAt: new Date(Date.now() + 2 * 60 * 1000), // 2 minutes
     });
 

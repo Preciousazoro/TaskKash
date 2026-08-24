@@ -1,7 +1,7 @@
 "use client";
 
-import React, { useState } from "react";
-import { useRouter } from "next/navigation";
+import React, { useState, useEffect } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -22,9 +22,19 @@ export default function RegisterPage() {
     password: "",
     confirmPassword: "",
     terms: false,
+    referralToken: "",
   });
   
   const router = useRouter();
+  const searchParams = useSearchParams();
+
+  // Auto-fill referral token from URL query params
+  useEffect(() => {
+    const refToken = searchParams.get('ref');
+    if (refToken) {
+      setForm((prev) => ({ ...prev, referralToken: refToken }));
+    }
+  }, [searchParams]);
 
   const handleChange = (key: string, value: string | boolean) => {
     setForm((prev) => ({ ...prev, [key]: value }));
@@ -61,6 +71,7 @@ export default function RegisterPage() {
           name: form.name,
           email: form.email,
           password: form.password,
+          referralToken: form.referralToken,
         }),
       });
 
@@ -130,6 +141,21 @@ export default function RegisterPage() {
                       className="p-5 text-[15px]"
                       disabled={isLoading}
                       required
+                    />
+                  </div>
+
+                  {/* Referral Token Input Field (Optional) */}
+                  <div className="grid gap-2">
+                    <Label htmlFor="referralToken" className="text-muted-foreground">Referral Token <span className="text-xs">(Optional)</span></Label>
+                    <Input
+                      id="referralToken"
+                      name="referralToken"
+                      type="text"
+                      placeholder="Enter referral code (optional)"
+                      value={form.referralToken}
+                      onChange={(e) => handleChange("referralToken", e.target.value)}
+                      className="p-5 text-[15px]"
+                      disabled={isLoading}
                     />
                   </div>
 
