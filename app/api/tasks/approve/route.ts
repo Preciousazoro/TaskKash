@@ -51,6 +51,13 @@ export async function POST(request: NextRequest) {
       { new: true } // Return the updated document
     );
 
+    if (!updatedUser) {
+      return NextResponse.json(
+        { error: 'Failed to update user' },
+        { status: 500 }
+      );
+    }
+
     return NextResponse.json({
       message: 'Task approved successfully',
       taskPoints: updatedUser.taskPoints,
