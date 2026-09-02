@@ -11,10 +11,6 @@ import { Eye, EyeOff, Loader2, AlertCircle, CheckCircle2, ArrowLeft } from "luci
 import { toast } from 'react-toastify';
 import TaskKashFooter from "@/components/landing-page/TaskKashFooter";
 
-export const dynamic = 'force-dynamic';
-export const fetchCache = 'force-no-store';
-export const revalidate = 0;
-
 function ResetPasswordContent() {
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");

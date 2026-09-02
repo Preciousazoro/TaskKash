@@ -12,10 +12,6 @@ import { Eye, EyeOff, Loader2, Lock } from "lucide-react";
 import { toast } from "react-toastify";
 import TaskKashFooter from "@/components/landing-page/TaskKashFooter";
 
-export const dynamic = 'force-dynamic';
-export const fetchCache = 'force-no-store';
-export const revalidate = 0;
-
 export default function RegisterPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
