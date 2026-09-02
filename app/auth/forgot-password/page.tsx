@@ -11,6 +11,10 @@ import { ArrowLeft, Loader2, CheckCircle2 } from "lucide-react";
 import { toast } from 'react-toastify';
 import TaskKashFooter from "@/components/landing-page/TaskKashFooter";
 
+export const dynamic = 'force-dynamic';
+export const fetchCache = 'force-no-store';
+export const revalidate = 0;
+
 export default function ForgotPasswordPage() {
   const [email, setEmail] = useState("");
   const [isLoading, setIsLoading] = useState(false);

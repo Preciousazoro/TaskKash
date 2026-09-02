@@ -1,11 +1,8 @@
 import type { Metadata } from "next";
-// Ignore missing type declarations for CSS side-effect import
-// @ts-ignore: CSS module without type declarations
 import "./globals.css";
 import { ThemeProvider } from "@/components/providers/ThemeProvider";
 import { SessionProvider } from "next-auth/react";
 import { ToastContainer } from "react-toastify";
-// import "react-toastify/dist/ReactToastify.css";
 // import { Geist, Geist_Mono } from "next/font/google";
 
 // const geist = Geist({

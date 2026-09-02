@@ -9,7 +9,10 @@ import { Input } from "@/components/ui/input";
 import { Loader2, Shield } from "lucide-react";
 import { toast } from 'react-toastify';
 import TaskKashFooter from "@/components/landing-page/TaskKashFooter";
-import 'react-toastify/dist/ReactToastify.css';
+
+export const dynamic = 'force-dynamic';
+export const fetchCache = 'force-no-store';
+export const revalidate = 0;
 
 export default function VerifyOTPPage() {
   const [otp, setOtp] = useState(["", "", "", "", "", ""]);
