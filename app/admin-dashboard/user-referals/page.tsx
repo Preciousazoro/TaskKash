@@ -51,7 +51,7 @@ interface ReferralStats {
   activeReferredUsers: number;
   unlockedRewards: number;
   pendingRewards: number;
-  flagged: number;
+  flagged: number; // Kept for future implementation
 }
 
 interface Referral {
@@ -61,7 +61,7 @@ interface Referral {
   referredUserId: string;
   referredUserName: string;
   referredUserEmail: string;
-  status: "qualified" | "pending" | "flagged";
+  status: "qualified" | "pending";
   joinedDate: string;
   activeDays: number;
   tasksCompleted: number;
@@ -76,54 +76,37 @@ export default function AdminReferralsPage() {
   const [searchTerm, setSearchTerm] = useState("");
   const [showToggleConfirm, setShowToggleConfirm] = useState(false);
   
-  // Mock data - replace with actual API calls
   const [stats, setStats] = useState<ReferralStats>({
-    totalReferrals: 12482,
-    newReferrals: 1842,
-    qualified: 7910,
-    pending: 3120,
-    activeReferredUsers: 9820,
-    unlockedRewards: 3950000,
-    pendingRewards: 1560000,
-    flagged: 18,
+    totalReferrals: 0,
+    newReferrals: 0,
+    qualified: 0,
+    pending: 0,
+    activeReferredUsers: 0,
+    unlockedRewards: 0,
+    pendingRewards: 0,
+    flagged: 0,
   });
 
-  const [referrals, setReferrals] = useState<Referral[]>([
-    {
-      id: "1",
-      referrerId: "user123",
-      referrerName: "Alex Dev",
-      referredUserId: "user456",
-      referredUserName: "John Smith",
-      referredUserEmail: "john@example.com",
-      status: "qualified",
-      joinedDate: "2026-08-07",
-      activeDays: 7,
-      tasksCompleted: 15,
-      rewardEarned: 500,
-      pendingReward: 0,
-    },
-    {
-      id: "2",
-      referrerId: "user789",
-      referrerName: "Sarah Tech",
-      referredUserId: "user101",
-      referredUserName: "Mike Johnson",
-      referredUserEmail: "mike@example.com",
-      status: "pending",
-      joinedDate: "2026-08-05",
-      activeDays: 5,
-      tasksCompleted: 12,
-      rewardEarned: 0,
-      pendingReward: 500,
-    },
-  ]);
+  const [referrals, setReferrals] = useState<Referral[]>([]);
 
   useEffect(() => {
-    // Simulate API call
-    setTimeout(() => {
-      setLoading(false);
-    }, 1000);
+    const fetchReferralData = async () => {
+      try {
+        const response = await fetch('/api/admin/referrals');
+        if (!response.ok) throw new Error('Failed to fetch referral data');
+        
+        const data = await response.json();
+        setStats(data.stats);
+        setReferrals(data.referrals);
+      } catch (error) {
+        console.error('Error fetching referral data:', error);
+        toast.error('Failed to load referral data');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchReferralData();
   }, []);
 
   const toggleProgramState = () => {
@@ -133,8 +116,51 @@ export default function AdminReferralsPage() {
   };
 
   const exportData = (format: "csv" | "json") => {
-    toast.success(`Exporting data as ${format.toUpperCase()}...`);
-    // Implement actual export logic
+    try {
+      if (format === "json") {
+        const data = { stats, referrals };
+        const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `referral-data-${new Date().toISOString().split('T')[0]}.json`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+        toast.success('JSON data exported successfully');
+      } else if (format === "csv") {
+        const headers = ['Referrer ID', 'Referrer Name', 'Referred User ID', 'Referred User Name', 'Referred User Email', 'Status', 'Joined Date', 'Active Days', 'Tasks Completed', 'Reward Earned', 'Pending Reward'];
+        const rows = referrals.map(r => [
+          r.referrerId,
+          r.referrerName,
+          r.referredUserId,
+          r.referredUserName,
+          r.referredUserEmail,
+          r.status,
+          r.joinedDate,
+          r.activeDays,
+          r.tasksCompleted,
+          r.rewardEarned,
+          r.pendingReward
+        ]);
+        
+        const csvContent = [headers, ...rows].map(row => row.join(',')).join('\n');
+        const blob = new Blob([csvContent], { type: 'text/csv' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `referral-data-${new Date().toISOString().split('T')[0]}.csv`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+        toast.success('CSV data exported successfully');
+      }
+    } catch (error) {
+      console.error('Export error:', error);
+      toast.error('Failed to export data');
+    }
   };
 
   const filteredReferrals = referrals.filter(referral =>
@@ -180,15 +206,8 @@ export default function AdminReferralsPage() {
 
             <div className="flex items-center gap-3">
               <button
-                onClick={() => setActiveTab("settings")}
-                className="flex items-center gap-2 bg-card border border-border hover:border-purple-500 text-foreground px-4 py-2 rounded-xl text-xs font-semibold transition"
-              >
-                <Settings className="w-4 h-4 text-purple-500" />
-                Configure Program
-              </button>
-              <button
                 onClick={() => exportData("csv")}
-                className="flex items-center gap-2 bg-green-500/10 border border-green-500/30 text-green-500 hover:bg-green-500/20 px-4 py-2 rounded-xl text-xs font-semibold transition"
+                className="flex items-center gap-2 bg-green-500/10 border border-green-500/30 text-green-500 hover:bg-green-500/20 px-3 py-2 rounded-lg text-xs font-semibold transition"
               >
                 <Download className="w-4 h-4" />
                 Export Report
@@ -196,25 +215,7 @@ export default function AdminReferralsPage() {
             </div>
           </div>
 
-          {/* Program Status Toggle */}
-          <div className="flex items-center justify-between bg-card border border-border px-4 py-3 rounded-xl">
-            <div className="flex items-center gap-3">
-              <div className={`w-2.5 h-2.5 rounded-full ${programActive ? "bg-green-500 animate-pulse" : "bg-amber-500"}`} />
-              <span className="text-sm font-bold text-foreground">
-                {programActive ? "Program Active" : "Program Paused"}
-              </span>
-            </div>
-            <button
-              onClick={() => setShowToggleConfirm(true)}
-              className={`px-3 py-1.5 rounded-lg text-xs font-bold transition ${
-                programActive
-                  ? "bg-green-500 text-background hover:bg-green-600"
-                  : "bg-amber-500 text-background hover:bg-amber-600"
-              }`}
-            >
-              {programActive ? "ENABLED" : "PAUSED"}
-            </button>
-          </div>
+        
 
           {/* Toggle Confirmation Modal */}
           <AnimatePresence>
@@ -344,7 +345,9 @@ export default function AdminReferralsPage() {
                 <Unlock className="w-4 h-4 text-green-500" />
               </div>
               <div className="text-2xl font-black text-green-500">
-                {(stats.unlockedRewards / 1000000).toFixed(2)}M <span className="text-xs">TP</span>
+                {stats.unlockedRewards >= 1000000 
+                  ? `${(stats.unlockedRewards / 1000000).toFixed(2)}M` 
+                  : stats.unlockedRewards.toLocaleString()} <span className="text-xs">TP</span>
               </div>
               <div className="flex items-center gap-1.5 text-[11px] text-muted-foreground mt-2">
                 <span>~${(stats.unlockedRewards / 100000).toFixed(0)} distributed</span>
@@ -358,7 +361,9 @@ export default function AdminReferralsPage() {
                 <Hourglass className="w-4 h-4 text-amber-400" />
               </div>
               <div className="text-2xl font-black text-amber-400">
-                {(stats.pendingRewards / 1000000).toFixed(2)}M <span className="text-xs">TP</span>
+                {stats.pendingRewards >= 1000000 
+                  ? `${(stats.pendingRewards / 1000000).toFixed(2)}M` 
+                  : stats.pendingRewards.toLocaleString()} <span className="text-xs">TP</span>
               </div>
               <div className="flex items-center gap-1.5 text-[11px] text-muted-foreground mt-2">
                 <span>Held in qualification reserve</span>
@@ -446,14 +451,11 @@ export default function AdminReferralsPage() {
                           className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-[10px] font-semibold ${
                             referral.status === "qualified"
                               ? "bg-green-500/10 text-green-500"
-                              : referral.status === "pending"
-                              ? "bg-amber-500/10 text-amber-500"
-                              : "bg-red-500/10 text-red-500"
+                              : "bg-amber-500/10 text-amber-500"
                           }`}
                         >
                           {referral.status === "qualified" && <CheckCircle className="w-3 h-3" />}
                           {referral.status === "pending" && <Clock className="w-3 h-3" />}
-                          {referral.status === "flagged" && <AlertTriangle className="w-3 h-3" />}
                           {referral.status.charAt(0).toUpperCase() + referral.status.slice(1)}
                         </span>
                       </td>
@@ -476,11 +478,6 @@ export default function AdminReferralsPage() {
                           <button className="p-1.5 rounded-lg hover:bg-secondary transition" title="View Details">
                             <Eye className="w-4 h-4 text-muted-foreground" />
                           </button>
-                          {referral.status === "flagged" && (
-                            <button className="p-1.5 rounded-lg hover:bg-green-500/10 transition" title="Approve">
-                              <ShieldCheck className="w-4 h-4 text-green-500" />
-                            </button>
-                          )}
                           <button className="p-1.5 rounded-lg hover:bg-red-500/10 transition" title="Flag/Ban">
                             <Ban className="w-4 h-4 text-red-500" />
                           </button>

@@ -332,7 +332,7 @@ const UserSchema = new Schema<IUser>({
     },
     pendingRewards: {
       type: Number,
-      default: 100
+      default: 0
     }
   }
 }, {

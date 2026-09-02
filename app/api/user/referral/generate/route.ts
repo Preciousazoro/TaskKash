@@ -63,7 +63,7 @@ export async function POST(request: NextRequest) {
                 pending: 0,
                 qualified: 0,
                 unlockedRewards: 0,
-                pendingRewards: 100
+                pendingRewards: 0
               }
             }
           },
@@ -127,7 +127,7 @@ export async function GET(request: NextRequest) {
         pending: 0,
         qualified: 0,
         unlockedRewards: 0,
-        pendingRewards: 100
+        pendingRewards: 0
       }
     });
 
