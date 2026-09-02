@@ -140,16 +140,16 @@ export async function POST(request: NextRequest) {
         pending: 0,
         qualified: 0,
         unlockedRewards: 0,
-        pendingRewards: 0
+        pendingRewards: 100
       }
     });
 
-    // Update referrer's totalInvites if referral was valid
+    // Update referrer's totalInvites and pending if referral was valid
     if (referrerId) {
       try {
         await User.findByIdAndUpdate(
           referrerId,
-          { $inc: { 'referralStats.totalInvites': 1 } },
+          { $inc: { 'referralStats.totalInvites': 1, 'referralStats.pending': 1 } },
           { new: true }
         );
       } catch (error) {
