@@ -61,7 +61,7 @@ export const {
           });
 
           const isPasswordValid = await user.comparePassword(
-            credentials.password
+            credentials.password as string
           );
 
           if (!isPasswordValid) {
