@@ -287,7 +287,7 @@ export async function PUT(request: NextRequest) {
         // Check if this user should qualify their referrer
         try {
           const qualificationResult = await checkAndQualifyReferral((user as any)._id.toString());
-          if (qualificationResult.qualified) {
+          if (qualificationResult.qualified && qualificationResult.referrerId) {
             console.log('🎉 Referral qualified!', qualificationResult);
             // Notify referrer about the unlocked reward
             try {
