@@ -229,7 +229,7 @@ export default function SubmissionCenterPage() {
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
               {STAT_CONFIG.map((s, i) => (
                 <Card key={s.key} className="bg-card border border-border shadow-sm hover:shadow-md transition-shadow">
-                  <CardContent className="px-5 py-3">
+                  <CardContent className="px-5">
                     <div className="flex items-center justify-between mb-4">
                       <div className={`p-2 rounded-xl`} style={{ backgroundColor: `${s.color}20`, color: s.color }}>
                         <s.icon className="w-5 h-5" />
@@ -248,19 +248,19 @@ export default function SubmissionCenterPage() {
             {/* METRICS CARDS - Matching Admin Dashboard Style */}
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
               <Card className="bg-card border border-border shadow-sm">
-                <CardContent className="p-4">
+                <CardContent className="px-4">
                   <div className="text-[11px] text-muted-foreground mb-1">Rewards Distributed</div>
                   <div className="text-xl font-bold text-green-500">{distributedTotal.toLocaleString()} TP</div>
                 </CardContent>
               </Card>
               <Card className="bg-card border border-border shadow-sm">
-                <CardContent className="p-4">
+                <CardContent className="px-4">
                   <div className="text-[11px] text-muted-foreground mb-1">Total Submissions</div>
                   <div className="text-xl font-bold text-foreground">{total}</div>
                 </CardContent>
               </Card>
               <Card className="bg-card border border-border shadow-sm">
-                <CardContent className="p-4">
+                <CardContent className="px-4">
                   <div className="text-[11px] text-muted-foreground mb-1">Approval Rate</div>
                   <div className="text-xl font-bold text-green-500">
                     {total > 0 ? Math.round((counts.approved || 0) / total * 100) : 0}%
@@ -268,7 +268,7 @@ export default function SubmissionCenterPage() {
                 </CardContent>
               </Card>
               <Card className="bg-card border border-border shadow-sm">
-                <CardContent className="p-4">
+                <CardContent className="px-4">
                   <div className="text-[11px] text-muted-foreground mb-1">Pending Review</div>
                   <div className="text-xl font-bold text-amber-500">{counts.pending || 0}</div>
                 </CardContent>
