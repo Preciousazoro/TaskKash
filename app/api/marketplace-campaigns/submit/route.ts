@@ -35,6 +35,8 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Campaign is not available' }, { status: 400 });
     }
 
+    console.log('Campaign reward amount:', campaign.rewardAmount);
+
     // Check if user has already submitted for this campaign
     const existingSubmission = await CampaignSubmission.findOne({
       campaignId,
@@ -48,13 +50,20 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Create new submission
-    const submission = await CampaignSubmission.create({
+    // Create new submission with reward amount
+    const newSubmission = {
       campaignId,
       userId: session.user.id,
       submissionData,
+      rewardAmount: campaign.rewardAmount,
       status: 'pending'
-    });
+    };
+    
+    console.log('Creating submission with data:', newSubmission);
+    
+    const submission = await CampaignSubmission.create(newSubmission);
+    
+    console.log('Created submission:', submission);
 
     return NextResponse.json(
       { 

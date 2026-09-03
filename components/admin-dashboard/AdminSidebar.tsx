@@ -239,6 +239,11 @@ function SidebarNavItems({
           href: `${basePath}/our-marketplace/create-campaign`,
         },
         {
+          name: "Submission Center",
+          icon: FileText,
+          href: `${basePath}/submission-verification/submission-center`,
+        },
+        {
           name: "Campaign Templates",
           icon: LayoutTemplate,
           href: `#`,
@@ -250,27 +255,27 @@ function SidebarNavItems({
         },
       ],
     },
-    {
-      name: "Submission & Check",
-      icon: ClipboardCheck,
-      children: [
-        {
-          name: "Submission Center",
-          icon: FileText,
-          href: `${basePath}/submission-verification/submission-center`,
-        },
-        {
-          name: "Waiting Queue",
-          icon: Clock,
-          href: `${basePath}/submission-verification/waiting-period-queue`,
-        },
-        {
-          name: "Reward Distribution",
-          icon: ArrowUpRight,
-          href: `${basePath}/submission-verification/reward-distribution`,
-        },
-      ],
-    },
+    // {
+    //   name: "Submission & Check",
+    //   icon: ClipboardCheck,
+    //   children: [
+    //     {
+    //       name: "Submission Center",
+    //       icon: FileText,
+    //       href: `${basePath}/submission-verification/submission-center`,
+    //     },
+    //     {
+    //       name: "Waiting Queue",
+    //       icon: Clock,
+    //       href: `${basePath}/submission-verification/waiting-period-queue`,
+    //     },
+    //     {
+    //       name: "Reward Distribution",
+    //       icon: ArrowUpRight,
+    //       href: `${basePath}/submission-verification/reward-distribution`,
+    //     },
+    //   ],
+    // },
     {
       name: "User Management",
       icon: Users,

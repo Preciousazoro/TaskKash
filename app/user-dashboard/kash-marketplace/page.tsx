@@ -7,7 +7,8 @@ import {
   Wallet, ShieldCheck, Clock, Users, Coins, TrendingUp, CheckCircle2,
   Circle, Upload, Link2, Mail, Hash, FileText, AtSign, ExternalLink,
   X, SlidersHorizontal, ChevronRight, Zap, BadgeCheck, Globe, Lock,
-  Layers, Target, Gift, Star, ChevronLeft, Info, Filter, AlertCircle
+  Layers, Target, Gift, Star, ChevronLeft, Info, Filter, AlertCircle,
+  Tag, Play, Download, Image as ImageIcon, Calendar, Award
 } from "lucide-react";
 
 import UserSidebar from "@/components/user-dashboard/UserSidebar";
@@ -77,6 +78,23 @@ const VERIFY_ICON: Record<string, any> = {
   manual: ShieldCheck,
 };
 
+const VERIFY_LABELS: Record<string, string> = {
+  wallet: 'Wallet Address',
+  tx: 'Transaction Hash',
+  screenshot: 'Screenshot',
+  receipt: 'Receipt',
+  email: 'Email Address',
+  order: 'Order ID',
+  username: 'Username',
+  auto: 'Auto Verification',
+  manual: 'Manual Verification',
+};
+
+// Helper function to get field label
+const getFieldLabel = (field: any) => {
+  return field.label || VERIFY_LABELS[field.type] || field.type;
+};
+
 /* ============================================================================
    MAIN USER EARN PAGE COMPONENT
    ============================================================================ */
@@ -92,6 +110,9 @@ export default function UserEarnPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [claimSubmitted, setClaimSubmitted] = useState(false);
   const [verificationInputs, setVerificationInputs] = useState<Record<string, string>>({});
+  
+  // Gallery State
+  const [currentGalleryIndex, setCurrentGalleryIndex] = useState(0);
 
   // Fetch campaigns from API
   useEffect(() => {
@@ -152,6 +173,7 @@ export default function UserEarnPage() {
     setSelectedCampaign(campaign);
     setClaimSubmitted(false);
     setVerificationInputs({});
+    setCurrentGalleryIndex(0);
   }, []);
 
   const handleCloseModal = useCallback(() => {
@@ -166,6 +188,20 @@ export default function UserEarnPage() {
 
   const handleSubmitClaim = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    // Validate that all required fields are filled
+    const requiredFields = selectedCampaign.verificationFields?.filter((f: any) => f.required) || [];
+    const missingFields = requiredFields.filter((f: any) => {
+      const fieldLabel = getFieldLabel(f);
+      return !verificationInputs[fieldLabel] || verificationInputs[fieldLabel].trim() === '';
+    });
+
+    if (missingFields.length > 0) {
+      const missingLabels = missingFields.map((f: any) => getFieldLabel(f)).join(', ');
+      alert(`Please fill in all required fields: ${missingLabels}`);
+      return;
+    }
+
     setIsSubmitting(true);
     
     try {
@@ -397,11 +433,12 @@ export default function UserEarnPage() {
 
                       {/* Card Body */}
                       <div className="p-5 space-y-4">
+                        {/* Brand Header */}
                         <div className="flex items-start gap-3">
                           <span className="text-2xl p-2 rounded-xl bg-white/5 border border-white/10 shrink-0">
                             {campaign.media?.logo || campaign.brandLogo || '🏆'}
                           </span>
-                          <div className="space-y-0.5">
+                          <div className="space-y-0.5 min-w-0">
                             <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">{campaign.brandName || 'Brand'}</span>
                             <h3 className="font-black text-white text-base leading-snug line-clamp-1 group-hover:text-purple-300 transition-colors">
                               {campaign.name || 'Campaign Name'}
@@ -409,18 +446,52 @@ export default function UserEarnPage() {
                           </div>
                         </div>
 
+                        {/* Badges Row */}
+                        <div className="flex flex-wrap items-center gap-1.5">
+                          <span className="px-2 py-0.5 rounded-md bg-purple-500/10 border border-purple-500/20 text-[10px] font-bold text-purple-300 uppercase tracking-wider">
+                            {campaign.type || 'social'}
+                          </span>
+                          <span className="px-2 py-0.5 rounded-md bg-blue-500/10 border border-blue-500/20 text-[10px] font-bold text-blue-300 uppercase tracking-wider">
+                            {campaign.category || 'general'}
+                          </span>
+                          {campaign.tags && (
+                            <span className="px-2 py-0.5 rounded-md bg-amber-500/10 border border-amber-500/20 text-[10px] font-bold text-amber-300 uppercase tracking-wider flex items-center gap-1">
+                              <Tag className="w-3 h-3" />
+                              {campaign.tags}
+                            </span>
+                          )}
+                        </div>
+
+                        {/* Description */}
                         <p className="text-xs text-gray-400 line-clamp-2 leading-relaxed">
                           {campaign.shortDescription || campaign.description || 'No description available'}
                         </p>
 
+                        {/* Stats Grid */}
                         <div className="grid grid-cols-2 gap-2 bg-white/5 p-3 rounded-xl border border-white/5 font-mono text-xs">
                           <div>
-                            <span className="text-[10px] uppercase text-gray-500 font-bold block">Reward</span>
+                            <span className="text-[10px] uppercase text-gray-500 font-bold block flex items-center gap-1">
+                              <Award className="w-3 h-3" /> Reward
+                            </span>
                             <span className="font-bold text-emerald-400">{campaign.rewardAmount.toLocaleString()} TP</span>
                           </div>
                           <div>
-                            <span className="text-[10px] uppercase text-gray-500 font-bold block">Ends</span>
+                            <span className="text-[10px] uppercase text-gray-500 font-bold block flex items-center gap-1">
+                              <Calendar className="w-3 h-3" /> Ends
+                            </span>
                             <span className="font-bold text-gray-300">{campaign.endsAt ? new Date(campaign.endsAt).toLocaleDateString() : 'No limit'}</span>
+                          </div>
+                          <div>
+                            <span className="text-[10px] uppercase text-gray-500 font-bold block flex items-center gap-1">
+                              <Users className="w-3 h-3" /> Participants
+                            </span>
+                            <span className="font-bold text-gray-300">{campaign.maxParticipants ? campaign.maxParticipants.toLocaleString() : 'Unlimited'}</span>
+                          </div>
+                          <div>
+                            <span className="text-[10px] uppercase text-gray-500 font-bold block flex items-center gap-1">
+                              <Zap className="w-3 h-3" /> Distribution
+                            </span>
+                            <span className="font-bold text-gray-300">{campaign.distributionMethod || 'Automatic'}</span>
                           </div>
                         </div>
                       </div>
@@ -510,32 +581,244 @@ export default function UserEarnPage() {
                 </div>
 
                 {/* Modal Body */}
-                <div className="p-6 md:p-8 overflow-y-auto space-y-8 flex-1">
-                  {/* Stats Bar */}
+                <div className="p-6 md:p-8 overflow-y-auto space-y-6 flex-1">
+                  {/* Quick Stats Bar */}
                   <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 bg-white/5 p-4 rounded-2xl border border-white/5 font-mono text-xs">
                     <div>
-                      <span className="text-[10px] text-gray-500 uppercase font-bold block">Reward</span>
+                      <span className="text-[10px] text-gray-500 uppercase font-bold block flex items-center gap-1">
+                        <Award className="w-3 h-3" /> Reward
+                      </span>
                       <span className="text-emerald-400 font-bold">{selectedCampaign.rewardAmount.toLocaleString()} TP</span>
                     </div>
                     <div>
-                      <span className="text-[10px] text-gray-500 uppercase font-bold block">Pool</span>
+                      <span className="text-[10px] text-gray-500 uppercase font-bold block flex items-center gap-1">
+                        <Coins className="w-3 h-3" /> Pool
+                      </span>
                       <span className="text-white font-bold">{selectedCampaign.rewardPool ? selectedCampaign.rewardPool.toLocaleString() + ' TP' : 'Unlimited'}</span>
                     </div>
                     <div>
-                      <span className="text-[10px] text-gray-500 uppercase font-bold block">Verification</span>
+                      <span className="text-[10px] text-gray-500 uppercase font-bold block flex items-center gap-1">
+                        <ShieldCheck className="w-3 h-3" /> Verification
+                      </span>
                       <span className="text-gray-300 font-bold">{selectedCampaign.verificationMode}</span>
                     </div>
                     <div>
-                      <span className="text-[10px] text-gray-500 uppercase font-bold block">Ends On</span>
+                      <span className="text-[10px] text-gray-500 uppercase font-bold block flex items-center gap-1">
+                        <Calendar className="w-3 h-3" /> Ends On
+                      </span>
                       <span className="text-gray-300 font-bold">{selectedCampaign.endsAt ? new Date(selectedCampaign.endsAt).toLocaleDateString() : 'No limit'}</span>
                     </div>
                   </div>
+
+                  {/* Campaign Details Grid */}
+                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 bg-white/5 p-4 rounded-2xl border border-white/5 font-mono text-xs">
+                    <div>
+                      <span className="text-[10px] text-gray-500 uppercase font-bold block">Type</span>
+                      <span className="text-purple-300 font-bold capitalize">{selectedCampaign.type || 'social'}</span>
+                    </div>
+                    <div>
+                      <span className="text-[10px] text-gray-500 uppercase font-bold block">Category</span>
+                      <span className="text-blue-300 font-bold capitalize">{selectedCampaign.category || 'general'}</span>
+                    </div>
+                    <div>
+                      <span className="text-[10px] text-gray-500 uppercase font-bold block">Distribution</span>
+                      <span className="text-gray-300 font-bold">{selectedCampaign.distributionMethod || 'Automatic'}</span>
+                    </div>
+                    <div>
+                      <span className="text-[10px] text-gray-500 uppercase font-bold block flex items-center gap-1">
+                        <Users className="w-3 h-3" /> Max Participants
+                      </span>
+                      <span className="text-gray-300 font-bold">{selectedCampaign.maxParticipants ? selectedCampaign.maxParticipants.toLocaleString() : 'Unlimited'}</span>
+                    </div>
+                    <div>
+                      <span className="text-[10px] text-gray-500 uppercase font-bold block">Claims Per User</span>
+                      <span className="text-gray-300 font-bold">{selectedCampaign.maxClaimsPerUser || 1}</span>
+                    </div>
+                    <div>
+                      <span className="text-[10px] text-gray-500 uppercase font-bold block">Reward Delay</span>
+                      <span className="text-gray-300 font-bold">{selectedCampaign.rewardDelay ? selectedCampaign.rewardDelay + ' days' : 'Immediate'}</span>
+                    </div>
+                  </div>
+
+                  {/* Website Link */}
+                  {selectedCampaign.website && (
+                    <div className="bg-gradient-to-r from-purple-500/10 to-blue-500/10 border border-purple-500/20 rounded-xl p-4">
+                      <a 
+                        href={selectedCampaign.website} 
+                        target="_blank" 
+                        rel="noopener noreferrer"
+                        className="flex items-center gap-3 text-xs font-bold text-purple-300 hover:text-purple-200 transition-colors"
+                      >
+                        <Globe className="w-4 h-4" />
+                        <span>Visit Official Website</span>
+                        <ExternalLink className="w-3 h-3 ml-auto" />
+                      </a>
+                    </div>
+                  )}
 
                   {/* Description */}
                   <div className="space-y-2">
                     <h4 className="text-xs font-black uppercase tracking-wider text-gray-400">About Campaign</h4>
                     <p className="text-sm text-gray-300 leading-relaxed">{selectedCampaign.description || selectedCampaign.shortDescription || 'No description available'}</p>
                   </div>
+
+                  {/* Media Gallery */}
+                  {(selectedCampaign.media?.gallery || selectedCampaign.media?.video) && (
+                    <div className="space-y-3">
+                      <h4 className="text-xs font-black uppercase tracking-wider text-gray-400 flex items-center gap-2">
+                        <ImageIcon className="w-4 h-4" />
+                        <span>Media Gallery</span>
+                      </h4>
+                      
+                      {/* Video */}
+                      {selectedCampaign.media?.video && (
+                        <div className="bg-black/40 rounded-xl overflow-hidden border border-white/10">
+                          <video 
+                            controls 
+                            className="w-full h-auto"
+                            poster={selectedCampaign.media?.banner}
+                          >
+                            <source src={selectedCampaign.media.video} type="video/mp4" />
+                            Your browser does not support the video tag.
+                          </video>
+                        </div>
+                      )}
+
+                      {/* Image Gallery */}
+                      {selectedCampaign.media?.gallery && (
+                        <div className="space-y-3">
+                          <div className="relative bg-black/40 rounded-xl overflow-hidden border border-white/10 aspect-video">
+                            <img 
+                              src={Array.isArray(selectedCampaign.media.gallery) 
+                                ? selectedCampaign.media.gallery[currentGalleryIndex] 
+                                : selectedCampaign.media.gallery || selectedCampaign.media?.banner} 
+                              alt="Gallery image" 
+                              className="w-full h-full object-cover"
+                            />
+                            {Array.isArray(selectedCampaign.media.gallery) && selectedCampaign.media.gallery.length > 1 && (
+                              <>
+                                <button 
+                                  onClick={() => setCurrentGalleryIndex((prev) => (prev === 0 ? selectedCampaign.media.gallery.length - 1 : prev - 1))}
+                                  className="absolute left-2 top-1/2 -translate-y-1/2 p-2 rounded-full bg-black/60 border border-white/10 text-white hover:bg-black transition-colors"
+                                >
+                                  <ChevronLeft className="w-4 h-4" />
+                                </button>
+                                <button 
+                                  onClick={() => setCurrentGalleryIndex((prev) => (prev === selectedCampaign.media.gallery.length - 1 ? 0 : prev + 1))}
+                                  className="absolute right-2 top-1/2 -translate-y-1/2 p-2 rounded-full bg-black/60 border border-white/10 text-white hover:bg-black transition-colors"
+                                >
+                                  <ChevronRight className="w-4 h-4" />
+                                </button>
+                                <div className="absolute bottom-2 left-1/2 -translate-x-1/2 flex gap-1">
+                                  {selectedCampaign.media.gallery.map((_: any, idx: number) => (
+                                    <button
+                                      key={idx}
+                                      onClick={() => setCurrentGalleryIndex(idx)}
+                                      className={`w-2 h-2 rounded-full transition-colors ${
+                                        idx === currentGalleryIndex ? 'bg-white' : 'bg-white/30'
+                                      }`}
+                                    />
+                                  ))}
+                                </div>
+                              </>
+                            )}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  )}
+
+                  {/* Attachments & Whitepaper */}
+                  {(selectedCampaign.media?.whitepaper || selectedCampaign.media?.attachments) && (
+                    <div className="space-y-3">
+                      <h4 className="text-xs font-black uppercase tracking-wider text-gray-400 flex items-center gap-2">
+                        <Download className="w-4 h-4" />
+                        <span>Resources</span>
+                      </h4>
+                      <div className="space-y-2">
+                        {selectedCampaign.media?.whitepaper && (
+                          <a 
+                            href={selectedCampaign.media.whitepaper} 
+                            target="_blank" 
+                            rel="noopener noreferrer"
+                            className="flex items-center gap-3 bg-white/5 border border-white/10 rounded-xl p-3 text-xs font-bold text-gray-300 hover:bg-white/10 transition-colors"
+                          >
+                            <FileText className="w-4 h-4 text-purple-400" />
+                            <span>Whitepaper</span>
+                            <ExternalLink className="w-3 h-3 ml-auto" />
+                          </a>
+                        )}
+                        {selectedCampaign.media?.attachments && (
+                          <a 
+                            href={selectedCampaign.media.attachments} 
+                            target="_blank" 
+                            rel="noopener noreferrer"
+                            className="flex items-center gap-3 bg-white/5 border border-white/10 rounded-xl p-3 text-xs font-bold text-gray-300 hover:bg-white/10 transition-colors"
+                          >
+                            <Upload className="w-4 h-4 text-blue-400" />
+                            <span>Attachments</span>
+                            <ExternalLink className="w-3 h-3 ml-auto" />
+                          </a>
+                        )}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Audience Targeting */}
+                  <div className="space-y-3">
+                    <h4 className="text-xs font-black uppercase tracking-wider text-gray-400 flex items-center gap-2">
+                      <Target className="w-4 h-4" />
+                      <span>Audience Targeting</span>
+                    </h4>
+                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 bg-white/5 p-4 rounded-xl border border-white/5 font-mono text-xs">
+                      <div>
+                        <span className="text-[10px] text-gray-500 uppercase font-bold block">Country</span>
+                        <span className="text-gray-300 font-bold capitalize">{selectedCampaign.audience?.country || 'All'}</span>
+                      </div>
+                      <div>
+                        <span className="text-[10px] text-gray-500 uppercase font-bold block">Language</span>
+                        <span className="text-gray-300 font-bold capitalize">{selectedCampaign.audience?.language || 'All'}</span>
+                      </div>
+                      <div>
+                        <span className="text-[10px] text-gray-500 uppercase font-bold block">Wallet Type</span>
+                        <span className="text-gray-300 font-bold capitalize">{selectedCampaign.audience?.walletType || 'Any'}</span>
+                      </div>
+                      <div>
+                        <span className="text-[10px] text-gray-500 uppercase font-bold block">Min Level</span>
+                        <span className="text-gray-300 font-bold">{selectedCampaign.audience?.minLevel || '1'}</span>
+                      </div>
+                      <div>
+                        <span className="text-[10px] text-gray-500 uppercase font-bold block">KYC Required</span>
+                        <span className={`font-bold ${selectedCampaign.audience?.kycRequired ? 'text-amber-400' : 'text-gray-300'}`}>
+                          {selectedCampaign.audience?.kycRequired ? 'Yes' : 'No'}
+                        </span>
+                      </div>
+                      <div>
+                        <span className="text-[10px] text-gray-500 uppercase font-bold block">VIP Only</span>
+                        <span className={`font-bold ${selectedCampaign.audience?.vipUsers ? 'text-purple-400' : 'text-gray-300'}`}>
+                          {selectedCampaign.audience?.vipUsers ? 'Yes' : 'No'}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* FAQs */}
+                  {selectedCampaign.faqs && selectedCampaign.faqs.length > 0 && (
+                    <div className="space-y-3">
+                      <h4 className="text-xs font-black uppercase tracking-wider text-gray-400 flex items-center gap-2">
+                        <Info className="w-4 h-4" />
+                        <span>Frequently Asked Questions</span>
+                      </h4>
+                      <div className="space-y-2">
+                        {selectedCampaign.faqs.map((faq: any, index: number) => (
+                          <div key={index} className="bg-white/5 border border-white/10 rounded-xl p-4">
+                            <p className="text-xs font-bold text-white mb-1.5">{faq.question}</p>
+                            <p className="text-xs text-gray-400 leading-relaxed">{faq.answer}</p>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
 
                   {/* Requirements */}
                   {selectedCampaign.requirements && selectedCampaign.requirements.length > 0 && (
@@ -599,45 +882,48 @@ export default function UserEarnPage() {
                         {selectedCampaign.verificationFields && selectedCampaign.verificationFields.length > 0 ? (
                           selectedCampaign.verificationFields.map((v: any, index: number) => {
                             const IconComp = VERIFY_ICON[v.type] || FileText;
+                            const fieldLabel = getFieldLabel(v);
                             return (
                               <div key={index} className="space-y-1.5">
                                 <label className="text-xs font-bold text-gray-300 flex items-center gap-2">
                                   <IconComp className="w-3.5 h-3.5 text-purple-400" />
-                                  <span>{v.label}</span>
+                                  <span>{fieldLabel}</span>
                                   {v.required && <span className="text-red-400">*</span>}
                                 </label>
 
                                 <input
                                   type={v.type === 'email' ? 'email' : 'text'}
                                   required={v.required}
-                                  placeholder={`Enter ${v.label.toLowerCase()}...`}
-                                  value={verificationInputs[v.label] || ""}
-                                  onChange={(e) => handleInputChange(v.label, e.target.value)}
+                                  placeholder={`Enter ${fieldLabel.toLowerCase()}...`}
+                                  value={verificationInputs[fieldLabel] || ""}
+                                  onChange={(e) => handleInputChange(fieldLabel, e.target.value)}
                                   className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-xs text-white placeholder-gray-600 focus:outline-none focus:border-emerald-400 transition-colors"
                                 />
                               </div>
                             );
                           })
                         ) : (
-                          <div className="text-xs text-gray-400">
-                            No verification fields configured for this campaign.
+                          <div className="text-xs text-gray-400 bg-amber-500/10 border border-amber-500/30 rounded-xl p-4 text-center">
+                            No verification fields configured for this campaign. Please contact the campaign administrator.
                           </div>
                         )}
 
-                        <button
-                          type="submit"
-                          disabled={isSubmitting}
-                          className="w-full bg-emerald-400 hover:bg-emerald-300 disabled:opacity-50 text-black font-black uppercase tracking-wider text-xs py-4 rounded-xl transition-all flex items-center justify-center gap-2 shadow-lg shadow-emerald-400/20"
-                        >
-                          {isSubmitting ? (
-                            <span>Verifying Proof...</span>
-                          ) : (
-                            <>
-                              <span>Submit Proof & Earn {selectedCampaign.rewardAmount.toLocaleString()} TP</span>
-                              <ArrowRight className="w-4 h-4" />
-                            </>
-                          )}
-                        </button>
+                        {selectedCampaign.verificationFields && selectedCampaign.verificationFields.length > 0 && (
+                          <button
+                            type="submit"
+                            disabled={isSubmitting}
+                            className="w-full bg-emerald-400 hover:bg-emerald-300 disabled:opacity-50 text-black font-black uppercase tracking-wider text-xs py-4 rounded-xl transition-all flex items-center justify-center gap-2 shadow-lg shadow-emerald-400/20"
+                          >
+                            {isSubmitting ? (
+                              <span>Verifying Proof...</span>
+                            ) : (
+                              <>
+                                <span>Submit Proof & Earn {selectedCampaign.rewardAmount.toLocaleString()} TP</span>
+                                <ArrowRight className="w-4 h-4" />
+                              </>
+                            )}
+                          </button>
+                        )}
                       </form>
                     )}
                   </div>

@@ -10,6 +10,7 @@ export interface ICampaignSubmission extends Document {
   campaignId: mongoose.Types.ObjectId;
   userId: mongoose.Types.ObjectId;
   submissionData: ISubmissionData;
+  rewardAmount: number;
   status: SubmissionStatus;
   reviewedBy?: mongoose.Types.ObjectId;
   reviewNotes?: string;
@@ -33,6 +34,11 @@ const CampaignSubmissionSchema: Schema<ICampaignSubmission> = new Schema(
     submissionData: {
       type: Schema.Types.Mixed,
       required: true
+    },
+    rewardAmount: {
+      type: Number,
+      required: true,
+      default: 0
     },
     status: {
       type: String,
@@ -64,6 +70,11 @@ CampaignSubmissionSchema.index({ userId: 1, status: 1 });
 CampaignSubmissionSchema.index({ status: 1, createdAt: -1 });
 CampaignSubmissionSchema.index({ campaignId: 1, status: 1 });
 
-const CampaignSubmission: Model<ICampaignSubmission> = mongoose.models.CampaignSubmission || mongoose.model<ICampaignSubmission>('CampaignSubmission', CampaignSubmissionSchema);
+// Force schema recompilation in development
+if (mongoose.models.CampaignSubmission) {
+  delete mongoose.models.CampaignSubmission;
+}
+
+const CampaignSubmission: Model<ICampaignSubmission> = mongoose.model<ICampaignSubmission>('CampaignSubmission', CampaignSubmissionSchema);
 
 export default CampaignSubmission;
