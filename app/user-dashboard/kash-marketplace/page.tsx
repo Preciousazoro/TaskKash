@@ -32,6 +32,7 @@ const CATEGORIES = [
   { id: "gaming", label: "Gaming" },
   { id: "services", label: "Services" },
   { id: "creator", label: "Creator Economy" },
+  { id: "general", label: "General" },
 ];
 
 const DIFFICULTY_META = {
@@ -96,10 +97,21 @@ export default function UserEarnPage() {
   useEffect(() => {
     const fetchCampaigns = async () => {
       try {
+        // Try the test endpoint first to debug
+        const testResponse = await fetch('/api/marketplace-campaigns/test');
+        if (testResponse.ok) {
+          const testData = await testResponse.json();
+          console.log('Test endpoint response:', testData);
+        }
+
+        // Then try the real endpoint
         const response = await fetch('/api/marketplace-campaigns');
         if (response.ok) {
           const data = await response.json();
+          console.log('Fetched campaigns:', data.campaigns);
           setCampaigns(data.campaigns || []);
+        } else {
+          console.error('Failed to fetch campaigns:', response.status, await response.text());
         }
       } catch (error) {
         console.error('Error fetching campaigns:', error);
@@ -126,7 +138,7 @@ export default function UserEarnPage() {
         selectedCategory === "all" || 
         (selectedCategory === "featured" && campaign.featured) ||
         (selectedCategory === "trending" && campaign.trending) ||
-        campaign.category === selectedCategory;
+        campaign.category.toLowerCase() === selectedCategory;
 
       return matchesSearch && matchesCategory;
     }).sort((a, b) => {
@@ -234,7 +246,7 @@ export default function UserEarnPage() {
                 </h1>
 
                 <p className="text-sm text-gray-300 line-clamp-2">
-                  {FEATURED.shortDescription}
+                  {FEATURED.shortDescription || FEATURED.description || 'No description available'}
                 </p>
 
                 <div className="flex flex-wrap items-center gap-4 pt-2 text-xs text-gray-400 font-mono">
@@ -390,15 +402,15 @@ export default function UserEarnPage() {
                             {campaign.media?.logo || campaign.brandLogo || '🏆'}
                           </span>
                           <div className="space-y-0.5">
-                            <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">{campaign.brandName}</span>
+                            <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">{campaign.brandName || 'Brand'}</span>
                             <h3 className="font-black text-white text-base leading-snug line-clamp-1 group-hover:text-purple-300 transition-colors">
-                              {campaign.name}
+                              {campaign.name || 'Campaign Name'}
                             </h3>
                           </div>
                         </div>
 
                         <p className="text-xs text-gray-400 line-clamp-2 leading-relaxed">
-                          {campaign.shortDescription}
+                          {campaign.shortDescription || campaign.description || 'No description available'}
                         </p>
 
                         <div className="grid grid-cols-2 gap-2 bg-white/5 p-3 rounded-xl border border-white/5 font-mono text-xs">
@@ -490,8 +502,8 @@ export default function UserEarnPage() {
                         {selectedCampaign.media?.logo || selectedCampaign.brandLogo || '🏆'}
                       </span>
                       <div>
-                        <span className="text-xs font-bold text-emerald-400 uppercase tracking-wider">{selectedCampaign.brandName}</span>
-                        <h2 className="text-xl md:text-2xl font-black uppercase text-white leading-tight">{selectedCampaign.name}</h2>
+                        <span className="text-xs font-bold text-emerald-400 uppercase tracking-wider">{selectedCampaign.brandName || 'Brand'}</span>
+                        <h2 className="text-xl md:text-2xl font-black uppercase text-white leading-tight">{selectedCampaign.name || 'Campaign Name'}</h2>
                       </div>
                     </div>
                   </div>
@@ -522,7 +534,7 @@ export default function UserEarnPage() {
                   {/* Description */}
                   <div className="space-y-2">
                     <h4 className="text-xs font-black uppercase tracking-wider text-gray-400">About Campaign</h4>
-                    <p className="text-sm text-gray-300 leading-relaxed">{selectedCampaign.description}</p>
+                    <p className="text-sm text-gray-300 leading-relaxed">{selectedCampaign.description || selectedCampaign.shortDescription || 'No description available'}</p>
                   </div>
 
                   {/* Requirements */}
