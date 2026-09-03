@@ -9,6 +9,7 @@ import mongoose from 'mongoose';
 import { AdminNotifications } from '@/lib/adminNotifications';
 import { UserNotifications } from '@/lib/userNotifications';
 import { withTimeout, aggregateWithTimeout } from '@/lib/timeout';
+import { checkAndQualifyReferral } from '@/lib/referralService';
 
 export const dynamic = 'force-dynamic';
 
@@ -281,6 +282,27 @@ export async function PUT(request: NextRequest) {
         } catch (error) {
           console.error('❌ Failed to create user task approval notification:', error);
           // Don't fail the request if notification fails
+        }
+
+        // Check if this user should qualify their referrer
+        try {
+          const qualificationResult = await checkAndQualifyReferral((user as any)._id.toString());
+          if (qualificationResult.qualified) {
+            console.log('🎉 Referral qualified!', qualificationResult);
+            // Notify referrer about the unlocked reward
+            try {
+              await UserNotifications.referralRewardUnlocked(
+                qualificationResult.referrerId,
+                qualificationResult.reward,
+                (user as any).name
+              );
+            } catch (notificationError) {
+              console.error('Failed to send referral unlock notification:', notificationError);
+            }
+          }
+        } catch (referralError) {
+          console.error('Error checking referral qualification:', referralError);
+          // Don't fail the approval if referral check fails
         }
 
         awardedPoints = rewardPoints;

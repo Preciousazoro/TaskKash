@@ -52,6 +52,7 @@ interface ReferralStats {
   unlockedRewards: number;
   pendingRewards: number;
   flagged: number; // Kept for future implementation
+  qualifiedReferrals: string[]; // Array of user IDs that have qualified
 }
 
 interface Referral {
@@ -85,6 +86,7 @@ export default function AdminReferralsPage() {
     unlockedRewards: 0,
     pendingRewards: 0,
     flagged: 0,
+    qualifiedReferrals: [],
   });
 
   const [referrals, setReferrals] = useState<Referral[]>([]);

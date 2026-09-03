@@ -140,7 +140,8 @@ export async function POST(request: NextRequest) {
         pending: 0,
         qualified: 0,
         unlockedRewards: 0,
-        pendingRewards: 0
+        pendingRewards: 0,
+        qualifiedReferrals: []
       }
     });
 
@@ -149,7 +150,7 @@ export async function POST(request: NextRequest) {
       try {
         await User.findByIdAndUpdate(
           referrerId,
-          { $inc: { 'referralStats.totalInvites': 1, 'referralStats.pending': 1, 'referralStats.pendingRewards': 100 } },
+          { $inc: { 'referralStats.totalInvites': 1, 'referralStats.pending': 1, 'referralStats.pendingRewards': 500 } },
           { new: true }
         );
       } catch (error) {

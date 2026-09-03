@@ -4,7 +4,7 @@ import connectDB from '@/lib/mongodb';
 
 export interface CreateUserNotificationParams {
   userId: string | mongoose.Types.ObjectId;
-  type: 'task' | 'system' | 'reward' | 'profile' | 'alert' | 'task_approved' | 'task_rejected' | 'new_task' | 'submission_received' | 'points_earned' | 'welcome_bonus';
+  type: 'task' | 'system' | 'reward' | 'profile' | 'alert' | 'task_approved' | 'task_rejected' | 'new_task' | 'submission_received' | 'points_earned' | 'welcome_bonus' | 'referral_unlocked';
   title: string;
   message: string;
   actionUrl?: string;
@@ -123,5 +123,14 @@ export const UserNotifications = {
       title: 'Reward Claimed! 🏆',
       message: `You have successfully claimed "${rewardName}".`,
       actionUrl: '/user-dashboard/rewards'
+    }),
+
+  referralRewardUnlocked: (userId: string, rewardPoints: number, referredUserName: string) =>
+    createUserNotification({
+      userId,
+      type: 'referral_unlocked',
+      title: 'Referral Reward Unlocked! 🎉',
+      message: `${referredUserName} has qualified! ${rewardPoints} TP has been added to your balance.`,
+      actionUrl: '/user-dashboard/referals'
     })
 };

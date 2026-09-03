@@ -3,6 +3,7 @@ import { auth } from '@/lib/auth';
 import connectDB from '@/lib/mongodb';
 import User, { IUser } from '@/models/User';
 import crypto from 'crypto';
+import { getReferralStatsForUser } from '@/lib/referralService';
 
 // POST /api/user/referral/generate - Generate a unique referral link
 export async function POST(request: NextRequest) {
@@ -63,7 +64,8 @@ export async function POST(request: NextRequest) {
                 pending: 0,
                 qualified: 0,
                 unlockedRewards: 0,
-                pendingRewards: 0
+                pendingRewards: 0,
+                qualifiedReferrals: []
               }
             }
           },
@@ -118,16 +120,20 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'User not found' }, { status: 404 });
     }
 
+    // Calculate real-time referral stats
+    const realTimeStats = await getReferralStatsForUser(session.user.id);
+
     return NextResponse.json({
       referralToken: user.referralToken || null,
       referralLink: user.referralLink || null,
-      referralStats: user.referralStats || {
+      referralStats: realTimeStats || {
         totalInvites: 0,
         activeUsers: 0,
         pending: 0,
         qualified: 0,
         unlockedRewards: 0,
-        pendingRewards: 0
+        pendingRewards: 0,
+        qualifiedReferrals: []
       }
     });
 

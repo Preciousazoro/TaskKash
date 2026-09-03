@@ -47,6 +47,7 @@ export default function ReferralsPage() {
     qualified: 0,
     unlockedRewards: 0,
     pendingRewards: 0,
+    qualifiedReferrals: [] as string[],
   });
 
   const copyReferralLink = async () => {

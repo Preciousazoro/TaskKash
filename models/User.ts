@@ -69,6 +69,7 @@ export interface IUser extends Document {
     qualified: number;
     unlockedRewards: number;
     pendingRewards: number;
+    qualifiedReferrals: string[]; // Array of user IDs that have qualified
   };
   createdAt: Date;
   updatedAt: Date;
@@ -333,6 +334,10 @@ const UserSchema = new Schema<IUser>({
     pendingRewards: {
       type: Number,
       default: 0
+    },
+    qualifiedReferrals: {
+      type: [String],
+      default: []
     }
   }
 }, {
