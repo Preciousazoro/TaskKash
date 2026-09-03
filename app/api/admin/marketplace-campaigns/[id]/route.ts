@@ -23,8 +23,9 @@ function cleanComplexFields(data: any) {
   
   // Clean verificationFields - only keep valid ones
   if (cleaned.verificationFields && Array.isArray(cleaned.verificationFields)) {
+    // Temporarily less strict - just require a type, not a label
     cleaned.verificationFields = cleaned.verificationFields.filter(
-      (field: any) => field && field.label && field.label.trim() !== ''
+      (field: any) => field && field.type
     );
   }
   
@@ -71,7 +72,7 @@ export async function GET(
   } catch (error) {
     console.error('Error fetching marketplace campaign:', error);
     return NextResponse.json(
-      { error: 'Failed to fetch marketplace campaign' },
+      { error: 'Failed to fetch marketplace campaign', details: error instanceof Error ? error.message : 'Unknown error' },
       { status: 500 }
     );
   }
@@ -96,8 +97,13 @@ export async function PUT(
 
     const body = await request.json();
     
+    console.log('Update request - verificationFields:', body.verificationFields);
+    console.log('Update request - verificationMode:', body.verificationMode);
+    
     // Clean up complex fields to remove invalid/incomplete entries
     const cleanedData = cleanComplexFields(body);
+    
+    console.log('After cleaning - verificationFields:', cleanedData.verificationFields);
 
     const campaign = await MarketplaceCampaign.findByIdAndUpdate(
       params.id,
@@ -112,6 +118,8 @@ export async function PUT(
       );
     }
 
+    console.log('Updated campaign verificationFields:', campaign.verificationFields);
+
     return NextResponse.json({
       success: true,
       campaign,
@@ -119,7 +127,7 @@ export async function PUT(
   } catch (error) {
     console.error('Error updating marketplace campaign:', error);
     return NextResponse.json(
-      { error: 'Failed to update marketplace campaign' },
+      { error: 'Failed to update marketplace campaign', details: error instanceof Error ? error.message : 'Unknown error' },
       { status: 500 }
     );
   }

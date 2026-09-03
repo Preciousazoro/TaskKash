@@ -23,8 +23,9 @@ function cleanComplexFields(data: any) {
   
   // Clean verificationFields - only keep valid ones
   if (cleaned.verificationFields && Array.isArray(cleaned.verificationFields)) {
+    // Temporarily less strict - just require a type, not a label
     cleaned.verificationFields = cleaned.verificationFields.filter(
-      (field: any) => field && field.label && field.label.trim() !== ''
+      (field: any) => field && field.type
     );
   }
   

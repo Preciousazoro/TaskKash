@@ -211,7 +211,7 @@ export default function CreateCampaignPage() {
         requirements: requirements.filter(r => r.description && r.description.trim() !== ''),
         steps: steps.filter(s => s.title && s.title.trim() !== '' && s.description && s.description.trim() !== ''),
         verificationMode,
-        verificationFields: verificationFields.filter(f => f.label && f.label.trim() !== ''),
+        verificationFields: verificationFields.filter(f => f.type), // Temporarily less strict
         faqs: faqs.filter(f => f.question && f.question.trim() !== '' && f.answer && f.answer.trim() !== ''),
         audience,
         media,
@@ -269,12 +269,16 @@ export default function CreateCampaignPage() {
         requirements: requirements.filter(r => r.description && r.description.trim() !== ''),
         steps: steps.filter(s => s.title && s.title.trim() !== '' && s.description && s.description.trim() !== ''),
         verificationMode,
-        verificationFields: verificationFields.filter(f => f.label && f.label.trim() !== ''),
+        verificationFields: verificationFields.filter(f => f.type), // Temporarily less strict
         faqs: faqs.filter(f => f.question && f.question.trim() !== '' && f.answer && f.answer.trim() !== ''),
         audience,
         media,
         endsAt: form.endsAt ? new Date(form.endsAt) : null,
       };
+
+      console.log('Publishing campaign data:', campaignData);
+      console.log('Verification fields before filter:', verificationFields);
+      console.log('Verification fields after filter:', campaignData.verificationFields);
 
       let response;
       if (isEditing && id) {
