@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 
 import { Trophy, Clock, ChevronRight, ListTodo, CheckCircle2, XCircle, AlertCircle, Loader2, Filter } from "lucide-react";
 import { TaskDocument, TaskCard, transformTaskToCard } from "@/types/shared-task";
@@ -23,6 +24,7 @@ interface Stats {
 }
 
 export default function OverallTasksPage() {
+  const searchParams = useSearchParams();
   const [isLoading, setIsLoading] = useState(true);
   const [tasks, setTasks] = useState<TaskDocument[]>([]);
   const [stats, setStats] = useState<Stats>({
@@ -64,6 +66,28 @@ export default function OverallTasksPage() {
 
     fetchTasks();
   }, []);
+
+  // Check for taskurl or taskId query parameter and open modal
+  useEffect(() => {
+    if (tasks.length > 0 && !isLoading) {
+      const taskurl = searchParams.get('taskurl');
+      const taskId = searchParams.get('taskId');
+      
+      if (taskurl) {
+        const task = tasks.find(t => t.taskurl === taskurl);
+        if (task) {
+          setSelectedTask(task);
+          setIsModalOpen(true);
+        }
+      } else if (taskId) {
+        const task = tasks.find(t => t._id === taskId);
+        if (task) {
+          setSelectedTask(task);
+          setIsModalOpen(true);
+        }
+      }
+    }
+  }, [tasks, isLoading, searchParams]);
 
   const handleTaskClick = (task: TaskDocument) => {
     if (isNavigating.current) return;

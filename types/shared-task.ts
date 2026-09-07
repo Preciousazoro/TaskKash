@@ -25,6 +25,7 @@ export interface TaskDocument {
     createdAt: string;
   } | null;
   userTaskStatus?: 'pending' | 'approved' | 'rejected' | 'available';
+  taskurl?: string;
 }
 
 // Frontend Task Card interface (what the UI expects)

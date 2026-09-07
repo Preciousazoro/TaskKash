@@ -7,6 +7,30 @@ import { validateTaskData } from '@/lib/validation';
 import { UserNotifications } from '@/lib/userNotifications';
 import TaskExpiryHandler from '@/lib/taskExpiryHandler';
 
+async function generateTaskUrl(): Promise<string> {
+  try {
+    // Find the highest existing task number
+    const lastTask = await Task.findOne({ taskurl: /^task\d+$/ })
+      .sort({ taskurl: -1 })
+      .select('taskurl')
+      .lean() as any;
+    
+    let nextNumber = 1;
+    if (lastTask && lastTask.taskurl) {
+      const match = lastTask.taskurl.match(/task(\d+)$/);
+      if (match) {
+        nextNumber = parseInt(match[1]) + 1;
+      }
+    }
+    
+    return `task${nextNumber}`;
+  } catch (error) {
+    console.error('Error generating task URL:', error);
+    // Fallback to timestamp-based if there's an error
+    return `task${Date.now()}`;
+  }
+}
+
 // GET /api/admin/tasks - Fetch all tasks for admin panel
 export const runtime = "nodejs";
 
@@ -266,6 +290,7 @@ export async function POST(request: NextRequest) {
       instructions: instructions.trim(),
       taskLink: taskLink.trim(),
       alternateUrl: alternateUrl?.trim() || '',
+      taskurl: await generateTaskUrl(),
       deadline: deadline ? new Date(deadline) : null,
       status: status || 'active',
       createdBy: user._id

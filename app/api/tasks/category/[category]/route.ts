@@ -37,7 +37,7 @@ export async function GET(
 
     // Fetch tasks by category with lean query and timeout
     const tasks = await Task.find({ category })
-      .select('title description category rewardPoints validationType instructions taskLink alternateUrl deadline status createdAt updatedAt')
+      .select('title description category rewardPoints validationType instructions taskLink alternateUrl deadline status createdAt updatedAt taskurl')
       .lean();
 
     // Fetch user's latest submissions for each task with timeout

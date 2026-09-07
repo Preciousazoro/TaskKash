@@ -10,6 +10,7 @@ export interface ITask extends Document {
   instructions: string;
   taskLink?: string;
   alternateUrl?: string;
+  taskurl?: string;
   deadline: Date | undefined;
   status: 'active' | 'expired' | 'disabled';
   createdBy: mongoose.Types.ObjectId;
@@ -79,6 +80,13 @@ const TaskSchema: Schema<ITask> = new Schema({
     maxlength: [500, 'Alternate URL cannot be more than 500 characters'],
     default: ''
   },
+  taskurl: {
+    type: String,
+    required: false,
+    trim: true,
+    maxlength: [100, 'Task URL cannot be more than 100 characters'],
+    default: ''
+  },
   deadline: {
     type: Date,
     required: false,
@@ -115,5 +123,6 @@ TaskSchema.index({ rewardPoints: -1 }); // For sorting by rewards
 TaskSchema.index({ createdAt: -1 }); // For sorting by date
 TaskSchema.index({ status: 1, category: 1 }); // For filtered queries
 TaskSchema.index({ deadline: 1 }); // For deadline queries
+TaskSchema.index({ taskurl: 1 }); // For task URL lookups
 
 export default mongoose.models.Task || mongoose.model<ITask>('Task', TaskSchema);

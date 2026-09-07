@@ -2,7 +2,7 @@
 
 import { useState, useRef } from "react";
 import { motion } from "framer-motion";
-import { Trophy, Clock, ExternalLink, Loader2 } from "lucide-react";
+import { Trophy, Clock, ExternalLink, Loader2, Copy, Check } from "lucide-react";
 import { StatusBadge } from "./StatusBadge";
 import { Button } from "@/components/ui/button";
 import { TaskDocument } from "@/types/shared-task";
@@ -24,6 +24,7 @@ const truncateText = (html: string, maxLength: number = 80): string => {
 
 export function TaskCard({ task, onClick, onStartTask }: TaskCardProps) {
   const [isStarting, setIsStarting] = useState(false);
+  const [copied, setCopied] = useState(false);
   const router = useRouter();
   const isClicking = useRef(false);
 
@@ -91,6 +92,20 @@ export function TaskCard({ task, onClick, onStartTask }: TaskCardProps) {
     setTimeout(() => { isClicking.current = false; }, 300);
   };
 
+  const handleCopyTaskUrl = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    const taskUrl = task.taskurl
+      ? `https://taskkash.xyz/${task.taskurl}`
+      : `https://taskkash.xyz/task/${task._id}`;
+    navigator.clipboard.writeText(taskUrl).then(() => {
+      setCopied(true);
+      toast.success('Task URL copied to clipboard!');
+      setTimeout(() => setCopied(false), 2000);
+    }).catch(() => {
+      toast.error('Failed to copy URL');
+    });
+  };
+
   return (
     <motion.div
       whileHover={{ y: -2 }}
@@ -117,7 +132,20 @@ export function TaskCard({ task, onClick, onStartTask }: TaskCardProps) {
     : task.title}
 </h3>
           </div>
-          <StatusBadge status={task.userTaskStatus || 'available'} />
+          <div className="flex items-center gap-2">
+            <button
+              onClick={handleCopyTaskUrl}
+              className="p-1.5 rounded-lg hover:bg-muted transition-colors"
+              title="Copy task URL"
+            >
+              {copied ? (
+                <Check className="w-4 h-4 text-green-500" />
+              ) : (
+                <Copy className="w-4 h-4 text-muted-foreground" />
+              )}
+            </button>
+            <StatusBadge status={task.userTaskStatus || 'available'} />
+          </div>
         </div>
 
         {/* Description — truncated */}

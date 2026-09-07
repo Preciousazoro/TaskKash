@@ -24,7 +24,7 @@ export async function GET(request: NextRequest) {
 
     // Fetch all active tasks with timeout
     const tasks = await Task.find({ status: 'active' })
-      .select('title description category rewardPoints validationType instructions taskLink alternateUrl deadline status createdAt updatedAt')
+      .select('title description category rewardPoints validationType instructions taskLink alternateUrl deadline status createdAt updatedAt taskurl')
       .lean();
 
     // Fetch user's submissions for these tasks with timeout

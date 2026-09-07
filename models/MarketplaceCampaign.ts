@@ -1,6 +1,6 @@
 import mongoose, { Schema, Document, Model } from 'mongoose';
 
-export type CampaignStatus = 'draft' | 'published';
+export type CampaignStatus = 'draft' | 'published' | 'completed' | 'reward_pool_reached' | 'max_participants_reached' | 'expired';
 
 export interface IRequirement {
   id: string;
@@ -200,7 +200,7 @@ const MarketplaceCampaignSchema: Schema<IMarketplaceCampaign> = new Schema(
     },
     visibility: {
       type: String,
-      enum: ['draft', 'published'],
+      enum: ['draft', 'published', 'completed', 'reward_pool_reached', 'max_participants_reached', 'expired'],
       default: 'draft'
     },
     endsAt: {

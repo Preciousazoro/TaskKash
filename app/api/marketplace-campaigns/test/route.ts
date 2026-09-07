@@ -18,9 +18,13 @@ export async function GET(request: NextRequest) {
       console.log('Test: First campaign details:', JSON.stringify(allCampaigns[0], null, 2));
     }
 
-    // Fetch only published campaigns
+    // Fetch only published campaigns (not completed, expired, or limit-reached)
     const publishedCampaigns = await MarketplaceCampaign.find({ 
-      visibility: 'published' 
+      visibility: 'published',
+      $or: [
+        { endsAt: { $gt: new Date() } }, // Campaign hasn't ended
+        { endsAt: null } // No end date set
+      ]
     }).sort({ createdAt: -1 });
     console.log('Test: Found published campaigns:', publishedCampaigns.length);
 

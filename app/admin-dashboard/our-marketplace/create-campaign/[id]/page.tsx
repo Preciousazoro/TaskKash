@@ -6,7 +6,7 @@ import AdminHeader from "@/components/admin-dashboard/AdminHeader";
 import AdminSidebar from "@/components/admin-dashboard/AdminSidebar";
 import {
   Info, Coins, ListChecks, Layers, ShieldCheck, Target, Image as ImageIcon,
-  HelpCircle, Eye, Save, Send, ArrowLeft,
+  HelpCircle, Eye, Save, Send, ArrowLeft, AlertCircle,
 } from "lucide-react";
 import FormSection from "@/components/admin-dashboard/marketplace/FormSection";
 import SectionNav from "@/components/admin-dashboard/marketplace/SectionNav";
@@ -44,6 +44,7 @@ export default function CreateCampaignPage() {
   const [loading, setLoading] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [existingCampaign, setExistingCampaign] = useState<any>(null);
+  const [campaignStats, setCampaignStats] = useState<any>(null);
 
   const [form, setForm] = useState({
     name: "",
@@ -112,6 +113,14 @@ export default function CreateCampaignPage() {
       if (data.success && data.campaign) {
         const campaign = data.campaign;
         setExistingCampaign(campaign);
+        
+        // Fetch campaign statistics
+        const statsResponse = await fetch(`/api/admin/marketplace-campaigns/${campaignId}/stats`);
+        if (statsResponse.ok) {
+          const statsData = await statsResponse.json();
+          setCampaignStats(statsData);
+        }
+        
         setForm({
           name: campaign.name || "",
           brandName: campaign.brandName || "",
@@ -259,6 +268,15 @@ export default function CreateCampaignPage() {
       return;
     }
 
+    // Check if campaign has reached limits before allowing changes
+    if (isEditing && campaignStats) {
+      const { campaign } = campaignStats;
+      if (campaign.status !== 'published' && campaign.status !== 'draft') {
+        toast(`Cannot edit campaign: ${campaign.statusReason}`, { type: "error" });
+        return;
+      }
+    }
+
     try {
       setIsSubmitting(true);
       setLoading(true);
@@ -348,6 +366,97 @@ export default function CreateCampaignPage() {
                 </Button>
               </div>
             </div>
+
+            {/* CAMPAIGN STATUS DISPLAY */}
+            {isEditing && campaignStats && (
+              <div className="bg-card border border-border rounded-2xl p-4 space-y-4">
+                <div className="flex items-center justify-between">
+                  <h3 className="text-sm font-bold text-foreground">Campaign Status</h3>
+                  <span className={`px-3 py-1 rounded-full text-xs font-semibold ${
+                    campaignStats.campaign.status === 'published' 
+                      ? 'bg-green-500/10 text-green-500 border border-green-500/20'
+                      : campaignStats.campaign.status === 'expired'
+                      ? 'bg-red-500/10 text-red-500 border border-red-500/20'
+                      : campaignStats.campaign.status === 'max_participants_reached'
+                      ? 'bg-amber-500/10 text-amber-500 border border-amber-500/20'
+                      : campaignStats.campaign.status === 'reward_pool_reached'
+                      ? 'bg-purple-500/10 text-purple-500 border border-purple-500/20'
+                      : 'bg-gray-500/10 text-gray-500 border border-gray-500/20'
+                  }`}>
+                    {campaignStats.campaign.status.replace(/_/g, ' ').toUpperCase()}
+                  </span>
+                </div>
+                
+                {campaignStats.campaign.statusReason && (
+                  <p className="text-xs text-muted-foreground">{campaignStats.campaign.statusReason}</p>
+                )}
+
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                  <div className="bg-secondary/50 rounded-lg p-3">
+                    <div className="text-xs text-muted-foreground mb-1">Total Submissions</div>
+                    <div className="text-lg font-bold text-foreground">{campaignStats.stats.totalSubmissions}</div>
+                  </div>
+                  <div className="bg-secondary/50 rounded-lg p-3">
+                    <div className="text-xs text-muted-foreground mb-1">Approved</div>
+                    <div className="text-lg font-bold text-green-500">{campaignStats.stats.approvedSubmissions}</div>
+                  </div>
+                  <div className="bg-secondary/50 rounded-lg p-3">
+                    <div className="text-xs text-muted-foreground mb-1">Pending</div>
+                    <div className="text-lg font-bold text-amber-500">{campaignStats.stats.pendingSubmissions}</div>
+                  </div>
+                  <div className="bg-secondary/50 rounded-lg p-3">
+                    <div className="text-xs text-muted-foreground mb-1">Rewards Paid</div>
+                    <div className="text-lg font-bold text-purple-500">{campaignStats.stats.totalRewardsPaid.toLocaleString()} TP</div>
+                  </div>
+                </div>
+
+                {campaignStats.campaign.maxParticipants && (
+                  <div className="space-y-2">
+                    <div className="flex items-center justify-between text-xs">
+                      <span className="text-muted-foreground">Participants Progress</span>
+                      <span className="font-semibold text-foreground">
+                        {campaignStats.stats.approvedSubmissions} / {campaignStats.campaign.maxParticipants}
+                        ({campaignStats.stats.participantsProgress.toFixed(1)}%)
+                      </span>
+                    </div>
+                    <div className="h-2 bg-secondary rounded-full overflow-hidden">
+                      <div 
+                        className="h-full bg-blue-500 transition-all" 
+                        style={{ width: `${campaignStats.stats.participantsProgress}%` }}
+                      />
+                    </div>
+                  </div>
+                )}
+
+                {campaignStats.campaign.rewardPool && (
+                  <div className="space-y-2">
+                    <div className="flex items-center justify-between text-xs">
+                      <span className="text-muted-foreground">Reward Pool Progress</span>
+                      <span className="font-semibold text-foreground">
+                        {campaignStats.stats.totalRewardsPaid.toLocaleString()} / {campaignStats.campaign.rewardPool.toLocaleString()} TP
+                        ({campaignStats.stats.poolProgress.toFixed(1)}%)
+                      </span>
+                    </div>
+                    <div className="h-2 bg-secondary rounded-full overflow-hidden">
+                      <div 
+                        className="h-full bg-green-500 transition-all" 
+                        style={{ width: `${campaignStats.stats.poolProgress}%` }}
+                      />
+                    </div>
+                  </div>
+                )}
+
+                {campaignStats.campaign.endsAt && (
+                  <div className="flex items-center justify-between text-xs">
+                    <span className="text-muted-foreground">Campaign Ends</span>
+                    <span className={`font-semibold ${campaignStats.stats.isExpired ? 'text-red-500' : 'text-foreground'}`}>
+                      {new Date(campaignStats.campaign.endsAt).toLocaleDateString()}
+                      {campaignStats.stats.isExpired && ' (Expired)'}
+                    </span>
+                  </div>
+                )}
+              </div>
+            )}
 
             {/* MAIN CONTENT */}
             <div className="grid grid-cols-1 lg:grid-cols-[220px_1fr] gap-6">

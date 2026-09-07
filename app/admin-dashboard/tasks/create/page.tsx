@@ -4,7 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import AdminHeader from "@/components/admin-dashboard/AdminHeader";
 import AdminSidebar from "@/components/admin-dashboard/AdminSidebar";
-import { Plus, Loader2, Star, ShieldCheck, Calendar, ExternalLink, Link2, ChevronDown, Folder } from "lucide-react";
+import { Plus, Loader2, Star, ShieldCheck, Calendar, ExternalLink, Link2, ChevronDown, Folder, RefreshCw } from "lucide-react";
 import { toast } from "react-toastify";
 import { RichTextEditor } from "@/components/ui/RichTextEditor";
 
@@ -54,9 +54,36 @@ const CreateTaskPage = () => {
   const [deadline, setDeadline] = useState("");
   const [status, setStatus] = useState<'active' | 'expired' | 'disabled'>('active');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isRegenerating, setIsRegenerating] = useState(false);
 
   const isPreviewEmpty =
     !title.trim() && !description.trim() && !rewardPoints && !taskLink.trim() && !alternateUrl.trim() && !validationType;
+
+  /* ---------- REGENERATE TASK URLS ---------- */
+  const handleRegenerateTaskUrls = async () => {
+    setIsRegenerating(true);
+    try {
+      const response = await fetch('/api/admin/tasks/regenerate', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to regenerate task URLs');
+      }
+
+      const data = await response.json();
+      toast.success(`Successfully generated task URLs for ${data.updatedCount} tasks (e.g., task1, task2, etc.)`);
+    } catch (error: any) {
+      console.error('Error regenerating task URLs:', error);
+      toast.error(error.message || 'Failed to regenerate task URLs');
+    } finally {
+      setIsRegenerating(false);
+    }
+  };
 
   /* ---------- CREATE TASK ---------- */
   const handleCreateTask = async (e: React.FormEvent) => {
@@ -132,14 +159,33 @@ const CreateTaskPage = () => {
 
         <main className="flex-1 overflow-y-auto p-4 md:p-8 pb-30">
           {/* HEADER */}
-          <div className="mb-8">
-            <h1 className="text-xl md:text-2xl font-black uppercase tracking-tighter leading-none flex items-center gap-4">
-              Create New Task
-            </h1>
-            <p className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground flex items-center gap-2 mt-1">
-              <Plus size={16} />
-              Task Management
-            </p>
+          <div className="mb-8 flex items-center justify-between">
+            <div>
+              <h1 className="text-xl md:text-2xl font-black uppercase tracking-tighter leading-none flex items-center gap-4">
+                Create New Task
+              </h1>
+              <p className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground flex items-center gap-2 mt-1">
+                <Plus size={16} />
+                Task Management
+              </p>
+            </div>
+            <button
+              onClick={handleRegenerateTaskUrls}
+              disabled={isRegenerating}
+              className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed focus:outline-none focus:ring-2 focus:ring-blue-500/20 flex items-center gap-2 text-sm font-medium"
+            >
+              {isRegenerating ? (
+                <>
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                  Regenerating...
+                </>
+              ) : (
+                <>
+                  <RefreshCw className="w-4 h-4" />
+                  Regenerate Task URL
+                </>
+              )}
+            </button>
           </div>
 
           {/* SIDE-BY-SIDE GRID (FORM & PREVIEW) */}

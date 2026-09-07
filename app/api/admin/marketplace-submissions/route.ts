@@ -10,6 +10,64 @@ import mongoose from 'mongoose';
 
 export const dynamic = 'force-dynamic';
 
+// Helper function to check and update campaign status based on limits
+async function checkAndUpdateCampaignStatus(campaignId: mongoose.Types.ObjectId) {
+  try {
+    const campaign = await MarketplaceCampaign.findById(campaignId);
+    if (!campaign) return;
+
+    // Count approved submissions for this campaign
+    const approvedSubmissionsCount = await CampaignSubmission.countDocuments({
+      campaignId: campaignId,
+      status: 'approved'
+    });
+
+    // Calculate total rewards paid out
+    const totalRewardsPaid = await CampaignSubmission.aggregate([
+      { $match: { campaignId: campaignId, status: 'approved' } },
+      { $group: { _id: null, total: { $sum: '$rewardAmount' } } }
+    ]);
+
+    const rewardsPaidOut = totalRewardsPaid[0]?.total || 0;
+
+    // Check if campaign has expired
+    if (campaign.endsAt && new Date() > new Date(campaign.endsAt)) {
+      if (campaign.visibility !== 'expired') {
+        await MarketplaceCampaign.findByIdAndUpdate(campaignId, { 
+          visibility: 'expired' 
+        });
+        console.log(`Campaign ${campaign.name} marked as expired`);
+      }
+      return;
+    }
+
+    // Check if max participants reached
+    if (campaign.maxParticipants && approvedSubmissionsCount >= campaign.maxParticipants) {
+      if (campaign.visibility !== 'max_participants_reached') {
+        await MarketplaceCampaign.findByIdAndUpdate(campaignId, { 
+          visibility: 'max_participants_reached' 
+        });
+        console.log(`Campaign ${campaign.name} reached max participants (${approvedSubmissionsCount}/${campaign.maxParticipants})`);
+      }
+      return;
+    }
+
+    // Check if reward pool reached
+    if (campaign.rewardPool && rewardsPaidOut >= campaign.rewardPool) {
+      if (campaign.visibility !== 'reward_pool_reached') {
+        await MarketplaceCampaign.findByIdAndUpdate(campaignId, { 
+          visibility: 'reward_pool_reached' 
+        });
+        console.log(`Campaign ${campaign.name} reward pool reached (${rewardsPaidOut}/${campaign.rewardPool})`);
+      }
+      return;
+    }
+
+  } catch (error) {
+    console.error('Error checking campaign status:', error);
+  }
+}
+
 // GET all marketplace campaign submissions for admin
 export async function GET(request: NextRequest) {
   try {
@@ -205,6 +263,9 @@ export async function PUT(request: NextRequest) {
         });
 
         awardedPoints = rewardPoints;
+
+        // Check and update campaign status after approval
+        await checkAndUpdateCampaignStatus(submission.campaignId);
       }
     } else if (status.toLowerCase() === 'rejected') {
       // Create rejected activity record
