@@ -98,6 +98,11 @@ export default function AdminReferralsPage() {
         if (!response.ok) throw new Error('Failed to fetch referral data');
         
         const data = await response.json();
+        console.log('Fetched referral data:', {
+          stats: data.stats,
+          referralsCount: data.referrals?.length,
+          referrals: data.referrals
+        });
         setStats(data.stats);
         setReferrals(data.referrals);
       } catch (error) {
@@ -165,11 +170,27 @@ export default function AdminReferralsPage() {
     }
   };
 
-  const filteredReferrals = referrals.filter(referral =>
-    referral.referrerName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    referral.referredUserName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    referral.referredUserEmail.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const filteredReferrals = referrals.filter(referral => {
+    const matchesSearch = 
+      referral.referrerName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      referral.referredUserName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      referral.referredUserEmail.toLowerCase().includes(searchTerm.toLowerCase());
+    
+    console.log('Referral filter check:', {
+      referrerName: referral.referrerName,
+      referredUserName: referral.referredUserName,
+      searchTerm,
+      matchesSearch
+    });
+    
+    return matchesSearch;
+  });
+
+  console.log('Final filtered referrals:', {
+    total: referrals.length,
+    filtered: filteredReferrals.length,
+    searchTerm
+  });
 
   if (loading) {
     return (

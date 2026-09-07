@@ -149,7 +149,14 @@ export default function UserEarnPage() {
 
   // Filter & Sort Logic
   const filteredCampaigns = useMemo(() => {
-    return campaigns.filter((campaign) => {
+    console.log('Filtering campaigns:', {
+      totalCampaigns: campaigns.length,
+      selectedCategory,
+      searchQuery,
+      sortBy
+    });
+
+    const filtered = campaigns.filter((campaign) => {
       const matchesSearch =
         campaign.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
         campaign.brandName.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -159,7 +166,15 @@ export default function UserEarnPage() {
         selectedCategory === "all" || 
         (selectedCategory === "featured" && campaign.featured) ||
         (selectedCategory === "trending" && campaign.trending) ||
-        campaign.category.toLowerCase() === selectedCategory;
+        campaign.category?.toLowerCase() === selectedCategory.toLowerCase();
+
+      console.log('Campaign filter check:', {
+        name: campaign.name,
+        category: campaign.category,
+        matchesSearch,
+        matchesCategory,
+        willShow: matchesSearch && matchesCategory
+      });
 
       return matchesSearch && matchesCategory;
     }).sort((a, b) => {
@@ -167,6 +182,9 @@ export default function UserEarnPage() {
       if (sortBy === "reward-low") return a.rewardAmount - b.rewardAmount;
       return 0;
     });
+
+    console.log('Final filtered campaigns:', filtered.length);
+    return filtered;
   }, [campaigns, searchQuery, selectedCategory, sortBy]);
 
   const handleOpenCampaign = useCallback((campaign: any) => {
