@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
-import { Link as LinkIcon, ExternalLink, CheckCircle, Coins, Trophy, CheckCircle2, Flame, ListTodo, Loader2, ChevronLeft, ChevronRight, Wallet, Upload, ShieldCheck, Folder, Share2, FileText, Users, Music, ArrowRight, Plus } from "lucide-react";
+import { Link as LinkIcon, ExternalLink, CheckCircle, Coins, Trophy, CheckCircle2, Flame, ListTodo, Loader2, ChevronLeft, ChevronRight, Wallet, Upload, ShieldCheck, Folder, Share2, FileText, Users, Music, ArrowRight, Plus, Copy } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { TaskDocument, TaskCard, transformTaskToCard } from "@/types/shared-task";
@@ -12,6 +12,7 @@ import { RecentActivity } from "@/components/user-dashboard/RecentActivity";
 import DashboardSkeleton from "@/components/LoadingSkeleton/DashboardSkeleton";
 import { Button } from "@/components/ui/button";
 import { getGreeting } from "@/lib/utils";
+import { toast } from 'react-toastify';
 
 // Directly import the Sidebar and Header here
 import UserSidebar from "@/components/user-dashboard/UserSidebar";
@@ -198,6 +199,18 @@ export default function DashboardPage() {
     // Submit proof is now handled directly in TaskPreviewModal
     // This handler is kept for compatibility but can be removed if not needed
     handleTaskClick(task);
+  };
+
+  const handleCopyTaskUrl = (e: React.MouseEvent, task: TaskDocument) => {
+    e.stopPropagation();
+    const taskUrl = task.taskurl
+      ? `https://taskkash.xyz/${task.taskurl}`
+      : `https://taskkash.xyz/task/${task._id}`;
+    navigator.clipboard.writeText(taskUrl).then(() => {
+      toast.success('Task URL copied to clipboard!');
+    }).catch(() => {
+      toast.error('Failed to copy URL');
+    });
   };
 
   // Filter and sort tasks
@@ -432,16 +445,25 @@ export default function DashboardPage() {
                 const isHot = Math.random() > 0.5;
 
                 return (
-                    <div 
+                    <div
                         key={task._id}
                         onClick={() => handleTaskClick(task)}
                         className={`min-w-[300px] bg-gradient-to-br ${colors.from} ${colors.to} border ${colors.border} p-6 rounded-2xl relative overflow-hidden group transition-all shadow-md hover:border-current cursor-pointer`}
                     >
                         {isHot && (
-                            <div className={`absolute top-4 right-4 ${colors.text.replace('400', '500')} text-white text-[10px] font-black px-2 py-0.5 rounded-full z-10`}>HOT</div>
+                            <div className={`absolute top-4 right-4 ${colors.text.replace('400', '500')} text-foreground text-[10px] font-black px-2 py-0.5 rounded-full z-10`}>HOT</div>
                         )}
                         <span className={`text-[10px] font-bold ${colors.text} uppercase tracking-widest`}>{task.category}</span>
-                        <h3 className="text-lg font-bold mt-2 leading-snug">{task.title.slice(0, 20)}.....</h3>
+                        <div className="flex items-center justify-between mt-2">
+                            <h3 className="text-lg font-bold leading-snug">{task.title.slice(0, 20)}.....</h3>
+                            <button
+                                onClick={(e) => handleCopyTaskUrl(e, task)}
+                                className="p-1.5 rounded-lg hover:bg-white/10 transition-colors"
+                                title="Copy task URL"
+                            >
+                                <Copy className="w-4 h-4 text-current opacity-70 hover:opacity-100" />
+                            </button>
+                        </div>
                         <div className="flex items-center justify-between">
                             <span className={`font-black ${colors.text}`}>{task.rewardPoints} TP</span>
                             <button className={`w-10 h-10 rounded-lg ${colors.bg} ${colors.hover} hover:text-white transition-all flex items-center justify-center`}>

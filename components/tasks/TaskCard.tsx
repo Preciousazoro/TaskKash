@@ -132,20 +132,7 @@ export function TaskCard({ task, onClick, onStartTask }: TaskCardProps) {
     : task.title}
 </h3>
           </div>
-          <div className="flex items-center gap-2">
-            <button
-              onClick={handleCopyTaskUrl}
-              className="p-1.5 rounded-lg hover:bg-muted transition-colors"
-              title="Copy task URL"
-            >
-              {copied ? (
-                <Check className="w-4 h-4 text-green-500" />
-              ) : (
-                <Copy className="w-4 h-4 text-muted-foreground" />
-              )}
-            </button>
-            <StatusBadge status={task.userTaskStatus || 'available'} />
-          </div>
+          <StatusBadge status={task.userTaskStatus || 'available'} />
         </div>
 
         {/* Description — truncated */}
@@ -155,18 +142,31 @@ export function TaskCard({ task, onClick, onStartTask }: TaskCardProps) {
 
         {/* Meta row */}
         <div className="flex justify-between items-center gap-3 text-[10px] font-black uppercase tracking-widest text-muted-foreground">
-          {(task.taskLink || task.alternateUrl) && (
-            <span className="flex items-center gap-1">
-              <ExternalLink className="w-3 h-3" />
-              Task URL
-            </span>
-          )}
-          {task.deadline && (
-            <span className="flex items-center gap-1">
-              <Clock className="w-3 h-3" />
-              Due: {new Date(task.deadline).toLocaleDateString()}
-            </span>
-          )}
+          <div className="flex items-center gap-3">
+            {(task.taskLink || task.alternateUrl) && (
+              <span className="flex items-center gap-1">
+                <ExternalLink className="w-3 h-3" />
+                Task URL
+              </span>
+            )}
+            {task.deadline && (
+              <span className="flex items-center gap-1">
+                <Clock className="w-3 h-3" />
+                Due: {new Date(task.deadline).toLocaleDateString()}
+              </span>
+            )}
+          </div>
+          <button
+            onClick={handleCopyTaskUrl}
+            className="p-1.5 rounded-lg hover:bg-muted transition-colors"
+            title="Copy task URL"
+          >
+            {copied ? (
+              <Check className="w-4 h-4 text-green-500" />
+            ) : (
+              <Copy className="w-4 h-4 text-muted-foreground" />
+            )}
+          </button>
         </div>
 
         {/* Footer */}
