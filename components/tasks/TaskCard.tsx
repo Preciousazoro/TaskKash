@@ -94,7 +94,7 @@ export function TaskCard({ task, onClick, onStartTask }: TaskCardProps) {
 
   const handleCopyTaskUrl = (e: React.MouseEvent) => {
     e.stopPropagation();
-    const taskUrl = `https://taskkash.xyz/task/${task._id}`;
+    const taskUrl = `https://taskkash.xyz/${task._id}`;
     navigator.clipboard.writeText(taskUrl).then(() => {
       setCopied(true);
       toast.success('Task URL copied to clipboard!');

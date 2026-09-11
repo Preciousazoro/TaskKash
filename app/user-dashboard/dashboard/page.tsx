@@ -203,7 +203,7 @@ export default function DashboardPage() {
 
   const handleCopyTaskUrl = (e: React.MouseEvent, task: TaskDocument) => {
     e.stopPropagation();
-    const taskUrl = `https://taskkash.xyz/task/${task._id}`;
+    const taskUrl = `https://taskkash.xyz/${task._id}`;
     navigator.clipboard.writeText(taskUrl).then(() => {
       toast.success('Task URL copied to clipboard!');
     }).catch(() => {
