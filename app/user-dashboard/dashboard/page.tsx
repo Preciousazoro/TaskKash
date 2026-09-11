@@ -421,7 +421,7 @@ export default function DashboardPage() {
         <div className="h-[1px] flex-1 bg-border ml-4"></div>
     </div>
 
-    <div className="flex gap-5 overflow-x-auto pb-3 no-scrollbar">
+    <div className="flex gap-5 overflow-x-auto no-scrollbar">
         {featuredLoading ? (
             <div className="flex gap-5">
                 {[1, 2, 3].map((i) => (
@@ -448,7 +448,7 @@ export default function DashboardPage() {
                     <div
                         key={task._id}
                         onClick={() => handleTaskClick(task)}
-                        className={`min-w-[300px] bg-gradient-to-br ${colors.from} ${colors.to} border ${colors.border} p-6 rounded-2xl relative overflow-hidden group transition-all shadow-md hover:border-current cursor-pointer`}
+                        className={`min-w-[300px] bg-gradient-to-br ${colors.from} ${colors.to} border ${colors.border} p-4 rounded-2xl relative overflow-hidden group transition-all shadow-md hover:border-current cursor-pointer`}
                     >
                         {isHot && (
                             <div className={`absolute top-4 right-4 ${colors.text.replace('400', '500')} text-foreground text-[10px] font-black px-2 py-0.5 rounded-full z-10`}>HOT</div>
