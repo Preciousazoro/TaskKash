@@ -35,7 +35,7 @@ export async function GET(request: NextRequest) {
 
     // Fetch all tasks (including expired) with lean query and timeout
     const tasks = await Task.find({})
-    .select('title description category rewardPoints validationType instructions taskLink alternateUrl deadline status createdAt updatedAt taskurl')
+    .select('title description category rewardPoints validationType instructions taskLink alternateUrl deadline status createdAt updatedAt taskurl isFeatured maxParticipants')
     .sort({ createdAt: -1 })
     .lean();
 

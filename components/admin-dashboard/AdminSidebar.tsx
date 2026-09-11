@@ -62,7 +62,7 @@ const AdminSidebar = () => {
   return (
     <>
       {/* Desktop Sidebar */}
-      <aside className="hidden md:flex w-71 border-r h-screen sticky top-0 bg-background flex-col shadow-xl">
+      <aside className="hidden md:flex w-67 border-r h-screen sticky top-0 bg-background flex-col shadow-xl">
         {/* Header */}
         <div className="flex-shrink-0 flex items-center justify-between h-15 px-4 border-b border-border">
           <div className="flex flex-col">

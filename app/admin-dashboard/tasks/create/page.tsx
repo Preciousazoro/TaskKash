@@ -4,7 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import AdminHeader from "@/components/admin-dashboard/AdminHeader";
 import AdminSidebar from "@/components/admin-dashboard/AdminSidebar";
-import { Plus, Loader2, Star, ShieldCheck, Calendar, ExternalLink, Link2, ChevronDown, Folder, RefreshCw } from "lucide-react";
+import { Plus, Loader2, Star, ShieldCheck, Calendar, ExternalLink, Link2, ChevronDown, Folder, RefreshCw, Users } from "lucide-react";
 import { toast } from "react-toastify";
 import { RichTextEditor } from "@/components/ui/RichTextEditor";
 
@@ -53,6 +53,8 @@ const CreateTaskPage = () => {
   const [alternateUrl, setAlternateUrl] = useState("");
   const [deadline, setDeadline] = useState("");
   const [status, setStatus] = useState<'active' | 'expired' | 'disabled'>('active');
+  const [isFeatured, setIsFeatured] = useState(false);
+  const [maxParticipants, setMaxParticipants] = useState<number | "">("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isRegenerating, setIsRegenerating] = useState(false);
 
@@ -120,7 +122,9 @@ const CreateTaskPage = () => {
         taskLink: taskLink.trim(),
         alternateUrl: alternateUrl.trim() || '',
         deadline: deadline || null,
-        status: status || 'active'
+        status: status || 'active',
+        isFeatured,
+        maxParticipants: maxParticipants ? Number(maxParticipants) : null
       };
 
       const response = await fetch('/api/admin/tasks', {
@@ -137,7 +141,6 @@ const CreateTaskPage = () => {
       }
 
       toast.success('Task created successfully!');
-      router.push('/admin-dashboard/manage-tasks');
     } catch (error: any) {
       console.error('Error creating task:', error);
       toast.error(error.message || 'Failed to create task');
@@ -365,6 +368,43 @@ const CreateTaskPage = () => {
                   </div>
                 </div>
 
+                {/* GRID ROW 5: FEATURED & MAX PARTICIPANTS */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="flex items-center gap-3">
+                    <label className="flex items-center gap-3 cursor-pointer">
+                      <div className="relative">
+                        <input
+                          type="checkbox"
+                          checked={isFeatured}
+                          onChange={(e) => setIsFeatured(e.target.checked)}
+                          className="sr-only peer"
+                        />
+                        <div className="w-11 h-6 bg-muted peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-primary/20 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary"></div>
+                      </div>
+                      <span className="text-sm font-medium text-foreground">Featured Task</span>
+                    </label>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium mb-2 text-foreground">Max Participants</label>
+                    <div className="relative">
+                      <input
+                        type="number"
+                        className={inputBaseClass}
+                        placeholder="Unlimited"
+                        value={maxParticipants}
+                        onChange={(e) =>
+                          setMaxParticipants(e.target.value === "" ? "" : Number(e.target.value))
+                        }
+                        min="1"
+                      />
+                      <div className="absolute inset-y-0 right-0 flex items-center px-4 text-muted-foreground/70 pointer-events-none">
+                        <Users size={16} />
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
                 {/* Form Actions */}
                 <div className="w-full grid grid-cols-2 gap-4 pt-6 border-t border-border md:flex md:justify-end md:w-auto">
                   <button
@@ -446,6 +486,20 @@ const CreateTaskPage = () => {
 
                       {/* Info Metadata Items */}
                       <div className="space-y-2 pt-1">
+                        {isFeatured && (
+                          <div className="flex items-center gap-2 text-xs text-yellow-500 font-medium">
+                            <Star className="w-4 h-4 text-yellow-500 flex-shrink-0" />
+                            <span>Featured Task</span>
+                          </div>
+                        )}
+
+                        {maxParticipants && (
+                          <div className="flex items-center gap-2 text-xs text-muted-foreground font-medium">
+                            <Users className="w-4 h-4 text-blue-500 flex-shrink-0" />
+                            <span>Max Participants: {maxParticipants}</span>
+                          </div>
+                        )}
+
                         {project && (
                           <div className="flex items-center gap-2 text-xs text-muted-foreground font-medium">
                             <Folder className="w-4 h-4 text-purple-500 flex-shrink-0" />

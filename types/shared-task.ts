@@ -1,5 +1,5 @@
 // Shared Task types - Single source of truth for all Task interfaces
-export type TaskCategory = 'social' | 'content' | 'commerce';
+export type TaskCategory = 'social' | 'content' | 'commerce' | 'project';
 export type TaskStatus = 'active' | 'expired' | 'disabled';
 
 // MongoDB Task Document interface
@@ -26,6 +26,8 @@ export interface TaskDocument {
   } | null;
   userTaskStatus?: 'pending' | 'approved' | 'rejected' | 'available';
   taskurl?: string;
+  isFeatured?: boolean;
+  maxParticipants?: number;
 }
 
 // Frontend Task Card interface (what the UI expects)

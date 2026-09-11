@@ -197,7 +197,9 @@ export async function POST(request: NextRequest) {
       taskLink, 
       alternateUrl, 
       deadline, 
-      status 
+      status,
+      isFeatured,
+      maxParticipants
     } = body;
 
     // Validate all task data
@@ -214,7 +216,9 @@ export async function POST(request: NextRequest) {
       taskLink,
       alternateUrl: alternateUrl || '',
       deadline: deadline || '',
-      status: status || 'active'
+      status: status || 'active',
+      isFeatured,
+      maxParticipants
     });
 
     console.log('Validation result:', validation);
@@ -293,7 +297,15 @@ export async function POST(request: NextRequest) {
       taskurl: await generateTaskUrl(),
       deadline: deadline ? new Date(deadline) : null,
       status: status || 'active',
+      isFeatured: isFeatured || false,
+      maxParticipants: maxParticipants || null,
       createdBy: user._id
+    });
+
+    console.log('Task object before save:', {
+      ...task.toObject(),
+      isFeatured: task.isFeatured,
+      maxParticipants: task.maxParticipants
     });
 
     console.log('Task object created:', task);
@@ -326,7 +338,8 @@ export async function POST(request: NextRequest) {
             
             await Promise.allSettled(notificationPromises);
           }
-          console.log(`Notified ${allUsers.length} users about new task: ${task.title}`);
+          // Temporarily disabled notification logging to see task creation logs
+          // console.log(`Notified ${allUsers.length} users about new task: ${task.title}`);
         }
       } catch (error) {
         console.error('Failed to create user notifications for new task:', error);

@@ -203,9 +203,7 @@ export default function DashboardPage() {
 
   const handleCopyTaskUrl = (e: React.MouseEvent, task: TaskDocument) => {
     e.stopPropagation();
-    const taskUrl = task.taskurl
-      ? `https://taskkash.xyz/${task.taskurl}`
-      : `https://taskkash.xyz/task/${task._id}`;
+    const taskUrl = `https://taskkash.xyz/task/${task._id}`;
     navigator.clipboard.writeText(taskUrl).then(() => {
       toast.success('Task URL copied to clipboard!');
     }).catch(() => {
@@ -455,7 +453,7 @@ export default function DashboardPage() {
                         )}
                         <span className={`text-[10px] font-bold ${colors.text} uppercase tracking-widest`}>{task.category}</span>
                         <div className="flex items-center justify-between mt-2">
-                            <h3 className="text-lg font-bold leading-snug">{task.title.slice(0, 20)}.....</h3>
+                            <h3 className="text-sm font-bold leading-snug">{task.title.slice(0, 30)}.....</h3>
                             <button
                                 onClick={(e) => handleCopyTaskUrl(e, task)}
                                 className="p-1.5 rounded-lg hover:bg-white/10 transition-colors"

@@ -32,7 +32,7 @@ export async function GET(request: NextRequest) {
         { deadline: { $gt: new Date() } }
       ]
     })
-    .select('title description category rewardPoints validationType instructions taskLink alternateUrl deadline status createdAt updatedAt taskurl')
+    .select('title description category rewardPoints validationType instructions taskLink alternateUrl deadline status createdAt updatedAt taskurl isFeatured maxParticipants')
     .lean();
 
     // Fetch user's latest submissions for each task with timeout

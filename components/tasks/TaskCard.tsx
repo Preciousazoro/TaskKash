@@ -2,7 +2,7 @@
 
 import { useState, useRef } from "react";
 import { motion } from "framer-motion";
-import { Trophy, Clock, ExternalLink, Loader2, Copy, Check } from "lucide-react";
+import { Trophy, Clock, ExternalLink, Loader2, Copy, Check, Users } from "lucide-react";
 import { StatusBadge } from "./StatusBadge";
 import { Button } from "@/components/ui/button";
 import { TaskDocument } from "@/types/shared-task";
@@ -94,9 +94,7 @@ export function TaskCard({ task, onClick, onStartTask }: TaskCardProps) {
 
   const handleCopyTaskUrl = (e: React.MouseEvent) => {
     e.stopPropagation();
-    const taskUrl = task.taskurl
-      ? `https://taskkash.xyz/${task.taskurl}`
-      : `https://taskkash.xyz/task/${task._id}`;
+    const taskUrl = `https://taskkash.xyz/task/${task._id}`;
     navigator.clipboard.writeText(taskUrl).then(() => {
       setCopied(true);
       toast.success('Task URL copied to clipboard!');
@@ -153,6 +151,12 @@ export function TaskCard({ task, onClick, onStartTask }: TaskCardProps) {
               <span className="flex items-center gap-1">
                 <Clock className="w-3 h-3" />
                 Due: {new Date(task.deadline).toLocaleDateString()}
+              </span>
+            )}
+            {task.maxParticipants && (
+              <span className="flex items-center gap-1">
+                <Users className="w-3 h-3" />
+                Max: {task.maxParticipants}
               </span>
             )}
           </div>

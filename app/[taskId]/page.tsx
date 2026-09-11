@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { useRouter, useParams } from "next/navigation";
 import { Loader2 } from "lucide-react";
 
-export default function TaskUrlPage() {
+export default function TaskIdPage() {
   const router = useRouter();
   const params = useParams();
   const [isLoading, setIsLoading] = useState(true);

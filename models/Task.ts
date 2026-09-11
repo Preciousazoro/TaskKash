@@ -13,6 +13,8 @@ export interface ITask extends Document {
   taskurl?: string;
   deadline: Date | undefined;
   status: 'active' | 'expired' | 'disabled';
+  isFeatured: boolean;
+  maxParticipants?: number;
   createdBy: mongoose.Types.ObjectId;
   createdAt: Date;
   updatedAt: Date;
@@ -101,6 +103,17 @@ const TaskSchema: Schema<ITask> = new Schema({
     },
     default: 'active'
   },
+  isFeatured: {
+    type: Boolean,
+    required: false,
+    default: false
+  },
+  maxParticipants: {
+    type: Number,
+    required: false,
+    default: null,
+    min: [1, 'Max participants must be at least 1']
+  },
   createdBy: {
     type: Schema.Types.ObjectId,
     ref: 'User',
@@ -124,5 +137,6 @@ TaskSchema.index({ createdAt: -1 }); // For sorting by date
 TaskSchema.index({ status: 1, category: 1 }); // For filtered queries
 TaskSchema.index({ deadline: 1 }); // For deadline queries
 TaskSchema.index({ taskurl: 1 }); // For task URL lookups
+TaskSchema.index({ isFeatured: 1 }); // For featured tasks queries
 
 export default mongoose.models.Task || mongoose.model<ITask>('Task', TaskSchema);

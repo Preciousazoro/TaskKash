@@ -195,6 +195,8 @@ export const validateTaskData = (taskData: {
   alternateUrl: string;
   deadline: string;
   status: string;
+  isFeatured?: boolean;
+  maxParticipants?: number;
 }): { isValid: boolean; errors: string[] } => {
   const errors: string[] = [];
   
@@ -234,9 +236,18 @@ export const validateTaskData = (taskData: {
   const deadlineValidation = validateDeadline(taskData.deadline);
   if (!deadlineValidation.isValid) errors.push(deadlineValidation.error!);
   
+  // Validate maxParticipants if provided
+  if (taskData.maxParticipants !== undefined && taskData.maxParticipants !== null) {
+    if (typeof taskData.maxParticipants !== 'number' || isNaN(taskData.maxParticipants)) {
+      errors.push('Max participants must be a number');
+    } else if (taskData.maxParticipants < 1) {
+      errors.push('Max participants must be at least 1');
+    }
+  }
+  
   // Validate category
-  if (!['social', 'content', 'commerce'].includes(taskData.category)) {
-    errors.push('Invalid category. Must be one of: social, content, commerce');
+  if (!['social', 'content', 'commerce', 'project'].includes(taskData.category)) {
+    errors.push('Invalid category. Must be one of: social, content, commerce, project');
   }
   
   // Validate status

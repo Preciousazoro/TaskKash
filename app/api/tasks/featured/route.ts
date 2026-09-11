@@ -22,9 +22,10 @@ export async function GET(request: NextRequest) {
       await mongoose.connect(process.env.MONGODB_URI!);
     }
 
-    // Fetch all active tasks with timeout
-    const tasks = await Task.find({ status: 'active' })
-      .select('title description category rewardPoints validationType instructions taskLink alternateUrl deadline status createdAt updatedAt taskurl')
+    // Fetch featured active tasks with timeout
+    const tasks = await Task.find({ status: 'active', isFeatured: true })
+      .select('title description category rewardPoints validationType instructions taskLink alternateUrl deadline status createdAt updatedAt taskurl isFeatured maxParticipants')
+      .sort({ createdAt: -1 })
       .lean();
 
     // Fetch user's submissions for these tasks with timeout
@@ -82,12 +83,8 @@ export async function GET(request: NextRequest) {
       };
     });
 
-    // Randomly select up to 20 tasks
-    const shuffled = tasksWithStatus.sort(() => 0.5 - Math.random());
-    const selectedTasks = shuffled.slice(0, 20);
-
     return NextResponse.json({ 
-      tasks: selectedTasks
+      tasks: tasksWithStatus
     }, { status: 200 });
 
   } catch (error: unknown) {

@@ -67,19 +67,12 @@ export default function OverallTasksPage() {
     fetchTasks();
   }, []);
 
-  // Check for taskurl or taskId query parameter and open modal
+  // Check for taskId query parameter and open modal
   useEffect(() => {
     if (tasks.length > 0 && !isLoading) {
-      const taskurl = searchParams.get('taskurl');
       const taskId = searchParams.get('taskId');
       
-      if (taskurl) {
-        const task = tasks.find(t => t.taskurl === taskurl);
-        if (task) {
-          setSelectedTask(task);
-          setIsModalOpen(true);
-        }
-      } else if (taskId) {
+      if (taskId) {
         const task = tasks.find(t => t._id === taskId);
         if (task) {
           setSelectedTask(task);
