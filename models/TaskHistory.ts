@@ -10,7 +10,7 @@ export interface ITaskHistory extends Document {
   // Original task data (snapshot)
   title: string;
   description: string;
-  category: 'social' | 'content' | 'commerce';
+  category: 'social' | 'content' | 'commerce' | 'project';
   rewardPoints: number;
   validationType: string;
   instructions: string;
@@ -55,8 +55,8 @@ const TaskHistorySchema: Schema<ITaskHistory> = new Schema({
     type: String,
     required: [true, 'Task category is required for history'],
     enum: {
-      values: ['social', 'content', 'commerce'],
-      message: 'Category must be one of: social, content, commerce'
+      values: ['social', 'content', 'commerce', 'project'],
+      message: 'Category must be one of: social, content, commerce, project'
     }
   },
   rewardPoints: {

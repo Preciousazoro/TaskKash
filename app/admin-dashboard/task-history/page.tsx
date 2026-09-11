@@ -29,7 +29,7 @@ interface ArchivedTask {
   _id: string;
   title: string;
   description: string;
-  category: 'social' | 'content' | 'commerce';
+  category: 'social' | 'content' | 'commerce' | 'project';
   rewardPoints: number;
   validationType: string;
   instructions: string;

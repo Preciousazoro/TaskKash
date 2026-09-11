@@ -15,7 +15,7 @@ export interface Task {
   updatedAt: Date;
 }
 
-export type TaskCategory = 'social' | 'content' | 'commerce';
+export type TaskCategory = 'social' | 'content' | 'commerce' | 'project';
 
 export type TaskStatus = 'active' | 'expired' | 'disabled';
 

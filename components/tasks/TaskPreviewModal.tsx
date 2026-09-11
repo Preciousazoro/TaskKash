@@ -24,7 +24,7 @@ export function TaskPreviewModal({
 
   if (!task) return null;
 
-  const getCategoryColor = (category: "social" | "content" | "commerce") => {
+  const getCategoryColor = (category: "social" | "content" | "commerce" | "project") => {
     switch (category) {
       case "social":
         return "bg-chart-2/20 text-chart-2 border-chart-2/30";
@@ -32,6 +32,8 @@ export function TaskPreviewModal({
         return "bg-chart-3/20 text-chart-3 border-chart-3/30";
       case "commerce":
         return "bg-chart-4/20 text-chart-4 border-chart-4/30";
+      case "project":
+        return "bg-chart-5/20 text-chart-5 border-chart-5/30";
       default:
         return "bg-muted/20 text-muted-foreground border-muted/30";
     }

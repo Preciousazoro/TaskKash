@@ -20,7 +20,7 @@ interface Task {
   _id: string;
   title: string;
   description: string;
-  category: 'social' | 'content' | 'commerce';
+  category: 'social' | 'content' | 'commerce' | 'project';
   rewardPoints: number;
   validationType: string;
   instructions: string;
@@ -72,7 +72,7 @@ const ManageTasks = () => {
 
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
-  const [category, setCategory] = useState<'social' | 'content' | 'commerce'>('social');
+  const [category, setCategory] = useState<'social' | 'content' | 'commerce' | 'project'>('social');
   const [rewardPoints, setRewardPoints] = useState<number | "">("");
   const [validationType, setValidationType] = useState("");
   const [instructions, setInstructions] = useState("");
@@ -653,12 +653,13 @@ const ManageTasks = () => {
                     <select
                       className="w-full bg-card border border-border rounded-lg px-4 py-3 text-foreground focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20"
                       value={category}
-                      onChange={(e) => setCategory(e.target.value as 'social' | 'content' | 'commerce')}
+                      onChange={(e) => setCategory(e.target.value as 'social' | 'content' | 'commerce' | 'project')}
                       required
                     >
                       <option value="social" className="bg-gray-800">Social</option>
                       <option value="content" className="bg-gray-800">Content</option>
                       <option value="commerce" className="bg-gray-800">Commerce</option>
+                      <option value="project" className="bg-gray-800">Project</option>
                     </select>
                   </div>
 
