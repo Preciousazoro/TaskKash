@@ -2,6 +2,7 @@ import { redirect } from 'next/navigation';
 import { auth } from '@/lib/auth';
 import { InactivityLogoutProvider } from '@/components/providers/InactivityLogoutProvider';
 import { OptimizedSessionProvider } from '@/components/providers/OptimizedSessionProvider';
+import { SolanaWalletProvider } from '@/components/providers/SolanaWalletProvider';
 import UserNav from '@/components/user-dashboard/UserNav';
 import StayConnectedProvider from '@/components/user-dashboard/StayConnectedProvider';
 
@@ -24,11 +25,13 @@ export default async function UserDashboardLayout({
   return (
     <OptimizedSessionProvider>
       <InactivityLogoutProvider>
-        <div className="min-h-screen bg-background">
-          {children}
-          <UserNav />
-          <StayConnectedProvider />
-        </div>
+        <SolanaWalletProvider>
+          <div className="min-h-screen bg-background">
+            {children}
+            <UserNav />
+            <StayConnectedProvider />
+          </div>
+        </SolanaWalletProvider>
       </InactivityLogoutProvider>
     </OptimizedSessionProvider>
   );

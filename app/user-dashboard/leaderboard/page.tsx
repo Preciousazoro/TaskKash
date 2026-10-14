@@ -331,7 +331,7 @@ export default function LeaderboardPage() {
           <main className="flex-1 overflow-y-auto pb-32 p-4 md:p-8">
             {/* Subtle background grid */}
             <div
-              className="pointer-events-none fixed inset-0 z-0 opacity-[0.025]"
+              className="pointer-events-none fixed inset-0 z-0 opacity-[0.025] "
               style={{
                 backgroundImage:
                   "linear-gradient(hsl(var(--primary)) 1px, transparent 1px), linear-gradient(90deg, hsl(var(--primary)) 1px, transparent 1px)",

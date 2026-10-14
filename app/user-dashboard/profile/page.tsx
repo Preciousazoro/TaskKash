@@ -407,7 +407,7 @@ export default function ProfilePage() {
             <img 
               src={platform.icon} 
               alt={platform.name} 
-              className="w-10 h-10 rounded-full object-cover" 
+              className="w-10 h-10 rounded-xl object-cover" 
             />
           </button>
         );

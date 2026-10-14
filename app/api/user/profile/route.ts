@@ -17,7 +17,7 @@ export async function GET(request: NextRequest) {
     await connectDB();
 
     const user = await User.findById(session.user.id)
-      .select('name username avatarUrl taskPoints tasksCompleted email role')
+      .select('name username avatarUrl taskPoints tasksCompleted email role walletAddress walletName walletConnectedAt')
       .lean() as IUser | null;
 
     if (!user) {
@@ -32,7 +32,10 @@ export async function GET(request: NextRequest) {
       avatarUrl: user.avatarUrl,
       role: user.role,
       taskPoints: user.taskPoints || 50,
-      tasksCompleted: user.tasksCompleted || 0
+      tasksCompleted: user.tasksCompleted || 0,
+      walletAddress: user.walletAddress || null,
+      walletName: user.walletName || null,
+      walletConnectedAt: user.walletConnectedAt || null
     });
 
   } catch (error) {

@@ -41,8 +41,8 @@ export default function InstallAppSection() {
   };
 
   return (
-    <section className="mx-auto max-w-[1400px] px-4 lg:px-8 py-10 w-full">
-      <div className="relative overflow-hidden rounded-[1.5rem] bg-primary px-6 py-10 md:px-12 md:py-10">
+    <section className="mx-auto max-w-[1500px] px-4 lg:px-10 py-10 w-full">
+      <div className="relative overflow-hidden rounded-[1.5rem] bg-primary px-6 py-6 md:px-8 md:py-6">
         
         {/* Background Image / Mockup */}
         <img 
@@ -59,19 +59,19 @@ export default function InstallAppSection() {
             Seamless Web3 PWA
           </div>
           
-          <h2 className="text-4xl md:text-5xl font-black uppercase tracking-tighter leading-none mb-4 text-primary-foreground">
-            Install TaskKash App
+          <h2 className="text-3xl md:text-3xl font-black uppercase tracking-tighter leading-none mb-2 text-primary-foreground">
+            Install WEB App
           </h2>
           
-          <p className="text-primary-foreground/90 text-base font-semibold md:text-base max-w-md mb-8 leading-relaxed">
+          <p className="text-primary-foreground/90 text-base font-semibold md:text-base max-w-md mb-5 leading-">
             Access your distributed workspace micro-tasks right from your home screen. Enjoy instant automated payouts, zero storage friction, and instant updates.
           </p>
 
           <button 
             onClick={handleInstallClick}
-            className="w-full lg:w-auto justify-center items-center bg-white text-primary cursor-pointer dark:bg-black dark:text-white px-8 py-4 rounded-xl font-black uppercase tracking-widest text-xs transition-all flex gap-3 shadow-lg hover:scale-105 active:scale-95"
+            className="w-full lg:w-auto justify-center items-center bg-white text-primary cursor-pointer dark:bg-black dark:text-white px-7 py-4 rounded-full font-black uppercase tracking-widest text-xs transition-all flex gap-3 shadow-lg hover:scale-105 active:scale-95"
           >
-            {isReadyToInstall ? "Install App Now" : "Launch Web Platform"}
+            {isReadyToInstall ? "Install App Now" : "Install Web Platform"}
             <ArrowRight className="w-4 h-4" />
           </button>
         </div>

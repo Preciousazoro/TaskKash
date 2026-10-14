@@ -71,6 +71,9 @@ export interface IUser extends Document {
     pendingRewards: number;
     qualifiedReferrals: string[]; // Array of user IDs that have qualified
   };
+  walletAddress?: string | null;
+  walletName?: string | null;
+  walletConnectedAt?: Date | null;
   createdAt: Date;
   updatedAt: Date;
   comparePassword(candidatePassword: string): Promise<boolean>;
@@ -339,6 +342,21 @@ const UserSchema = new Schema<IUser>({
       type: [String],
       default: []
     }
+  },
+  walletAddress: {
+    type: String,
+    default: null,
+    sparse: true,
+    trim: true
+  },
+  walletName: {
+    type: String,
+    default: null,
+    trim: true
+  },
+  walletConnectedAt: {
+    type: Date,
+    default: null
   }
 }, {
   timestamps: true
@@ -359,6 +377,7 @@ UserSchema.index({ emailVerified: 1 }); // For verification queries
 UserSchema.index({ welcomeBonusGranted: 1 }); // For bonus queries
 UserSchema.index({ referralToken: 1 }); // For referral token queries
 UserSchema.index({ referredBy: 1 }); // For tracking who referred whom
+UserSchema.index({ walletAddress: 1 }, { unique: true, sparse: true }); // For wallet address uniqueness
 
 // Hash password before saving
 UserSchema.pre('save', async function() {

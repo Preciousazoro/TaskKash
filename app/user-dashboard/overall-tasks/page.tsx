@@ -164,7 +164,7 @@ export default function OverallTasksPage() {
 
         {/* Page Content */}
         <main className="flex-1 overflow-y-auto pb-32 p-4 md:p-8">
-          <div className="max-w-7xl mx-auto space-y-8 animate-in fade-in duration-500">
+          <div className="w-full max-w-[1400px] xl:max-w-[1600px] 2xl:max-w-[1800px] mx-auto space-y-8 animate-in fade-in duration-500">
             
             {/* Page Title */}
             <div>

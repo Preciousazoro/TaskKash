@@ -105,16 +105,12 @@ export default function FAQ() {
   const [openFaq, setOpenFaq] = useState<number | null>(0);
 
   return (
-    <section className="mx-auto max-w-[1400px] px-4 lg:px-8 pt-12 pb-20 w-full">
-      <div className="text-center mb-10 relative z-10">
-        {/* Badge */}
-        <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-[10px] font-bold uppercase tracking-[.2em] mb-4 text-emerald-600 dark:text-emerald-400">
-          Support
-        </div>
+    <section className="mx-auto max-w-[1500px] px-4 lg:px-8 pt-12 pb-20 w-full">
+      <div className="text-center mb-5 relative z-10">
 
         {/* Main Heading */}
         <h2
-          className={` text-3xl md:text-5xl lg:text-4xl font-black leading-[1.1] tracking-tight text-foreground mb-6 uppercase`}
+          className={` text-2xl md:text-3xl lg:text-3xl font-black leading-[1.1] tracking-tight text-foreground mb-2 uppercase`}
         >
           Frequently Asked Questions
         </h2>

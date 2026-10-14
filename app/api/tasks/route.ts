@@ -28,7 +28,7 @@ export async function GET() {
         { deadline: { $gt: new Date() } }
       ]
     })
-    .select('title description category rewardPoints validationType instructions taskLink alternateUrl deadline status createdAt updatedAt')
+    .select('title description category rewardPoints validationType instructions taskLink alternateUrl deadline status createdAt updatedAt maxParticipants')
     .sort({ createdAt: -1 });
 
     return NextResponse.json({ tasks }, { status: 200 });

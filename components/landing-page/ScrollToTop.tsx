@@ -36,7 +36,7 @@ export default function ScrollToTop() {
         fixed bottom-8 right-6 z-[60]      
         bg-emerald-500
         text-white
-        w-12 h-12 rounded-xl
+        w-12 h-12 rounded-full
         flex items-center justify-center
         hover:scale-110 hover:-translate-y-1 active:scale-95
         transition-all duration-300 cursor-pointer

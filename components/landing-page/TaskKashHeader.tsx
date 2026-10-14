@@ -101,16 +101,11 @@ export default function TaskKashHeader() {
                   ? "text-emerald-600 font-semibold" 
                   : "text-muted-foreground hover:text-emerald-600"
               }`}>Whitepaper</Link>
-              <Link href="/landing-page/testimonials" className={`text-sm font-medium transition-colors ${
-                pathname === "/landing-page/testimonials" 
+              <Link href="/landing-page/token" className={`text-sm font-medium transition-colors ${
+                pathname === "/landing-page/token" 
                   ? "text-emerald-600 font-semibold" 
                   : "text-muted-foreground hover:text-emerald-600"
-              }`}>Testimonials</Link>
-              <Link href="/landing-page/contact" className={`text-sm font-medium transition-colors ${
-                pathname === "/landing-page/contact" 
-                  ? "text-emerald-600 font-semibold" 
-                  : "text-muted-foreground hover:text-emerald-600"
-              }`}>Contact Us</Link>
+              }`}>TaskKash Token</Link>
             </nav>
 
             {/* RIGHT: THEME + AUTH */}
@@ -135,9 +130,9 @@ export default function TaskKashHeader() {
                 </Link>
                 <Link
                   href="/auth/signup"
-                  className="rounded-lg bg-emerald-500 px-5 py-2.5 text-sm font-bold text-white transition hover:scale-[1.02] hover:bg-emerald-600"
+                  className="rounded-full bg-emerald-500 px-4 py-2.5 text-sm font-bold text-white transition hover:scale-[1.02] hover:bg-emerald-600"
                 >
-                  Register Account
+                  Sign Up
                 </Link>
               </div>
 
@@ -203,9 +198,9 @@ export default function TaskKashHeader() {
       >
         How It Works
       </a>
-{/* 
+
       <a
-        href="/#users"
+        href="#"
         onClick={handleNavClick}
         className={mobileLinkStyles("/#users", false)}
       >
@@ -213,12 +208,19 @@ export default function TaskKashHeader() {
       </a>
 
       <a
-        href="/#brands"
+        href="#"
         onClick={handleNavClick}
         className={mobileLinkStyles("/#brands", false)}
       >
         For Brands
-      </a> */}
+      </a>
+      <a
+        href="#"
+        onClick={handleNavClick}
+        className={mobileLinkStyles("/#", false)}
+      >
+        TaskKash Token
+      </a>
 
       <Link
         href="/landing-page/about"

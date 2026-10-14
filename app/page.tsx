@@ -6,12 +6,11 @@ import Hero from "@/components/landing-page/Hero";
 import InstallApp from "@/components/landing-page/InstallApp";
 import HowWeWork from "@/components/landing-page/HowWeWork";
 import Payout from "@/components/landing-page/Payout";
-import Participation from "@/components/landing-page/Participation";
-import Engagement from "@/components/landing-page/Engagement";
+import TaskCards from "@/components/landing-page/TaskCards";
 import NumbersThatSpeaks from "@/components/landing-page/NumbersThatSpeaks";
 import Campaign from "@/components/landing-page/Campaign";
 import FAQ from "@/components/landing-page/FAQ";
-import LaunchCampaign from "@/components/landing-page/LaunchCampaign";
+import CookieConsent from "@/components/landing-page/CookieConsent";
 
 export default function HomePage() {
   return (
@@ -21,12 +20,11 @@ export default function HomePage() {
       <HowWeWork />
       <InstallApp />
       <Payout />
-      <Participation />
-      <Engagement />
+      <TaskCards />
       {/* <NumbersThatSpeaks /> */}
       <Campaign />
       <FAQ />
-      <LaunchCampaign />
+      <CookieConsent />
       <TaskKashFooter />
     </main>
   );

@@ -10,7 +10,7 @@ export default function DashboardSkeleton() {
         <UserHeader />
 
         <main className="flex-1 overflow-y-auto pb-32 p-4 md:p-8">
-          <div className="max-w-7xl mx-auto space-y-8">
+          <div className="w-full max-w-[1400px] xl:max-w-[1600px] 2xl:max-w-[1800px] mx-auto space-y-8 animate-in fade-in duration-500">
             
             {/* Welcome & Investment Snapshot */}
             <section className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6">

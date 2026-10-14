@@ -1,52 +1,53 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
+import { createPortal } from "react-dom";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { toast } from "react-toastify";
 import {
-  Home,
   Users,
   Megaphone,
   Settings,
-  PieChart,
   ShoppingCart,
   Smile,
-  BarChart3,
-  Award,
-  FolderOpenDot,
   Wallet,
   LayoutDashboard,
   History,
-  Gift,
   ClipboardList,
   X,
   LogOut,
   ChevronDown,
-  PartyPopper,
   Gem,
   Trophy,
   Crown,
-  Bell,
   BadgeCheck,
-  HeadphonesIcon,
   Lock,
-  User,
+  ChevronLeft,
+  ChevronRight,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useSession } from "next-auth/react";
 
+type NavChild = {
+  name: string;
+  icon: React.ElementType;
+  href: string;
+  color?: string;
+};
+
 type NavItem =
   | { name: string; icon: React.ElementType; href: string; color?: string }
   | {
-    name: string;
-    icon: React.ElementType;
-    color?: string;
-    children: { name: string; icon: React.ElementType; href: string; color?: string }[];
-  };
+      name: string;
+      icon: React.ElementType;
+      color?: string;
+      children: NavChild[];
+    };
 
 export default function UserSidebar() {
   const [menuOpen, setMenuOpen] = useState(false);
+  const [isCollapsed, setIsCollapsed] = useState(true);
   const { data: session } = useSession();
   const [userData, setUserData] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -94,17 +95,34 @@ export default function UserSidebar() {
   return (
     <>
       {/* Desktop Sidebar */}
-      <aside className="hidden md:flex w-70 border-r h-screen sticky top-0 bg-background flex-col shadow-xl">
+      <aside
+        className={`hidden md:flex border-r h-screen sticky top-0 bg-background flex-col shadow-xl transition-all duration-300 ${
+          isCollapsed ? "w-20" : "w-70"
+        }`}
+      >
         {/* Header */}
-        <div className="flex-shrink-0 flex items-center justify-between h-15 px-6 border-b border-border">
-          <div className="flex flex-col">
-            <h1 className="text-xl font-black uppercase tracking-tighter text-foreground">
-              User<span className="text-green-500"> Dashboard</span>
-            </h1>
-            <p className="text-[8px] font-bold tracking-[0.2em] text-muted-foreground uppercase">
-              Manage your account
-            </p>
-          </div>
+        <div className="flex-shrink-0 flex items-center justify-between h-15 px-4 border-b border-border">
+          {!isCollapsed && (
+            <div className="flex flex-col">
+              <h1 className="text-xl font-black uppercase tracking-tighter text-foreground">
+                User<span className="text-green-500"> Dashboard</span>
+              </h1>
+              <p className="text-[8px] font-bold tracking-[0.2em] text-muted-foreground uppercase">
+                Manage your account
+              </p>
+            </div>
+          )}
+          <button
+            onClick={() => setIsCollapsed(!isCollapsed)}
+            className="p-2 rounded-lg hover:bg-muted transition-colors ml-auto"
+            title={isCollapsed ? "Expand sidebar" : "Collapse sidebar"}
+          >
+            {isCollapsed ? (
+              <ChevronRight className="w-5 h-5 text-muted-foreground" />
+            ) : (
+              <ChevronLeft className="w-5 h-5 text-muted-foreground" />
+            )}
+          </button>
         </div>
 
         {/* Nav */}
@@ -112,7 +130,8 @@ export default function UserSidebar() {
           <SidebarNavItems
             userData={userData}
             isAdmin={isAdmin}
-            onLinkClick={() => { }}
+            isCollapsed={isCollapsed}
+            onLinkClick={() => {}}
           />
         </nav>
 
@@ -120,12 +139,14 @@ export default function UserSidebar() {
         <div className="flex-shrink-0 border-t border-border px-4 py-2">
           <button
             onClick={() => setShowLogoutConfirm(true)}
-            className="flex items-center cursor-pointer w-full px-4 py-3 text-red-500 hover:bg-red-500/10 transition-all rounded-sm group"
+            className="flex items-center cursor-pointer w-full px-4 py-3 text-red-500 hover:bg-red-500/10 transition-all rounded-sm group justify-center"
           >
-            <LogOut className="w-5 h-5 mr-3 group-hover:-translate-x-1 transition-transform" />
-            <span className="text-xs font-black uppercase tracking-widest">
-              Logout My Account
-            </span>
+            <LogOut className="w-5 h-5 group-hover:-translate-x-1 transition-transform flex-shrink-0" />
+            {!isCollapsed && (
+              <span className="text-xs font-black uppercase tracking-widest ml-3">
+                Logout
+              </span>
+            )}
           </button>
         </div>
       </aside>
@@ -172,6 +193,7 @@ export default function UserSidebar() {
                 <SidebarNavItems
                   userData={userData}
                   isAdmin={isAdmin}
+                  isCollapsed={false}
                   onLinkClick={() => setMenuOpen(false)}
                 />
               </nav>
@@ -183,11 +205,11 @@ export default function UserSidebar() {
                     setMenuOpen(false);
                     setShowLogoutConfirm(true);
                   }}
-                  className="flex items-center cursor-pointer w-full px-4 py-3 text-red-500 hover:bg-green-500/10 transition-all rounded-sm group"
+                  className="flex items-center cursor-pointer w-full px-4 py-3 text-red-500 hover:bg-red-500/10 transition-all rounded-sm group"
                 >
                   <LogOut className="w-5 h-5 mr-3 group-hover:-translate-x-1 transition-transform" />
                   <span className="text-xs font-black uppercase tracking-widest">
-                    Logout My Account
+                    Logout
                   </span>
                 </button>
               </div>
@@ -206,9 +228,6 @@ export default function UserSidebar() {
             className="bg-background/95 border border-border rounded-[1.5rem] shadow-2xl w-full max-w-sm p-8 text-center"
             onClick={(e) => e.stopPropagation()}
           >
-            {/* <div className="w-15 h-15 bg-secondary rounded-2xl flex items-center justify-center mx-auto mb-6">
-              <LogOut className="w-7 h-7 text-foreground" />
-            </div> */}
             <h2 className="text-xl font-black uppercase tracking-tighter text-foreground mb-2">
               Logout
             </h2>
@@ -260,24 +279,207 @@ export default function UserSidebar() {
   );
 }
 
+/* ── Collapsed group: icon button + popup rendered in a portal over everything ── */
+function CollapsedGroup({
+  item,
+  hasActiveChild,
+  pathname,
+  onLinkClick,
+}: {
+  item: Extract<NavItem, { children: NavChild[] }>;
+  hasActiveChild: boolean;
+  pathname: string;
+  onLinkClick: () => void;
+}) {
+  const wrapperRef = useRef<HTMLDivElement>(null);
+  const popupRef = useRef<HTMLDivElement>(null);
+  const hideTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const [open, setOpen] = useState(false);
+  const [pinned, setPinned] = useState(false);
+  const [pos, setPos] = useState({ top: 0, left: 0 });
+
+  const measure = () => {
+    const el = wrapperRef.current;
+    if (!el) return;
+    const rect = el.getBoundingClientRect();
+    // Estimated popup height so it never runs off the bottom of the screen
+    const estimatedHeight = item.children.length * 42 + 56;
+    const top = Math.max(
+      8,
+      Math.min(rect.top, window.innerHeight - estimatedHeight - 8)
+    );
+    setPos({ top, left: rect.right + 8 });
+  };
+
+  const clearHide = () => {
+    if (hideTimer.current) clearTimeout(hideTimer.current);
+  };
+
+  const show = () => {
+    clearHide();
+    measure();
+    setOpen(true);
+  };
+
+  // Small delay so the mouse can cross the gap between icon and popup
+  const hideSoon = () => {
+    if (pinned) return;
+    clearHide();
+    hideTimer.current = setTimeout(() => setOpen(false), 140);
+  };
+
+  const close = () => {
+    clearHide();
+    setOpen(false);
+    setPinned(false);
+  };
+
+  const handleClick = () => {
+    if (pinned) {
+      close();
+    } else {
+      measure();
+      setPinned(true);
+      setOpen(true);
+    }
+  };
+
+  // Close when clicking outside
+  useEffect(() => {
+    if (!open) return;
+    const onDown = (e: MouseEvent) => {
+      const target = e.target as Node;
+      if (
+        wrapperRef.current?.contains(target) ||
+        popupRef.current?.contains(target)
+      )
+        return;
+      close();
+    };
+    const onScroll = () => close();
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") close();
+    };
+    document.addEventListener("mousedown", onDown);
+    window.addEventListener("scroll", onScroll, true);
+    window.addEventListener("resize", onScroll);
+    document.addEventListener("keydown", onKey);
+    return () => {
+      document.removeEventListener("mousedown", onDown);
+      window.removeEventListener("scroll", onScroll, true);
+      window.removeEventListener("resize", onScroll);
+      document.removeEventListener("keydown", onKey);
+    };
+  }, [open]);
+
+  // Close after navigating
+  useEffect(() => {
+    close();
+  }, [pathname]);
+
+  useEffect(() => () => clearHide(), []);
+
+  return (
+    <div
+      ref={wrapperRef}
+      onMouseEnter={show}
+      onMouseLeave={hideSoon}
+    >
+      <button
+        onClick={handleClick}
+        className={`group w-full flex items-center justify-center px-4 py-2.5 rounded-sm transition-all duration-200 cursor-pointer ${
+          open
+            ? "bg-muted text-foreground"
+            : hasActiveChild
+            ? "text-foreground"
+            : "text-muted-foreground hover:bg-muted hover:text-foreground"
+        }`}
+        title={item.name}
+        aria-haspopup="menu"
+        aria-expanded={open}
+      >
+        <item.icon
+          className={`w-5 h-5 flex-shrink-0 transition-transform ${
+            hasActiveChild
+              ? `scale-110 ${item.color ?? "text-foreground"}`
+              : `${item.color ?? "text-muted-foreground"} group-hover:scale-110`
+          }`}
+        />
+      </button>
+
+      {open &&
+        typeof document !== "undefined" &&
+        createPortal(
+          <div
+            ref={popupRef}
+            role="menu"
+            onMouseEnter={show}
+            onMouseLeave={hideSoon}
+            style={{ position: "fixed", top: pos.top, left: pos.left }}
+            className="z-[1000] w-52 rounded-xl border border-border bg-card shadow-2xl animate-in fade-in slide-in-from-left-1 duration-150"
+          >
+            <div className="px-4 pt-3 pb-1 text-[9px] font-black uppercase tracking-[0.2em] text-muted-foreground">
+              {item.name}
+            </div>
+            <div className="p-2 space-y-1">
+              {item.children.map((child) => {
+                const childActive = pathname === child.href;
+                return (
+                  <Link
+                    key={child.name}
+                    href={child.href}
+                    onClick={() => {
+                      close();
+                      onLinkClick();
+                    }}
+                    role="menuitem"
+                    className={`group flex items-center gap-3 px-3 py-2 rounded-sm transition-all duration-200 ${
+                      childActive
+                        ? "bg-gradient-to-r from-green-500 to-emerald-500 text-white"
+                        : "text-muted-foreground hover:bg-muted hover:text-foreground"
+                    }`}
+                  >
+                    <child.icon
+                      className={`w-4 h-4 flex-shrink-0 transition-transform ${
+                        childActive
+                          ? "text-white scale-110"
+                          : `${child.color ?? "text-muted-foreground"} group-hover:scale-110`
+                      }`}
+                    />
+                    <span className="text-[11px] font-black uppercase tracking-widest">
+                      {child.name}
+                    </span>
+                  </Link>
+                );
+              })}
+            </div>
+          </div>,
+          document.body
+        )}
+    </div>
+  );
+}
+
 /* ── Sidebar Nav Items (shared between desktop & mobile) ── */
 function SidebarNavItems({
   userData,
   isAdmin,
+  isCollapsed,
   onLinkClick,
 }: {
   userData: any;
   isAdmin: boolean;
+  isCollapsed: boolean;
   onLinkClick: () => void;
 }) {
   const pathname = usePathname();
-  const streak = userData?.dailyStreak || 0;
   const [withdrawalVisible, setWithdrawalVisible] = useState(true);
 
   const [openGroups, setOpenGroups] = useState<Record<string, boolean>>({
-    "Tasks/Campaigns": true,
+    "All Tasks": true,
     Community: true,
-    Account: true,
+    Account: false,
   });
 
   const basePath = "/user-dashboard";
@@ -305,7 +507,7 @@ function SidebarNavItems({
       href: `${basePath}/dashboard`,
     },
     {
-      name: "Tasks/Campaigns",
+      name: "All Tasks",
       icon: Megaphone,
       children: [
         {
@@ -314,12 +516,12 @@ function SidebarNavItems({
           href: `${basePath}/overall-tasks`,
         },
         {
-          name: "Kash Marketplace",
+          name: "Marketplace",
           icon: ShoppingCart,
           href: `${basePath}/kash-marketplace`,
         },
         {
-          name: "Campaign Center",
+          name: "Campaign Hub",
           icon: Megaphone,
           href: `${basePath}/campaign-center`,
         },
@@ -333,7 +535,9 @@ function SidebarNavItems({
     {
       name: "Withdrawals",
       icon: Wallet,
-      href: withdrawalVisible ? `${basePath}/withdraw` : `${basePath}/withdraw/locked`,
+      href: withdrawalVisible
+        ? `${basePath}/withdraw`
+        : `${basePath}/withdraw/locked`,
     },
     {
       name: "Transactions",
@@ -349,11 +553,6 @@ function SidebarNavItems({
           icon: Users,
           href: `${basePath}/referals`,
         },
-        // {
-        //   name: "Rewards",
-        //   icon: PartyPopper,
-        //   href: `#`,
-        // },
         {
           name: "Leaderboard",
           icon: Trophy,
@@ -392,13 +591,13 @@ function SidebarNavItems({
         },
         ...(isAdmin
           ? [
-            {
-              name: "Switch to Admin",
-              icon: Lock,
-              href: "/admin-dashboard/dashboard",
-              color: "text-green-500",
-            },
-          ]
+              {
+                name: "Switch to Admin",
+                icon: Lock,
+                href: "/admin-dashboard/dashboard",
+                color: "text-green-500",
+              },
+            ]
           : []),
       ],
     },
@@ -422,30 +621,9 @@ function SidebarNavItems({
 
   return (
     <>
-      {/* Daily Streak Widget */}
-      <div className="mb-5 px-4 py-3 rounded-sm bg-muted/40 border border-border">
-        <div className="flex justify-between text-xs mb-2">
-          <span className="text-muted-foreground font-bold uppercase tracking-widest">
-            🔥 Daily Streak
-          </span>
-          <span className="font-black text-green-500">{streak}/7 days</span>
-        </div>
-        {streak >= 0 && (
-          <div className="flex gap-1.5 mt-2.5">
-            {Array.from({ length: 7 }, (_, i) => (
-              <div
-                key={i}
-                className={`flex-1 h-1.5 rounded-full transition-colors duration-300 ${i < streak ? "bg-green-500" : "bg-muted"
-                  }`}
-              />
-            ))}
-          </div>
-        )}
-      </div>
-
-      {/* Nav Links */}
       <div className="space-y-1">
         {navItems.map((item) => {
+          /* ── Single link ── */
           if ("href" in item) {
             const active = pathname === item.href;
             return (
@@ -453,84 +631,104 @@ function SidebarNavItems({
                 key={item.name}
                 href={item.href}
                 onClick={onLinkClick}
-                className={`group flex items-center px-4 py-2.5 rounded-sm transition-all duration-200 ${active
+                className={`group flex items-center px-4 py-2.5 rounded-sm transition-all duration-200 ${
+                  active
                     ? "bg-gradient-to-r from-green-500 to-emerald-500 text-white"
                     : "text-muted-foreground hover:bg-muted hover:text-foreground"
-                  }`}
+                } ${isCollapsed ? "justify-center" : ""}`}
+                title={isCollapsed ? item.name : undefined}
               >
                 <item.icon
-                  className={`w-5 h-5 mr-5 transition-transform flex-shrink-0 ${active
+                  className={`w-5 h-5 transition-transform flex-shrink-0 ${
+                    active
                       ? "text-white scale-110"
                       : `${item.color ?? "text-muted-foreground"} group-hover:scale-110`
-                    }`}
+                  } ${isCollapsed ? "" : "mr-5"}`}
                 />
-                <span className="text-[12px] font-black uppercase tracking-widest">
-                  {item.name}
-                </span>
+                {!isCollapsed && (
+                  <span className="text-[12px] font-black uppercase tracking-widest">
+                    {item.name}
+                  </span>
+                )}
               </Link>
             );
           }
 
+          /* ── Group ── */
           const isOpen = !!openGroups[item.name];
-          const hasActiveChild =
-            "children" in item &&
-            item.children.some((c) => pathname === c.href);
+          const hasActiveChild = item.children.some((c) => pathname === c.href);
 
           return (
             <div key={item.name} className="flex flex-col">
-              <button
-                onClick={() => toggleGroup(item.name)}
-                className={`group w-full flex items-center px-4 py-2.5 rounded-sm transition-all duration-200 cursor-pointer ${hasActiveChild
-                    ? "text-foreground"
-                    : "text-muted-foreground hover:bg-muted hover:text-foreground"
-                  }`}
-              >
-                <item.icon
-                  className={`w-5 h-5 mr-5 flex-shrink-0 transition-transform ${hasActiveChild
-                      ? `scale-110 ${item.color ?? "text-foreground"}`
-                      : `${item.color ?? "text-muted-foreground"} group-hover:scale-110`
-                    }`}
+              {isCollapsed ? (
+                <CollapsedGroup
+                  item={item}
+                  hasActiveChild={hasActiveChild}
+                  pathname={pathname}
+                  onLinkClick={onLinkClick}
                 />
-                <span className="flex-1 text-left text-[12px] font-black uppercase tracking-widest">
-                  {item.name}
-                </span>
-                <ChevronDown
-                  className={`w-4 h-4 transition-transform duration-300 ${isOpen ? "rotate-180" : ""
+              ) : (
+                <>
+                  {/* Expanded: normal accordion */}
+                  <button
+                    onClick={() => toggleGroup(item.name)}
+                    className={`group w-full flex items-center px-4 py-2.5 rounded-sm transition-all duration-200 cursor-pointer ${
+                      hasActiveChild
+                        ? "text-foreground"
+                        : "text-muted-foreground hover:bg-muted hover:text-foreground"
                     }`}
-                />
-              </button>
+                  >
+                    <item.icon
+                      className={`w-5 h-5 flex-shrink-0 transition-transform mr-5 ${
+                        hasActiveChild
+                          ? `scale-110 ${item.color ?? "text-foreground"}`
+                          : `${item.color ?? "text-muted-foreground"} group-hover:scale-110`
+                      }`}
+                    />
+                    <span className="flex-1 text-left text-[12px] font-black uppercase tracking-widest">
+                      {item.name}
+                    </span>
+                    <ChevronDown
+                      className={`w-4 h-4 transition-transform duration-300 ${
+                        isOpen ? "rotate-180" : ""
+                      }`}
+                    />
+                  </button>
 
-              <div
-                className={`${isOpen ? "block" : "hidden"} transition-all duration-300`}
-              >
-                <div className="ml-4 mt-1 mb-1 lg:mb-1 pl-4 border-l border-border space-y-0.5">
-                  {"children" in item &&
-                    item.children.map((child) => {
-                      const childActive = pathname === child.href;
-                      return (
-                        <Link
-                          key={child.name}
-                          href={child.href}
-                          onClick={onLinkClick}
-                          className={`group flex items-center gap-3 px-3 py-2 rounded-sm transition-all duration-200 ${childActive
-                              ? "bg-gradient-to-r from-green-500 to-emerald-500 text-white shadow-lg shadow-green-500/20"
-                              : "text-muted-foreground hover:bg-muted hover:text-foreground"
+                  <div
+                    className={`${isOpen ? "block" : "hidden"} transition-all duration-300`}
+                  >
+                    <div className="ml-4 mt-1 mb-1 lg:mb-1 pl-4 border-l border-border space-y-0.5">
+                      {item.children.map((child) => {
+                        const childActive = pathname === child.href;
+                        return (
+                          <Link
+                            key={child.name}
+                            href={child.href}
+                            onClick={onLinkClick}
+                            className={`group flex items-center gap-3 px-3 py-2 rounded-sm transition-all duration-200 ${
+                              childActive
+                                ? "bg-gradient-to-r from-green-500 to-emerald-500 text-white shadow-lg shadow-green-500/20"
+                                : "text-muted-foreground hover:bg-muted hover:text-foreground"
                             }`}
-                        >
-                          <child.icon
-                            className={`w-4 h-4 flex-shrink-0 transition-transform ${childActive
-                                ? "text-white scale-110"
-                                : `${child.color ?? "text-muted-foreground"} group-hover:scale-110`
+                          >
+                            <child.icon
+                              className={`w-4 h-4 flex-shrink-0 transition-transform ${
+                                childActive
+                                  ? "text-white scale-110"
+                                  : `${child.color ?? "text-muted-foreground"} group-hover:scale-110`
                               }`}
-                          />
-                          <span className="text-[11px] font-black uppercase tracking-widest">
-                            {child.name}
-                          </span>
-                        </Link>
-                      );
-                    })}
-                </div>
-              </div>
+                            />
+                            <span className="text-[11px] font-black uppercase tracking-widest">
+                              {child.name}
+                            </span>
+                          </Link>
+                        );
+                      })}
+                    </div>
+                  </div>
+                </>
+              )}
             </div>
           );
         })}

@@ -41,23 +41,16 @@ export default function HowWeWork() {
   return (
     <section
       id="how"
-      className="mx-auto max-w-[1400px] px-4 lg:px-8 py-16 lg:py-10 lg:pt-0 w-full"
+      className="mx-auto max-w-[1500px] px-4 lg:px-8 py-16 lg:py-10 lg:pt-0 w-full"
     >
       {/* Header */}
-      <div className="mb-14">
-        {/* Badge */}
-        <div className="inline-flex items-center gap-2 rounded-full border border-emerald-500/20 bg-emerald-500/5 px-3 py-1.5 mb-5">
-          <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
-          <span className="text-[11px] font-medium uppercase tracking-widest text-emerald-600 dark:text-emerald-400">
-            Process
-          </span>
-        </div>
+      <div className="mb-5">
 
-        <h2 className={`text-4xl md:text-4xl font-black uppercase tracking-tighter mb-6`}>
-          How TaskKash Works
+        <h2 className={`text-3xl md:text-3xl font-black uppercase tracking-tighter mb-2`}>
+          How WE Work
         </h2>
 
-        <p className="text-muted-foreground max-w-lg text-base md:text-lg font-semi mb-10 leading-relaxed">
+        <p className="text-muted-foreground font-semibold max-w-lg text-base md:text-lg mb-5">
           A simple, verified path from completing micro-tasks to withdrawing
           your rewards in SOL.
         </p>
@@ -80,7 +73,7 @@ export default function HowWeWork() {
               </CarouselItem>
             ))}
           </CarouselContent>
-          <div className="mt-8 flex items-center justify-center gap-6">
+          <div className="mt-5 flex items-center justify-center gap-6">
             <CarouselPrevious className="static translate-y-0 w-11 h-11 bg-emerald-500/5 hover:bg-emerald-500/10 border border-emerald-500/20 rounded-xl text-emerald-500" />
             <CarouselNext className="static translate-y-0 w-11 h-11 bg-emerald-500/5 hover:bg-emerald-500/10 border border-emerald-500/20 rounded-xl text-emerald-500" />
           </div>
@@ -88,7 +81,7 @@ export default function HowWeWork() {
       </div>
 
       {/* Footer rule */}
-      <div className="mt-14 flex items-center gap-4">
+      <div className="mt-5 flex items-center gap-4">
         <div className="h-px flex-1 bg-gradient-to-r from-transparent via-border to-transparent" />
         <span className="text-[11px] uppercase tracking-widest text-muted-foreground font-medium whitespace-nowrap">
           Start your journey today
@@ -116,7 +109,7 @@ function StepCard({ item }: { item: HowItWorksItem }) {
       <div className="absolute inset-x-0 top-0 h-[2px] rounded-t-2xl bg-gradient-to-r from-emerald-500 to-emerald-500/20 opacity-0 transition-opacity duration-200 group-hover:opacity-100" />
 
       {/* Step label + Icon Container */}
-      <div className="flex items-start justify-between mb-4">
+      <div className="flex items-start justify-between mb-2">
         <span className="text-[11px] font-semibold uppercase tracking-widest text-emerald-600 dark:text-emerald-400">
           Step {item.step}
         </span>
@@ -126,10 +119,10 @@ function StepCard({ item }: { item: HowItWorksItem }) {
       </div>
 
       {/* Text Content */}
-      <h3 className="font-bold text-[1rem] tracking-tight text-foreground mb-2 uppercase">
+      <h3 className="font-bold text-lg tracking-tight text-foreground">
         {item.title}
       </h3>
-      <p className="text-sm text-muted-foreground leading-relaxed font-light">
+      <p className="text-sm text-muted-foreground leading-relaxed font-semibold">
         {item.description}
       </p>
     </div>

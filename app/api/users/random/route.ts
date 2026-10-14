@@ -16,66 +16,29 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url);
     const count = parseInt(searchParams.get('count') || '4');
 
-    // Count users with and without avatars
+    // Only fetch users with valid avatars
     const usersWithAvatarsCount = await User.countDocuments({
       avatarUrl: { $exists: true, $ne: null, $nin: [""] }
     });
-    const usersWithoutAvatarsCount = await User.countDocuments({ 
-      $or: [
-        { avatarUrl: { $exists: false } },
-        { avatarUrl: null },
-        { avatarUrl: "" }
-      ]
-    });
 
-    if (usersWithAvatarsCount === 0 && usersWithoutAvatarsCount === 0) {
+    if (usersWithAvatarsCount === 0) {
       return NextResponse.json({
         success: true,
         users: []
       });
     }
 
-    let users: any[] = [];
-    let remainingCount = count;
+    // Fetch random users with avatars
+    const avatarCount = Math.min(count, usersWithAvatarsCount);
+    const randomSkip = Math.floor(Math.random() * Math.max(0, usersWithAvatarsCount - avatarCount));
 
-    // First, try to get users with avatars
-    if (usersWithAvatarsCount > 0) {
-      const avatarCount = Math.min(remainingCount, usersWithAvatarsCount);
-      const randomSkip = Math.floor(Math.random() * Math.max(0, usersWithAvatarsCount - avatarCount));
-      
-      const usersWithAvatars = await User.find({
-        avatarUrl: { $exists: true, $ne: null, $nin: [""] }
-      })
-        .select('name email avatarUrl taskPoints tasksCompleted username')
-        .skip(randomSkip)
-        .limit(avatarCount)
-        .lean();
-      
-      users = usersWithAvatars;
-      remainingCount -= usersWithAvatars.length;
-    }
-
-    // If we still need more users, fetch users without avatars
-    if (remainingCount > 0 && usersWithoutAvatarsCount > 0) {
-      const randomSkip = Math.floor(Math.random() * Math.max(0, usersWithoutAvatarsCount - remainingCount));
-      
-      const usersWithoutAvatars = await User.find({ 
-        $or: [
-          { avatarUrl: { $exists: false } },
-          { avatarUrl: null },
-          { avatarUrl: "" }
-        ]
-      })
-        .select('name email avatarUrl taskPoints tasksCompleted username')
-        .skip(randomSkip)
-        .limit(remainingCount)
-        .lean();
-      
-      users = [...users, ...usersWithoutAvatars];
-    }
-
-    // Shuffle the combined array to mix users with and without avatars
-    users = users.sort(() => Math.random() - 0.5);
+    const users = await User.find({
+      avatarUrl: { $exists: true, $ne: null, $nin: [""] }
+    })
+      .select('name email avatarUrl taskPoints tasksCompleted username')
+      .skip(randomSkip)
+      .limit(avatarCount)
+      .lean();
 
     // Transform user data for frontend
     const transformedUsers = users.map((user: any) => ({

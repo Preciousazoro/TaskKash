@@ -24,7 +24,7 @@ export async function GET(request: NextRequest) {
     await connectDB();
     
     const user = await User.findById(session.user.id)
-      .select('name email role username avatarUrl avatarPublicId taskPoints dailyStreak socialLinks phone country telegramUsername cryptoPayoutAddresses')
+      .select('name email role username avatarUrl avatarPublicId taskPoints dailyStreak socialLinks phone country telegramUsername cryptoPayoutAddresses walletAddress walletName walletConnectedAt')
       .lean()
       .maxTimeMS(3000) as any; // Add timeout
     
@@ -56,6 +56,9 @@ export async function GET(request: NextRequest) {
       country: user.country || null,
       telegramUsername: user.telegramUsername || null,
       cryptoPayoutAddresses: user.cryptoPayoutAddresses || [],
+      walletAddress: user.walletAddress || null,
+      walletName: user.walletName || null,
+      walletConnectedAt: user.walletConnectedAt || null,
     };
 
     // Cache the result
@@ -207,6 +210,9 @@ export async function PUT(request: NextRequest) {
       country: user.country || null,
       telegramUsername: user.telegramUsername || null,
       cryptoPayoutAddresses: user.cryptoPayoutAddresses || [],
+      walletAddress: user.walletAddress || null,
+      walletName: user.walletName || null,
+      walletConnectedAt: user.walletConnectedAt || null,
     };
 
     return NextResponse.json(updatedProfile);
