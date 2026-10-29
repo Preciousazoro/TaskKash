@@ -35,7 +35,7 @@ import { toast } from "react-toastify";
 
 /* ─── Types ─────────────────────────────────────────────── */
 type CampaignType = "music" | "video";
-type Platform = "youtube" | "spotify" | "audiomack" | "apple_music";
+type Platform = "youtube";
 type CompletionType = "watch_duration" | "watch_percentage" | "listen_duration" | "listen_percentage";
 type CampaignStatus = "draft" | "active" | "paused" | "completed";
 type Tab = "info" | "reward" | "preview";
@@ -50,9 +50,6 @@ const statusColors: Record<CampaignStatus, string> = {
 
 const platformLogos: Record<Platform, { src: string; label: string; ring: string }> = {
   youtube:     { src: "https://i.postimg.cc/dtmHW4Yf/Youtube.jpg",    label: "YouTube",     ring: "ring-red-500/40" },
-  spotify:     { src: "https://i.postimg.cc/6QzM93qN/Spotify.jpg",    label: "Spotify",     ring: "ring-green-500/40" },
-  audiomack:   { src: "https://i.postimg.cc/J0s6YLRN/audiomack.jpg",  label: "Audiomack",   ring: "ring-yellow-500/40" },
-  apple_music: { src: "https://i.postimg.cc/fLG2PPyP/i-Tunes.jpg",    label: "Apple Music", ring: "ring-pink-500/40" },
 };
 
 /* ─── Sub-components ─────────────────────────────────────── */
@@ -232,7 +229,7 @@ const CampaignPage = () => {
   /* Campaign meta */
   const [status, setStatus]               = useState<CampaignStatus>("draft");
   const [campaignType, setCampaignType]   = useState<CampaignType>("music");
-  const [platform, setPlatform]           = useState<Platform>("spotify");
+  const [platform, setPlatform]           = useState<Platform>("youtube");
   const [campaignTitle, setCampaignTitle] = useState("");
   const [description, setDescription]     = useState("");
   const [mediaUrl, setMediaUrl]           = useState("");
