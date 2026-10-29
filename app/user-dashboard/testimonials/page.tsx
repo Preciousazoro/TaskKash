@@ -1,389 +1,497 @@
 "use client";
 
-import React, { useState } from "react";
-import Link from "next/link";
-import { Star, ArrowUpRight, Wallet } from "lucide-react";
-import UserHeader from "@/components/user-dashboard/UserHeader";
+import React, { useState, useMemo, useEffect } from "react";
+import { toast } from "react-toastify";
 import UserSidebar from "@/components/user-dashboard/UserSidebar";
+import UserHeader from "@/components/user-dashboard/UserHeader";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import {
+  Star,
+  Search,
+  Flag,
+  CheckCircle2,
+  Award,
+  ChevronDown,
+  ThumbsUp,
+} from "lucide-react";
 
-const testimonialsColumn1 = [
-  {
-    name: "Nwaigwe Winz",
-    role: "Premium Investor",
-    rating: 5.0,
-    image: "https://github.com/shadcn.png",
-    withdrawal: "$124.00",
-    text: "The daily top-ups are real. I started with a small investment to test the waters, and seeing my balance rise every morning gave me the confidence to go big. Best financial move this year.",
-  },
-  {
-    name: "Fuhad Olaosebikan",
-    role: "Daily Trader",
-    rating: 4.8,
-    image: "https://github.com/shadcn.png",
-    withdrawal: "$85.50",
-    text: "Task Kash handles the trading while I handle my day job. The $20 bonus was credited instantly and I withdrew it along with my first profit payout just like they promised.",
-  },
-  {
-    name: "Elvis TMZ",
-    role: "Verified Member",
-    rating: 4.9,
-    image: "https://github.com/shadcn.png",
-    withdrawal: "$310.00",
-    text: "Transparency is what I look for. The platform shows exactly how the trades are performing. I've successfully withdrawn over $3k now without a single delay.",
-  },
-  {
-    name: "Marcus Chen",
-    role: "Task Completer",
-    rating: 4.7,
-    image: "https://github.com/shadcn.png",
-    withdrawal: "$95.00",
-    text: "I've been completing tasks for 3 months now. The payouts are consistent and the support team is always helpful when I have questions.",
-  },
-  {
-    name: "Aisha Johnson",
-    role: "Active Member",
-    rating: 5.0,
-    image: "https://github.com/shadcn.png",
-    withdrawal: "$150.00",
-    text: "TaskKash has become my go-to platform for earning extra income. The variety of tasks keeps it interesting and the rewards are fair.",
-  },
-];
-
-const testimonialsColumn2 = [
-  {
-    name: "Benjamin Evans",
-    role: "Global Investor",
-    rating: 4.9,
-    image: "https://github.com/shadcn.png",
-    withdrawal: "$520.00",
-    text: "Finally a platform that actually uses MT4/MT5 logic for retail investors. The passive income is consistent. It's not a get-rich-quick scheme, it's a real yield engine.",
-  },
-  {
-    name: "Mr Presh",
-    role: "Strategic Partner",
-    rating: 5.0,
-    image: "https://github.com/shadcn.png",
-    withdrawal: "$92.00",
-    text: "The support team is elite. Had an issue with my wallet address, and they fixed it in under 60 seconds. My daily returns have been topping up like clockwork.",
-  },
-  {
-    name: "Sarah Jenkins",
-    role: "Community Leader",
-    rating: 5.0,
-    image: "https://github.com/shadcn.png",
-    withdrawal: "$245.00",
-    text: "Task Kash changed my perspective on automated trading. No stress, no charts to watch all day\u2014just pure growth and easy withdrawals every week.",
-  },
-  {
-    name: "David Kim",
-    role: "Freelancer",
-    rating: 4.8,
-    image: "https://github.com/shadcn.png",
-    withdrawal: "$180.00",
-    text: "As a freelancer, I appreciate the flexibility of TaskKash. I can work on tasks whenever I have free time and the payments are reliable.",
-  },
-  {
-    name: "Emily Rodriguez",
-    role: "Student",
-    rating: 4.9,
-    image: "https://github.com/shadcn.png",
-    withdrawal: "$75.00",
-    text: "Perfect for students like me who need extra cash for textbooks and expenses. The tasks are simple and don't require much time.",
-  },
-  {
-    name: "James Wilson",
-    role: "Part-time Earner",
-    rating: 4.7,
-    image: "https://github.com/shadcn.png",
-    withdrawal: "$210.00",
-    text: "I use TaskKash as a side hustle. It's not my main income, but it definitely helps with bills and savings.",
-  },
-];
-
-const testimonialsColumn3 = [
-  {
-    name: "Isabella Velez",
-    role: "Portfolio Manager",
-    rating: 5.0,
-    image: "https://github.com/shadcn.png",
-    withdrawal: "$432.00",
-    text: "The risk-to-reward ratio here is perfectly balanced. I've moved a significant portion of my liquid assets into Task Kash because the execution is cleaner than most brokers.",
-  },
-  {
-    name: "Kofi Mensah",
-    role: "Crypto Arbitrageur",
-    rating: 4.9,
-    image: "https://github.com/shadcn.png",
-    withdrawal: "$189.00",
-    text: "I was skeptical about the daily top-ups, but the transparency in the dashboard is impressive. It's consistent, reliable, and the $20 bonus was a nice welcome touch.",
-  },
-  {
-    name: "Sophia Schmidt",
-    role: "Retirement Planner",
-    rating: 5.0,
-    image: "https://github.com/shadcn.png",
-    withdrawal: "$1,550.00",
-    text: "The best part isn't just the profit, it's the time I save. I don't have to study charts for 8 hours a day. The platform's algorithm does the heavy lifting.",
-  },
-  {
-    name: "Jordan Lee",
-    role: "Tech Entrepreneur",
-    rating: 4.7,
-    image: "https://github.com/shadcn.png",
-    withdrawal: "$65.00",
-    text: "Seamless UI and even better performance. For anyone looking for a 'set and forget' investment strategy, Task Kash is the gold standard.",
-  },
-  {
-    name: "Amara Okoro",
-    role: "Verified Trader",
-    rating: 4.8,
-    image: "https://github.com/shadcn.png",
-    withdrawal: "$210.00",
-    text: "Withdrawals are lightning fast. I requested a payout at 10 AM and had it in my wallet by lunchtime. That's how you build trust in this industry.",
-  },
-  {
-    name: "Lucas Dupont",
-    role: "Executive Investor",
-    rating: 5.0,
-    image: "https://github.com/shadcn.png",
-    withdrawal: "$980.00",
-    text: "The institutional-grade liquidity makes a huge difference. You can tell they are using high-end MT4/MT5 bridges. A very professional setup.",
-  },
-  {
-    name: "Rachel Green",
-    role: "Marketing Specialist",
-    rating: 4.9,
-    image: "https://github.com/shadcn.png",
-    withdrawal: "$135.00",
-    text: "I've tried many task platforms, but TaskKash stands out for its user-friendly interface and prompt payments. Highly recommended!",
-  },
-  {
-    name: "Michael Brown",
-    role: "Remote Worker",
-    rating: 4.8,
-    image: "https://github.com/shadcn.png",
-    withdrawal: "$290.00",
-    text: "Working remotely has its challenges, but TaskKash provides a steady stream of tasks that I can complete from anywhere in the world.",
-  },
-];
-
-const testimonialsColumn4 = [
-  {
-    name: "Zoe Katsaros",
-    role: "Daily Yield Seeker",
-    rating: 5.0,
-    image: "https://github.com/shadcn.png",
-    withdrawal: "$145.00",
-    text: "I love waking up and seeing my income topped up. It's the first thing I check every morning. Task Kash has become my favorite passive stream.",
-  },
-  {
-    name: "Ahmed Hassan",
-    role: "Financial Analyst",
-    rating: 4.8,
-    image: "https://github.com/shadcn.png",
-    withdrawal: "$320.00",
-    text: "The math checks out. They aren't promising 'magic' numbers, just solid market gains through disciplined trading. Very sustainable model.",
-  },
-  {
-    name: "Chloe Miller",
-    role: "Passive Income Pro",
-    rating: 4.9,
-    image: "https://github.com/shadcn.png",
-    withdrawal: "$570.00",
-    text: "Verified payouts and a solid community. The Telegram group is active and the support team actually knows what they are talking about.",
-  },
-  {
-    name: "Tunde Williams",
-    role: "Growth Strategist",
-    rating: 5.0,
-    image: "https://github.com/shadcn.png",
-    withdrawal: "$890.00",
-    text: "Started with the $20 bonus and a small deposit. Within 3 months, I've scaled my account to levels I didn't think were possible this quickly.",
-  },
-  {
-    name: "Yuki Tanaka",
-    role: "Global Partner",
-    rating: 4.7,
-    image: "https://github.com/shadcn.png",
-    withdrawal: "$115.00",
-    text: "Efficient, secure, and user-friendly. In Japan, we value precision, and Task Kash's trading platform is as precise as it gets.",
-  },
-  {
-    name: "Ravi Sharma",
-    role: "Long-term Holder",
-    rating: 5.0,
-    image: "https://github.com/shadcn.png",
-    withdrawal: "$1,120.00",
-    text: "Security is my #1 priority. Seeing the 'Secure' in the name actually reflect in their payout system is refreshing. My capital feels very safe here.",
-  },
-  {
-    name: "Olivia Martinez",
-    role: "Content Creator",
-    rating: 4.8,
-    image: "https://github.com/shadcn.png",
-    withdrawal: "$165.00",
-    text: "TaskKash fits perfectly with my content creation schedule. I can complete tasks between videos and earn consistently.",
-  },
-  {
-    name: "Daniel Thompson",
-    role: "Stay-at-home Parent",
-    rating: 4.9,
-    image: "https://github.com/shadcn.png",
-    withdrawal: "$125.00",
-    text: "As a stay-at-home dad, TaskKash gives me the flexibility to earn while taking care of my kids. The tasks are simple and pay well.",
-  },
-  {
-    name: "Sophie Anderson",
-    role: "College Student",
-    rating: 4.7,
-    image: "https://github.com/shadcn.png",
-    withdrawal: "$88.00",
-    text: "Perfect for college students! I earn enough to cover my coffee and lunch expenses every week. Highly recommend!",
-  },
-  {
-    name: "Robert Taylor",
-    role: "Retiree",
-    rating: 5.0,
-    image: "https://github.com/shadcn.png",
-    withdrawal: "$195.00",
-    text: "Even in retirement, I enjoy staying active and earning extra income. TaskKash is easy to use and the community is friendly.",
-  },
-];
-
-export default function Testimonials() {
-  return (
-    <>
-      <div className="flex h-screen overflow-hidden bg-background">
-        <UserSidebar />
-
-        <div className="flex-1 flex flex-col overflow-hidden text-foreground">
-          <UserHeader />
-
-          <main className="flex-1 overflow-y-auto pb-20 lg:pb-0 md:px-7">
-            <section className="flex-grow mx-auto max-w-7xl px-4 py-10 lg:py-0 w-full">
-
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-14 lg:gap-0 items-center">
-        
-        {/* LEFT - Text Content */}
-        <div className="space-y-5 order-1 lg:order-1 text-center lg:text-left flex flex-col items-center lg:items-start">
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/10 border border-primary/20">
-            <span className="w-2 h-2 rounded-full bg-primary animate-pulse" />
-            <span className="text-primary font-mono font-bold tracking-widest uppercase text-xs">
-              Verified Payouts 20/94
-            </span>
-          </div>
-
-         <h1 className="text-4xl lg:text-5xl font-black uppercase tracking-tighter leading-[0.9]">
-  Real Tasks. <br />
-  <span className="text-primary">Real Earnings.</span>
-</h1>
-
-<p className="text-muted-foreground text-lg max-w-md">
-  Join thousands of users on Task Kash, complete available tasks, earn rewards, and withdraw your earnings with ease.
-</p>
-
-          <Link href="/user-dashboard/leaderboard">
-            <button className="bg-green-500 text-white font-bold mt-5 cursor-pointer text-primary-foreground px-10 py-4 rounded-xl font-bold uppercase tracking-widest text-sm hover:scale-105 transition-transform flex items-center gap-3 mx-auto shadow-xl shadow-green/20">
-              View Leaderboard
-              <ArrowUpRight className="w-5 h-5" />
-            </button>
-          </Link>
-        </div>
-
-        {/* RIGHT \u2013 Scrolling Columns */}
-        <div className="hidden lg:grid grid-cols-2 gap-6 h-[700px] relative overflow-hidden order-2">
-          
-          {/* COLUMN 1 \u2013 SCROLLING UP */}
-          <div className="flex flex-col gap-6 animate-marquee-up hover:[animation-play-state:paused]">
-            {[...testimonialsColumn1, ...testimonialsColumn1, ...testimonialsColumn3,...testimonialsColumn4].map((t, i) => (
-              <TestimonialCard key={`up-${i}`} {...t} />
-            ))}
-          </div>
-
-          {/* COLUMN 2 \u2013 SCROLLING DOWN */}
-          <div className="flex flex-col gap-6 animate-marquee-down hover:[animation-play-state:paused]">
-            {[...testimonialsColumn2, ...testimonialsColumn2, ...testimonialsColumn3,...testimonialsColumn4].map((t, i) => (
-              <TestimonialCard key={`down-${i}`} {...t} />
-            ))}
-          </div>
-
-          {/* Fade Edges */}
-          <div className="absolute inset-x-0 top-0 h-40 bg-gradient-to-b from-background via-background/80 to-transparent pointer-events-none z-10" />
-          <div className="absolute inset-x-0 bottom-0 h-40 bg-gradient-to-t from-background via-background/80 to-transparent pointer-events-none z-10" />
-        </div>
-
-        {/* MOBILE */}
-        <div className="lg:hidden grid grid-cols-1 gap-6 order-2">
-          {[...testimonialsColumn1, ...testimonialsColumn2, ...testimonialsColumn3,...testimonialsColumn4].map((t, i) => (
-            <TestimonialCard key={`mobile-${i}`} {...t} />
-          ))}
-        </div>
-      </div>
-
-      {/* Tailwind Animation Injections */}
-      <style jsx global>{`
-        @keyframes marquee-up {
-          from { transform: translateY(0); }
-          to { transform: translateY(-50%); }
-        }
-        @keyframes marquee-down {
-          from { transform: translateY(-50%); }
-          to { transform: translateY(0); }
-        }
-        .animate-marquee-up {
-          animation: marquee-up 50s linear infinite;
-        }
-        .animate-marquee-down {
-          animation: marquee-down 50s linear infinite;
-        }
-      `}</style>
-            </section>
-          </main>
-        </div>
-      </div>
-    </>
-  );
+interface Review {
+  id: string;
+  name: string;
+  isAnonymous: boolean;
+  rating: number;
+  subject: string;
+  text: string;
+  date: string;
+  category: string;
+  isVerified: boolean;
+  isFeatured: boolean;
+  helpfulCount: number;
+  hasLiked: boolean;
 }
 
-function TestimonialCard({
-  name,
-  role,
-  rating,
-  text,
-  image,
-  withdrawal
-}: {
-  name: string;
-  role: string;
-  rating: number;
-  text: string;
-  image: string;
-  withdrawal: string;
-}) {
+const transformFeedbackToReview = (feedback: any): Review => ({
+  id: feedback._id,
+  name: feedback.user?.name || feedback.user?.username || "Anonymous Learner",
+  isAnonymous: !feedback.user,
+  rating: feedback.starRating,
+  subject: feedback.subject || "",
+  text: feedback.message || "",
+  date: new Date(feedback.createdAt).toLocaleDateString("en-US", {
+    year: "numeric",
+    month: "long",
+    day: "numeric",
+  }),
+  category: "General Feedback",
+  isVerified: !!feedback.user,
+  isFeatured: feedback.featured || false,
+  helpfulCount: feedback.helpfulCount || 0,
+  hasLiked: false,
+});
+
+const ratingsLabels: Record<string, string> = {
+  all: "All Ratings",
+  "5": "5 Stars",
+  "4": "4 Stars",
+  "3": "3 Stars",
+  "2": "2 Stars",
+  "1": "1 Star",
+};
+
+const sortLabels: Record<string, string> = {
+  recent: "Most Recent",
+  highest: "Highest Rated",
+  lowest: "Lowest Rated",
+  helpful: "Most Helpful",
+};
+
+export default function CommunityReviewsPage() {
+  const [reviews, setReviews] = useState<Review[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  const [searchQuery, setSearchQuery] = useState("");
+  const [selectedRating, setSelectedRating] = useState<string>("all");
+  const [sortBy, setSortBy] = useState<string>("recent");
+  const [visibleCount, setVisibleCount] = useState(10);
+
+  useEffect(() => {
+    async function fetchReviews() {
+      try {
+        setIsLoading(true);
+        const response = await fetch("/api/admin/feedback?page=1&limit=100&status=approved");
+        const data = await response.json();
+
+        if (data.success && Array.isArray(data.data)) {
+          // Fetch user details for each feedback
+          const feedbacksWithUsers = await Promise.all(
+            data.data.map(async (feedback: any) => {
+              let user = null;
+              if (feedback.userId) {
+                try {
+                  const userResponse = await fetch(`/api/admin/users/${feedback.userId}`);
+                  if (userResponse.ok) {
+                    user = await userResponse.json();
+                  }
+                } catch (error) {
+                  console.error(`Error fetching user ${feedback.userId}:`, error);
+                }
+              }
+              return { ...feedback, user };
+            })
+          );
+
+          const transformedReviews = feedbacksWithUsers.map(transformFeedbackToReview);
+          setReviews(transformedReviews);
+        }
+      } catch (error) {
+        console.error("Error fetching community reviews:", error);
+        toast.error("Failed to load reviews");
+        setReviews([]);
+      } finally {
+        setIsLoading(false);
+      }
+    }
+    fetchReviews();
+  }, []);
+
+  const filteredAndSortedReviews = useMemo(() => {
+    let result = [...reviews];
+
+    if (searchQuery.trim()) {
+      const query = searchQuery.toLowerCase();
+      result = result.filter(
+        (r) =>
+          r.subject.toLowerCase().includes(query) ||
+          r.text.toLowerCase().includes(query)
+      );
+    }
+
+    if (selectedRating !== "all") {
+      const targetRating = parseInt(selectedRating, 10);
+      result = result.filter((r) => r.rating === targetRating);
+    }
+
+    if (sortBy === "recent") {
+      result.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+    } else if (sortBy === "highest") {
+      result.sort((a, b) => b.rating - a.rating);
+    } else if (sortBy === "lowest") {
+      result.sort((a, b) => a.rating - b.rating);
+    } else if (sortBy === "helpful") {
+      result.sort((a, b) => b.helpfulCount - a.helpfulCount);
+    }
+
+    return result;
+  }, [reviews, searchQuery, selectedRating, sortBy]);
+
+  const featuredReviews = useMemo(() => {
+    return reviews.filter((r) => r.rating === 5).slice(0, 2);
+  }, [reviews]);
+
+  const reviewStats = useMemo(() => {
+    const totalReviews = reviews.length;
+    if (totalReviews === 0) {
+      return {
+        averageRating: "0.0",
+        totalReviews: 0,
+        breakdown: [
+          { stars: 5, count: 0, percentage: 0 },
+          { stars: 4, count: 0, percentage: 0 },
+          { stars: 3, count: 0, percentage: 0 },
+          { stars: 2, count: 0, percentage: 0 },
+          { stars: 1, count: 0, percentage: 0 },
+        ],
+      };
+    }
+
+    const totalRating = reviews.reduce((sum, r) => sum + r.rating, 0);
+    const averageRating = (totalRating / totalReviews).toFixed(1);
+
+    const starCounts = { 5: 0, 4: 0, 3: 0, 2: 0, 1: 0 };
+    reviews.forEach((r) => {
+      const ratingKey = r.rating as keyof typeof starCounts;
+      if (starCounts[ratingKey] !== undefined) {
+        starCounts[ratingKey]++;
+      }
+    });
+
+    const breakdown = [
+      { stars: 5, count: starCounts[5], percentage: Math.round((starCounts[5] / totalReviews) * 100) },
+      { stars: 4, count: starCounts[4], percentage: Math.round((starCounts[4] / totalReviews) * 100) },
+      { stars: 3, count: starCounts[3], percentage: Math.round((starCounts[3] / totalReviews) * 100) },
+      { stars: 2, count: starCounts[2], percentage: Math.round((starCounts[2] / totalReviews) * 100) },
+      { stars: 1, count: starCounts[1], percentage: Math.round((starCounts[1] / totalReviews) * 100) },
+    ];
+
+    return { averageRating, totalReviews, breakdown };
+  }, [reviews]);
+
+  const handleToggleHelpful = async (id: string) => {
+    try {
+      setReviews((prev) =>
+        prev.map((r) => {
+          if (r.id === id) {
+            return {
+              ...r,
+              helpfulCount: r.hasLiked ? r.helpfulCount - 1 : r.helpfulCount + 1,
+              hasLiked: !r.hasLiked,
+            };
+          }
+          return r;
+        })
+      );
+      toast.success("Vote recorded!");
+    } catch (error) {
+      console.error("Error toggling helpful:", error);
+      toast.error("Failed to update helpful vote. Please try again.");
+    }
+  };
+
+  const handleReportReview = async (id: string) => {
+    try {
+      toast.success("Review flagged. Our moderation team will investigate this claim within 24 hours.");
+    } catch (error: any) {
+      console.error("Error reporting review:", error);
+      toast.error("Failed to report review. Please try again.");
+    }
+  };
+
+  const handleLoadMore = () => {
+    setVisibleCount((prev) => prev + 4);
+  };
+
   return (
-    <div className="bg-card/40 backdrop-blur-xl  cursor-pointer border border-primary/10 p-6 rounded-[2rem] space-y-4 shadow-xl hover:border-primary/30 transition-all group">
-      <div className="flex justify-between items-start">
-        <div className="flex items-center gap-1 text-primary">
-          {[...Array(5)].map((_, i) => (
-            <Star key={i} className={`w-3 h-3 ${i < Math.floor(rating) ? "fill-primary" : "fill-none"} stroke-primary`} />
-          ))}
-        </div>
-        <div className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-500 font-mono text-[10px] font-bold">
-          <Wallet className="w-3 h-3" />
-          {withdrawal}
-        </div>
-      </div>
+    <div className="flex h-screen overflow-hidden bg-background">
+      <UserSidebar />
 
-      <p className="text-muted-foreground text-sm leading-relaxed font-medium">
-        \u201c{text}\u201d
-      </p>
+      <div className="flex-1 flex flex-col overflow-hidden text-foreground">
+        <UserHeader />
 
-      <div className="flex items-center gap-3 pt-4 border-t border-primary/5">
-        <img src={image} alt={name} className="w-11 h-11 rounded-full object-cover border-2 border-green-500 shadow-lg" />
-        <div>
-          <h4 className="font-black text-sm uppercase tracking-tight">{name}</h4>
-          <p className="text-[10px] uppercase tracking-widest text-primary font-bold">{role}</p>
-        </div>
+        <main className="flex-1 overflow-y-auto pb-20 lg:pb-0 md:px-4">
+          <section className="flex-grow mx-auto max-w-7xl px-4 py-5 pb-10 lg:py-5 w-full">
+            <div className="space-y-10">
+
+              <div className="space-y-1">
+                <h1 className="text-2xl md:text-3xl font-black text-foreground tracking-tight">
+                  Community Reviews
+                </h1>
+                <p className="text-muted-foreground text-sm">
+                  Explore raw, unfiltered feedback from active Taskers across our global distribution network.
+                </p>
+              </div>
+
+              {reviewStats.totalReviews === 0 && !isLoading ? (
+                <div className="bg-card rounded-xl p-12 shadow-sm border border-border flex flex-col items-center justify-center text-center">
+                  <h3 className="text-xl font-bold text-foreground mb-2">No Reviews Yet</h3>
+                  <p className="text-sm text-muted-foreground max-w-md">
+                    Be the first to share your experience and help others discover our platform.
+                  </p>
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                  <div className="bg-card rounded-xl p-6 shadow-sm border border-border flex flex-col items-center justify-center text-center">
+                    <span className="text-sm font-bold uppercase tracking-wider text-muted-foreground">
+                      Average Rating
+                    </span>
+                    <span className="text-6xl font-black my-2 text-foreground">{reviewStats.averageRating}</span>
+                    <div className="flex items-center gap-0.5 text-amber-500 mb-2">
+                      {[1, 2, 3, 4, 5].map((s) => (
+                        <Star key={s} className="w-5 h-5 fill-current" />
+                      ))}
+                    </div>
+                    <span className="text-xs text-muted-foreground">
+                      Based on {reviewStats.totalReviews} verified submissions
+                    </span>
+                  </div>
+
+                  <div className="bg-card rounded-xl p-6 shadow-sm border border-border md:col-span-2 space-y-2.5">
+                    <h4 className="text-xs font-bold uppercase tracking-wider text-muted-foreground mb-3">
+                      Rating Density Distribution
+                    </h4>
+                    {reviewStats.breakdown.map((row) => (
+                      <div key={row.stars} className="flex items-center text-sm gap-4">
+                        <span className="w-12 text-xs font-bold text-foreground flex items-center gap-1">
+                          {row.stars} <Star className="w-3.5 h-3.5 fill-current text-amber-500 inline" />
+                        </span>
+                        <div className="flex-1 h-2 rounded-full bg-muted overflow-hidden">
+                          <div
+                            className="h-full rounded-full transition-all duration-500 bg-primary"
+                            style={{
+                              width: `${row.percentage}%`,
+                            }}
+                          />
+                        </div>
+                        <span className="w-10 text-right text-xs font-medium text-muted-foreground">
+                          {row.count}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {featuredReviews.length > 0 && (
+                <div className="space-y-3">
+                  <div className="flex items-center gap-2 text-xs font-bold tracking-wider text-amber-600 dark:text-amber-400 uppercase">
+                    <Award className="w-4 h-4" />
+                    <span>Featured Highlights</span>
+                  </div>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {featuredReviews.map((item) => (
+                      <div
+                        key={`featured-${item.id}`}
+                        className="p-5 rounded-xl border border-amber-200/60 dark:border-amber-950/40 bg-amber-50/20 dark:bg-amber-950/10 relative overflow-hidden"
+                      >
+                        <div className="absolute top-0 right-0 transform translate-x-10 translate-y-3 rotate-45 bg-amber-500 text-[10px] uppercase tracking-widest text-white px-10 py-1 font-bold text-center w-[140px]">
+                          FEATURED
+                        </div>
+
+                        <div className="flex items-center gap-1 text-amber-500 mb-2">
+                          {Array.from({ length: item.rating }).map((_, i) => (
+                            <Star key={i} className="w-3.5 h-3.5 fill-current" />
+                          ))}
+                        </div>
+                        <h4 className="font-bold text-sm text-foreground mb-1 line-clamp-1 pr-12">
+                          {item.subject}
+                        </h4>
+                        <p className="text-xs text-muted-foreground line-clamp-3 leading-relaxed">
+                          &ldquo;{item.text}&rdquo;
+                        </p>
+                        <div className="mt-3 flex items-center justify-between text-[11px] font-medium text-gray-400">
+                          <span>— {item.isAnonymous ? "Anonymous" : item.name}</span>
+                          <span>{item.date}</span>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              <hr className="border-border" />
+
+              <div className="bg-card rounded-xl p-4 shadow-sm border border-border space-y-4">
+                <div className="flex flex-col lg:flex-row gap-3">
+                  <div className="flex-1 relative">
+                    <Search className="w-4 h-4 text-gray-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
+                    <input
+                      type="text"
+                      placeholder="Search reviews by keyword..."
+                      value={searchQuery}
+                      onChange={(e) => setSearchQuery(e.target.value)}
+                      className="w-full pl-10 pr-4 py-2 rounded-lg border border-border bg-transparent text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/50"
+                    />
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-2 lg:w-auto">
+                    <DropdownMenu>
+                      <DropdownMenuTrigger className="w-full lg:w-40 flex items-center justify-between pl-3 pr-2.5 py-2 text-xs rounded-lg border border-border bg-card text-foreground font-medium focus:outline-none">
+                        <span>{ratingsLabels[selectedRating]}</span>
+                        <ChevronDown className="w-3 h-3 text-gray-400" />
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end" className="w-40 bg-card border border-border">
+                        {Object.entries(ratingsLabels).map(([value, label]) => (
+                          <DropdownMenuItem
+                            key={value}
+                            onClick={() => setSelectedRating(value)}
+                            className="text-xs cursor-pointer text-foreground focus:bg-muted"
+                          >
+                            {label}
+                          </DropdownMenuItem>
+                        ))}
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+
+                    <DropdownMenu>
+                      <DropdownMenuTrigger className="w-full lg:w-40 flex items-center justify-between pl-3 pr-2.5 py-2 text-xs rounded-lg border border-border bg-card text-foreground font-medium focus:outline-none">
+                        <span>{sortLabels[sortBy]}</span>
+                        <ChevronDown className="w-3 h-3 text-gray-400" />
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end" className="w-40 bg-card border border-border">
+                        {Object.entries(sortLabels).map(([value, label]) => (
+                          <DropdownMenuItem
+                            key={value}
+                            onClick={() => setSortBy(value)}
+                            className="text-xs cursor-pointer text-foreground focus:bg-muted"
+                          >
+                            {label}
+                          </DropdownMenuItem>
+                        ))}
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  </div>
+                </div>
+              </div>
+
+              {isLoading ? (
+                <div className="text-center py-12 border border-dashed border-border rounded-xl">
+                  <p className="text-muted-foreground text-sm">Loading reviews...</p>
+                </div>
+              ) : filteredAndSortedReviews.length === 0 ? (
+                <div className="bg-card rounded-xl p-12 shadow-sm border border-border flex flex-col items-center justify-center text-center">
+                  <Search className="w-16 h-16 text-muted-foreground mb-4" />
+                  <h3 className="text-xl font-bold text-foreground mb-2">No Reviews Found</h3>
+                  <p className="text-sm text-muted-foreground max-w-md">
+                    Try adjusting your filters or search terms to find what you're looking for.
+                  </p>
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {filteredAndSortedReviews.slice(0, visibleCount).map((review) => (
+                    <div
+                      key={review.id}
+                      className="bg-card rounded-xl p-6 shadow-sm border border-border transition-all hover:border-border/80 flex flex-col justify-between space-y-4"
+                    >
+                      <div className="flex items-start justify-between gap-4">
+                        <div className="flex items-start gap-3">
+                          <div className="space-y-1">
+                            <div className="flex items-center gap-2 flex-wrap">
+                              <span className="text-sm font-bold text-foreground">
+                                {review.isAnonymous ? "Anonymous Learner" : review.name}
+                              </span>
+                              {review.isVerified && (
+                                <span className="inline-flex items-center gap-1 text-[11px] font-bold text-emerald-600 bg-emerald-50 dark:bg-emerald-950/20 px-2 py-0.5 rounded-full border border-emerald-200/40">
+                                  <CheckCircle2 className="w-3 h-3" /> Verified Learner
+                                </span>
+                              )}
+                            </div>
+                            <div className="flex items-center gap-0.5 text-amber-500 pt-0.5">
+                              {Array.from({ length: 5 }).map((_, i) => (
+                                <Star
+                                  key={i}
+                                  className={`w-4 h-4 ${
+                                    i < review.rating ? "fill-current" : "text-gray-300 dark:text-gray-700"
+                                  }`}
+                                />
+                              ))}
+                            </div>
+                          </div>
+                        </div>
+                        <span className="text-xs font-medium text-muted-foreground">
+                          {review.date}
+                        </span>
+                      </div>
+
+                      <div className="space-y-1.5">
+                        <h3 className="text-base font-bold text-foreground">
+                          {review.subject}
+                        </h3>
+                        <p className="text-sm leading-relaxed text-muted-foreground">
+                          {review.text}
+                        </p>
+                      </div>
+
+                      <div className="pt-2 flex items-center justify-between border-t border-border text-xs font-semibold">
+                        <button
+                          type="button"
+                          onClick={() => handleToggleHelpful(review.id)}
+                          className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg transition-colors cursor-pointer ${
+                            review.hasLiked
+                              ? "bg-green-50 dark:bg-green-950/20 text-emerald-600"
+                              : `hover:bg-muted text-muted-foreground`
+                          }`}
+                        >
+                          <ThumbsUp className={`w-3.5 h-3.5 ${review.hasLiked ? "fill-current" : ""}`} />
+                          <span>
+                            Helpful {review.helpfulCount > 0 && `(${review.helpfulCount})`}
+                          </span>
+                        </button>
+
+                        <button
+                          type="button"
+                          onClick={() => handleReportReview(review.id)}
+                          className="flex items-center gap-1.5 px-2 py-1.5 rounded-lg hover:bg-red-50 dark:hover:bg-red-950/20 text-muted-foreground hover:text-red-500 dark:hover:text-red-400 transition-colors cursor-pointer"
+                        >
+                          <Flag className="w-3.5 h-3.5" />
+                          <span>Report</span>
+                        </button>
+                      </div>
+
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {filteredAndSortedReviews.length > visibleCount && (
+                <div className="flex justify-center">
+                  <button
+                    onClick={handleLoadMore}
+                    type="button"
+                    className="flex justify-center gap-2 px-4 py-4 rounded-lg text-xs font-bold text-white transition-colors cursor-pointer shadow-sm tracking-wide bg-primary hover:bg-primary/90"
+                  >
+                    <ChevronDown className="w-4 h-4" />
+                    Load More Reviews
+                  </button>
+                </div>
+              )}
+
+            </div>
+          </section>
+        </main>
       </div>
     </div>
   );

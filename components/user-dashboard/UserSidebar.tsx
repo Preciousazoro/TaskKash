@@ -9,6 +9,7 @@ import {
   Users,
   Megaphone,
   Settings,
+  ThumbsUp,
   ShoppingCart,
   Smile,
   Wallet,
@@ -562,6 +563,11 @@ function SidebarNavItems({
           name: "Achievements",
           icon: Gem,
           href: `${basePath}/achievements`,
+        },
+        {
+          name: "Share Feedback",
+          icon: ThumbsUp,
+          href: `${basePath}/feedback`,
         },
         {
           name: "Testimonials",

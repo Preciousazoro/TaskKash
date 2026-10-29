@@ -102,8 +102,8 @@ export async function GET(request: NextRequest) {
       value
     }));
 
-    // Fetch top earners from leaderboard (reuse existing logic)
-    const topEarners = await User.find({})
+    // Fetch top earners from leaderboard (reuse existing logic) - exclude admins
+    const topEarners = await User.find({ role: { $ne: 'admin' } })
       .select('username name email avatarUrl taskPoints tasksCompleted')
       .sort({ taskPoints: -1, tasksCompleted: -1, createdAt: 1 })
       .limit(4)

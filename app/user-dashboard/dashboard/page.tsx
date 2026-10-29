@@ -4,7 +4,7 @@ import { useState, useEffect, useRef, useId } from "react";
 import {
   Trophy, CheckCircle2, Flame, Wallet, Upload, Folder, Share2,
   FileText, Users, Music, ArrowRight, ArrowUpRight, ChevronRight, Copy, Gift,
-  Sparkles, Inbox, TrendingUp, Activity, Coins,
+  Sparkles, Inbox, TrendingUp, Activity, Coins, DollarSign,
 } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -24,6 +24,7 @@ import ProfileCompletionTracker from "@/components/user-dashboard/ProfileComplet
    CONFIG
    ============================================================ */
 const TOKEN_SYMBOL = "TKASH"; // TODO: change to your real ticker
+const TP_TO_USD_RATE = 0.00066; // 1 TP = $0.00066
 
 // Set to true ONLY to preview the design with sample data.
 // Keep false in production so users never see fake numbers.
@@ -56,6 +57,12 @@ const compact = (num: number) => {
   if (num >= 1_000_000) return `${(num / 1_000_000).toFixed(1).replace(".0", "")}M`;
   if (num >= 1_000) return `${(num / 1_000).toFixed(1).replace(".0", "")}K`;
   return num.toString();
+};
+
+const stripHtmlTags = (html: string) => {
+  const tmp = document.createElement('div');
+  tmp.innerHTML = html;
+  return tmp.textContent || tmp.innerText || '';
 };
 
 const shortAddress = (addr: string) =>
@@ -839,9 +846,11 @@ export default function DashboardPage() {
 
   const stats = [
     { label: "Total Earned", value: `${formatPoints(taskPoints)} TP`, href: "#", icon: Trophy, tone: "bg-yellow-500/10 text-yellow-500", spark: "text-yellow-500", trend: t?.totalEarned, change: c?.totalEarned },
+    { label: "USD Value", value: `$${(taskPoints * TP_TO_USD_RATE).toFixed(2)}`, href: "#", icon: DollarSign, tone: "bg-emerald-500/10 text-emerald-500", spark: "text-emerald-500", trend: t?.totalEarned, change: c?.totalEarned },
     { label: "Tasks Done", value: formatPoints(tasksCompleted), href: "#", icon: CheckCircle2, tone: "bg-green-500/10 text-green-500", spark: "text-green-500", trend: t?.tasksDone, change: c?.tasksDone },
     { label: "Withdrawals", value: `${formatPoints(totalWithdrawn)} TP`, href: "/user-dashboard/withdrawals", icon: Wallet, tone: "bg-blue-500/10 text-blue-500", spark: "text-blue-500", trend: t?.withdrawals, change: c?.withdrawals },
     { label: "Active Tasks", value: formatPoints(activeTasksCount), href: "/user-dashboard/tasks", icon: Upload, tone: "bg-purple-500/10 text-purple-500", spark: "text-purple-500", trend: t?.activeTasks, change: c?.activeTasks },
+    { label: "TK Tokens", value: "0.00 TK", href: "#", icon: Coins, tone: "bg-orange-500/10 text-orange-500", spark: "text-orange-500", trend: undefined, change: undefined },
   ];
 
   return (
@@ -873,37 +882,8 @@ export default function DashboardPage() {
               </Link>
             </section>
 
-            {/* Token launch banner */}
-            <section className="relative overflow-hidden rounded-2xl border border-primary/20 bg-gradient-to-r from-primary/10 via-primary/5 to-transparent p-5 md:p-6">
-              <div className="absolute -right-10 -top-10 h-40 w-40 rounded-full bg-primary/10 blur-3xl pointer-events-none" />
-              <div className="relative flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                <div className="flex items-start gap-4">
-                  <div className="hidden sm:flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-primary/15">
-                    <Sparkles className="h-5 w-5 text-primary" />
-                  </div>
-                  <div>
-                    <p className="text-[10px] font-black uppercase tracking-[0.2em] text-primary">
-                      TaskKash Token
-                    </p>
-                    <h2 className="text-base md:text-lg font-black tracking-tight mt-1">
-                      Your Task Points are your stake in what’s coming.
-                    </h2>
-                    <p className="text-sm text-muted-foreground mt-1">
-                      Keep completing tasks to grow your balance before the token launch.
-                    </p>
-                  </div>
-                </div>
-                <Link
-                  href="/user-dashboard/tasks"
-                  className="inline-flex items-center justify-center gap-2 rounded-xl bg-primary px-4 py-2.5 text-xs font-black uppercase tracking-widest text-primary-foreground hover:opacity-90 transition-opacity shrink-0"
-                >
-                  Earn More TP <ArrowRight className="w-4 h-4" />
-                </Link>
-              </div>
-            </section>
-
             {/* Quick Stats with sparklines */}
-            <section className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4">
+            <section className="grid grid-cols-2 lg:grid-cols-3 2xl:grid-cols-6 gap-3 md:gap-4">
               {stats.map((stat) => {
                 const Icon = stat.icon;
                 return (
@@ -943,15 +923,45 @@ export default function DashboardPage() {
               })}
             </section>
 
+             {/* Token launch banner */}
+<section className="relative overflow-hidden rounded-xl border border-primary/20 bg-gradient-to-r from-primary/10 via-primary/5 to-transparent px-4 py-3 sm:px-5 sm:py-3.5">
+  <div className="absolute -right-10 -top-10 h-32 w-32 rounded-full bg-primary/10 blur-2xl pointer-events-none" />
+  
+  <div className="relative flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+    <div className="flex items-center gap-3">
+      {/* Smaller icon container */}
+      <div className="hidden sm:flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-primary/15">
+        <Sparkles className="h-4 w-4 text-primary" />
+      </div>
+
+      <div>
+        <div className="flex items-center gap-2">
+          <p className="text-[9px] font-black uppercase tracking-[0.18em] text-primary">
+            TaskKash Token
+          </p>
+        </div>
+        <h2 className="text-sm font-bold tracking-tight">
+          Your Task Points are your stake in what’s coming.
+        </h2>
+        <p className="text-xs text-muted-foreground mt-0.5 hidden sm:block">
+          Keep completing tasks to grow your balance before the token launch.
+        </p>
+      </div>
+    </div>
+
+    {/* Slimmer button */}
+    <Link
+      href="/user-dashboard/overall-tasks"
+      className="inline-flex items-center justify-center gap-1.5 rounded-lg bg-primary px-3.5 py-1.5 text-[11px] font-black uppercase tracking-wider text-primary-foreground hover:opacity-90 transition-opacity shrink-0 self-start sm:self-auto"
+    >
+      Earn More TP <ArrowRight className="w-3.5 h-3.5" />
+    </Link>
+  </div>
+</section>
+
             {/* Profile Completion Tracker (mobile) */}
             <div className="block lg:hidden w-full">
               <ProfileCompletionTracker />
-            </div>
-
-            {/* Analytics */}
-            <div className="grid grid-cols-1 xl:grid-cols-3 gap-6 md:gap-8">
-              <EarningsOverview className="xl:col-span-2" earnings={analytics?.earnings} loading={analyticsLoading} />
-              <TopEarners earners={analytics?.topEarners} loading={analyticsLoading} />
             </div>
 
             {/* Featured Tasks + Categories */}
@@ -970,7 +980,7 @@ export default function DashboardPage() {
                     </div>
                   </div>
                   <Link
-                    href="/user-dashboard/tasks"
+                    href="/user-dashboard/overall-tasks"
                     className="flex items-center gap-1 text-xs font-bold text-muted-foreground hover:text-foreground transition-colors"
                   >
                     View All <ArrowRight className="w-3.5 h-3.5" />
@@ -988,57 +998,89 @@ export default function DashboardPage() {
                     ))}
                   </div>
                 ) : featuredTasks.length > 0 ? (
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    {featuredTasks.slice(0, 6).map((task, index) => {
-                      const styles = categoryStyles[task.category] || categoryStyles.social;
-                      const CatIcon = categoryIcons[task.category] || Share2;
-                      const isHot = index < 2;
-                      const title = task.title.length > 40 ? `${task.title.slice(0, 40)}…` : task.title;
-
+                  (() => {
+                    const availableTasks = featuredTasks.filter(
+                      task => task.userTaskStatus !== 'pending' && task.userTaskStatus !== 'approved'
+                    );
+                    
+                    if (availableTasks.length === 0) {
                       return (
-                        <div
-                          key={task._id}
-                          onClick={() => handleTaskClick(task)}
-                          className="group flex flex-col rounded-xl border border-border bg-background/50 p-4 hover:border-primary/40 hover:shadow-md transition-all cursor-pointer"
-                        >
-                          <div className="flex items-center justify-between">
-                            <span className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[10px] font-black uppercase tracking-widest ${styles.pill}`}>
-                              <CatIcon className="w-3 h-3" />
-                              {task.category}
-                            </span>
-                            <div className="flex items-center gap-1">
-                              {isHot && (
-                                <span className="rounded-full bg-orange-500/10 px-2 py-0.5 text-[10px] font-black text-orange-500">
-                                  HOT
-                                </span>
-                              )}
-                              <button
-                                onClick={(e) => handleCopyTaskUrl(e, task)}
-                                className="p-1.5 rounded-lg hover:bg-muted transition-colors"
-                                title="Copy task URL"
-                              >
-                                <Copy className="w-4 h-4 text-muted-foreground" />
-                              </button>
-                            </div>
+                        <div className="flex flex-col items-center justify-center rounded-xl border border-dashed border-border bg-background/40 px-6 py-12 text-center">
+                          <div className="flex h-14 w-14 items-center justify-center rounded-full bg-muted">
+                            <CheckCircle2 className="h-7 w-7 text-green-500" />
                           </div>
-
-                          <h3 className="mt-3 text-sm font-bold leading-snug flex-grow">{title}</h3>
-
-                          <div className="mt-4 flex items-center justify-between">
-                            <span className={`text-base font-black ${styles.text}`}>
-                              +{task.rewardPoints} TP
-                            </span>
-                          </div>
-
-                          <button
-                            className={`mt-3 flex w-full items-center justify-center gap-2 rounded-lg bg-foreground py-2.5 text-xs font-black uppercase tracking-widest text-background transition-all ${styles.btnHover} group-hover:text-white`}
+                          <h3 className="mt-4 text-sm font-black tracking-tight">All featured tasks completed!</h3>
+                          <p className="mt-1 max-w-xs text-xs text-muted-foreground">
+                            You've submitted all featured tasks. Check back later for new ones.
+                          </p>
+                          <Link
+                            href="/user-dashboard/overall-tasks"
+                            className="mt-5 inline-flex items-center gap-2 rounded-lg bg-primary px-4 py-2.5 text-xs font-black uppercase tracking-widest text-primary-foreground hover:opacity-90 transition-opacity"
                           >
-                            Start Task <ArrowRight className="w-3.5 h-3.5" />
-                          </button>
+                            Browse All Tasks <ArrowRight className="w-3.5 h-3.5" />
+                          </Link>
                         </div>
                       );
-                    })}
-                  </div>
+                    }
+                    
+                    return (
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        {availableTasks.slice(0, 6).map((task, index) => {
+                          const styles = categoryStyles[task.category] || categoryStyles.social;
+                          const CatIcon = categoryIcons[task.category] || Share2;
+                          const isHot = index < 2;
+                          const title = task.title.length > 40 ? `${task.title.slice(0, 40)}…` : task.title;
+
+                          return (
+                            <div
+                              key={task._id}
+                              onClick={() => handleTaskClick(task)}
+                              className="group flex flex-col rounded-xl border border-border bg-background/50 p-4 hover:border-primary/40 hover:shadow-md transition-all cursor-pointer"
+                            >
+                              <div className="flex items-center justify-between">
+                                <span className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[10px] font-black uppercase tracking-widest ${styles.pill}`}>
+                                  <CatIcon className="w-3 h-3" />
+                                  {task.category}
+                                </span>
+                                <div className="flex items-center gap-1">
+                                  {isHot && (
+                                    <span className="rounded-full bg-orange-500/10 px-2 py-0.5 text-[10px] font-black text-orange-500">
+                                      HOT
+                                    </span>
+                                  )}
+                                  <button
+                                    onClick={(e) => handleCopyTaskUrl(e, task)}
+                                    className="p-1.5 rounded-lg hover:bg-muted transition-colors"
+                                    title="Copy task URL"
+                                  >
+                                    <Copy className="w-4 h-4 text-muted-foreground" />
+                                  </button>
+                                </div>
+                              </div>
+
+                              <h3 className="mt-3 text-sm font-bold leading-snug">{title}</h3>
+
+                              <div className="mt-2 text-xs text-muted-foreground line-clamp-2 leading-relaxed">
+                                {stripHtmlTags(task.instructions)}
+                              </div>
+
+                              <div className="mt-4 flex items-center justify-between">
+                                <span className={`text-base font-black ${styles.text}`}>
+                                  +{task.rewardPoints} TP
+                                </span>
+                              </div>
+
+                              <button
+                                className={`mt-3 flex w-full items-center justify-center gap-2 rounded-lg bg-foreground py-2.5 text-xs font-black uppercase tracking-widest text-background transition-all ${styles.btnHover} group-hover:text-white`}
+                              >
+                                Start Task <ArrowRight className="w-3.5 h-3.5" />
+                              </button>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    );
+                  })()
                 ) : (
                   <div className="flex flex-col items-center justify-center rounded-xl border border-dashed border-border bg-background/40 px-6 py-12 text-center">
                     <div className="flex h-14 w-14 items-center justify-center rounded-full bg-muted">
@@ -1049,7 +1091,7 @@ export default function DashboardPage() {
                       New tasks drop regularly. Check the full task list or explore a category to keep earning TP.
                     </p>
                     <Link
-                      href="/user-dashboard/tasks"
+                      href="/user-dashboard/overall-tasks"
                       className="mt-5 inline-flex items-center gap-2 rounded-lg bg-primary px-4 py-2.5 text-xs font-black uppercase tracking-widest text-primary-foreground hover:opacity-90 transition-opacity"
                     >
                       Browse All Tasks <ArrowRight className="w-3.5 h-3.5" />
@@ -1059,13 +1101,13 @@ export default function DashboardPage() {
               </section>
 
               {/* Task Categories */}
-              <section className="bg-card border border-border rounded-2xl p-5 md:p-6">
-                <div className="flex items-center gap-2 mb-5">
+              <section className="bg-card border border-border rounded-2xl p-5 md:p-5">
+                <div className="flex items-center gap-2 mb-3">
                   <Folder className="w-5 h-5 text-primary" />
                   <h2 className="text-xs font-black uppercase tracking-[0.2em]">Task Categories</h2>
                 </div>
 
-                <div className="space-y-2">
+                <div className="space-y-1">
                   {categoryList.map((cat) => {
                     const Icon = cat.icon;
                     return (
@@ -1087,6 +1129,12 @@ export default function DashboardPage() {
                   })}
                 </div>
               </section>
+            </div>
+
+            {/* Analytics */}
+            <div className="grid grid-cols-1 xl:grid-cols-3 gap-6 md:gap-8">
+              <EarningsOverview className="xl:col-span-2" earnings={analytics?.earnings} loading={analyticsLoading} />
+              <TopEarners earners={analytics?.topEarners} loading={analyticsLoading} />
             </div>
 
             {/* Token Holders */}

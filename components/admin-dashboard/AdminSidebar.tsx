@@ -10,6 +10,7 @@ import {
   Users,
   Edit2,
   FileText,
+  ListChecks,
   ShoppingCart,
   Wallet,
   BadgeCheck,
@@ -320,14 +321,19 @@ function SidebarNavItems({
       ],
     },
     {
-      name: "Rewards",
+      name: "Rewards Hub",
       icon: Award,
       href: `${basePath}/rewards`,
     },
     {
-      name: "Prj Analytics",
+      name: "Project Analytics",
       icon: TrendingUp,
       href: `${basePath}/project-analytics`,
+    },
+    {
+      name: "Review Management",
+      icon: ListChecks,
+      href: `${basePath}/review-management`,
     },
     {
       name: "KYC Verification",

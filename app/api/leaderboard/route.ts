@@ -25,18 +25,18 @@ export async function GET(request: NextRequest) {
     const limit = parseInt(searchParams.get('limit') || '50');
     const skip = (page - 1) * limit;
 
-    // Get top 3 users for podium (always the same)
-    const topThreeUsers = await User.find({})
+    // Get top 3 users for podium (always the same) - exclude admins
+    const topThreeUsers = await User.find({ role: { $ne: 'admin' } })
       .select('username name email avatarUrl taskPoints tasksCompleted createdAt')
       .sort({ taskPoints: -1, tasksCompleted: -1, createdAt: 1 })
       .limit(3)
       .lean();
 
-    // Get total count for pagination
-    const totalCount = await User.countDocuments({});
+    // Get total count for pagination - exclude admins
+    const totalCount = await User.countDocuments({ role: { $ne: 'admin' } });
 
-    // Get paginated users for table
-    const paginatedUsers = await User.find({})
+    // Get paginated users for table - exclude admins
+    const paginatedUsers = await User.find({ role: { $ne: 'admin' } })
       .select('username name email avatarUrl taskPoints tasksCompleted createdAt')
       .sort({ taskPoints: -1, tasksCompleted: -1, createdAt: 1 })
       .skip(skip)

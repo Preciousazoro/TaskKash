@@ -15,8 +15,8 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url);
     const limit = parseInt(searchParams.get('limit') || '20');
 
-    // Get top users sorted by tasksCompleted (for dashboard)
-    const topTaskers = await User.find({})
+    // Get top users sorted by tasksCompleted (for dashboard) - exclude admins
+    const topTaskers = await User.find({ role: { $ne: 'admin' } })
       .select('username name email avatarUrl taskPoints tasksCompleted createdAt')
       .sort({ tasksCompleted: -1, taskPoints: -1, createdAt: 1 })
       .limit(limit)

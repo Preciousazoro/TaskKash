@@ -270,8 +270,8 @@ export default function Hero() {
               size="lg"
               className="flex-1 cursor-pointer rounded-full bg-emerald-500 px-4 py-7 lg:py-7 text-sm font-extrabold tracking-wider text-white shadow-[0_10px_30px_-8px_rgba(16,185,129,0.6)] transition-all hover:scale-105 hover:bg-emerald-600 sm:flex-none sm:px-8 sm:text-sm"
             >
-              <Link href="/auth/signup" className="flex items-center gap-2">
-                Sign Up
+              <Link href="/auth/login" className="flex items-center gap-2">
+                Sign in
               </Link>
             </Button>
             <Button
