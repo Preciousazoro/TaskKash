@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
+import { signIn } from "next-auth/react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -78,6 +79,29 @@ export default function RegisterPage() {
       const data = await response.json();
 
       if (response.ok) {
+        // ⚠️ TEMPORARY: when email verification is bypassed, the account is
+        // created immediately — sign in and go straight to the dashboard.
+        if (data.requiresVerification === false) {
+          toast.success('Account created successfully!');
+          const signInResult = await signIn('credentials', {
+            email: form.email,
+            password: form.password,
+            redirect: false,
+            callbackUrl: '/user-dashboard/dashboard',
+          });
+          if (signInResult?.ok) {
+            setTimeout(() => {
+              router.push('/user-dashboard/dashboard');
+            }, 500);
+          } else {
+            toast.info('Account created! Please sign in.');
+            setTimeout(() => {
+              router.push('/auth/login');
+            }, 1500);
+          }
+          return;
+        }
+
         toast.success('Verification code sent to your email!');
         sessionStorage.setItem('signupEmail', form.email);
         setTimeout(() => {
